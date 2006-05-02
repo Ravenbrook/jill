@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>Jili Architecture</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">projects</a> /
+<a href="/project/jili/">Java Implementation of Lua for Intuwave</a>
+</p>
+
+<hr />
+
+
+<h1>Jili Architecture</h1>
+
+<address>
+<a href="mailto:drj@ravenbrook.com">David Jones</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+2006-04-26
+</address>
+
+</div>
+
+
+<h2 id="section-1">1. Introduction</h2>
+
+<p>
+This documents describe the design of Jili at a high level.
+</p>
+
+<p>
+This is a draft docoument.
+</p>
+
+<p>
+The readership of this document is anyone interested in the Jili
+project.
+</p>
+
+<h2 id="section-2">2. Overview</h2>
+
+<p>
+A key design principle is to follow the PUC-Rio design closely.  This
+reduces time spent making design choices and uses a design that is known
+to work well for implementing Lua.
+</p>
+
+<p>
+Because Jili must operate in constrained devices, designs that minimise
+superfluous classes have been preferred.  This is in order to reduce the
+size of any <code>.jar</code> file incorporating Jili.
+</p>
+
+
+<p>
+The key modules are identified diagrammatically:
+</p>
+
+<img src="modules.png" border="1"></img>
+
+
+<p>
+The diagram is arranged so that generally modules make use of services,
+and instantiate objects implemented by, modules lower down.
+</p>
+
+<p>
+The extent to which these modules correspond to classes is yet to be
+defined.  For example since Code (code generation) and Syntax (lexing
+and parsing) are used as a single process when compiling it seems likely
+that the functionality provided by these modules will be implemented in
+the same Java class.
+</p>
+
+<p>
+The modules are arranged in clusters:
+</p>
+
+<ul>
+
+<li>
+Generation (of code)
+</li>
+<li>
+Execution
+</li>
+<li>
+Representation (of data)
+</li>
+<li>
+Inspection (the oddball. debug module)
+</li>
+
+</ul>
+
+<p>
+Executable code is injected into the Jili system from two sources:
+compilation from lua source and loading precompiled binaries.  Both of
+these occur in the <code>Lua.load</code> method.  The Generation cluster is
+responsible for these activities.  Generally the results of compilation
+(or equivalently, undumping binary chunks) are a single function (one
+per script) which generally will reference many constants, strings,
+numbers, and other functions.  All of these objects are created using
+the lower level Representation cluster.  The Syntax and Code modules
+create code from Lua source, the Undump module creates code from a
+compiled binary representation.  The compiled binary representation will
+be the same as the PUC-Rio implementation; this has the benefit that
+binaries can be compiled offline (not on the target) and loaded on the
+target, meaning that the compiler (Syntax and Code) need not be working
+in order to test the remaining parts of the system.
+</p>
+
+<p>
+The Execution cluster is responsible for executing Lua code.  All Lua
+code that is to be executed is in an internal binary form (clusters of
+LuaFunction objects).  All execution begins by some Java code calling
+the call method or the resume method (for coroutine resumption) of a Lua
+state object.
+Execution proceeds by the VM interpreting the VM
+instructions of the function.  When control transfers to another Lua
+function then the VM suspends its internal state in an internal stack
+and begins interpreting VM instructions for the newly called function.
+Note that the VM, under most circumstances, will not invoke itself to
+execution a called Lua function, thus the Lua stack will not be modelled
+by the Java stack; this is essential in order to implement coroutines.
+Execution of VM instructions is suspended when Lua calls a function
+implemented in Java; when that function returns to the VM then the VM
+will resume execution of VM instructions.  If the called Java function
+requests a yield, which it will do with code similar to "return
+L.yield()", then the VM will remain suspended and return to its caller
+(the Java code that originally invoked <code>Lua.call</code>).
+</p>
+
+<p>
+Representation specifies how Lua values are modelled in terms of Java objects
+and values.  Classes in this cluster will specify the layout, in terms
+of Java objects, of Lua values and define the primitive operations on
+these values.  This is a large part of the design and its details have
+implications throughout the system.  See <a
+href="#object-model">Object Model</a>, below.
+</p>
+
+<p>
+The Debug cluster (module really) provides two services in Jili: the
+interface to Lua's debug hooks (which is in reality likely to be a
+method on the Lua state object); and, mapping of the compiled form of
+Lua functions to source code (file, line number, variable name).
+</p>
+
+
+<h2 id="object-model">
+3. Object Model
+</h2>
+
+<p>
+An encapsulated Lua execution environment is represented by the class
+<code>Lua</code>.
+In order to minimise superfluous classes this class is likely to
+implement a large number of methods.  This class will be the analogue of
+PUC-Rio's <code>lua_State</code> object.  Like PUC-Rio's implementation
+it will be possible to have completely independent Lua execution
+environments by creating multiple instance of <code>Lua</code>
+</p>
+
+<p>
+Generally a value in Lua will be represented by an object (which
+possibly references further internal implementation objects) in Java.
+Java programmers using Jili will be able to store Lua values wherever
+they like, they will not be restricted to storing them only within other
+Lua objects (such as tables).  The JVM's GC will be used to implicitly
+collect Lua objects.  This means that provision of weakness (the
+<code>__mode</code> field of metatables, see <a href="#ref-lrm">LRM</a> <a
+href="http://www.lua.org/manual/5.1/manual.html#weak-table">Weak
+Tables</a>) and finalisation (the <code>__gc</code> field, see <a
+href="#ref-lrm">LRM</a> <a
+href="http://www.lua.org/manual/5.1/manual.html#2.10.1">Garbage-Collection
+Metamethods</a>) are subject to
+the implementation of equivalent facilities in the JVM.
+</p>
+
+<p>
+A Lua value supports many generic operations.  These will be represented
+in Jili by methods (on the Lua state object).
+The following monadic operations are identified (whose
+names are all taken from the equivalent functions from PUC-Rio's C API,
+eg lua_call, lua_getfield, etc): call, getfenv, getfield, 
+getmetatable, isboolean, isfunction, islightuserdata, isnil, isnumber,
+isstring, istable, isthread, isuserdata, objlen, setfenv, setfield,
+setmetatable, toboolean, tointeger, tonumber, topointer, tostring,
+tothread, touserdata, type.
+</p>
+
+<p>
+PUC-Rio's <code>lua_iscfunction</code> and <code>lua_tocfunction</code>
+will have equivalents for Lua Java functions.
+</p>
+
+<p>
+The following operations receive more than one value (operand):
+concat, equal, lessthan, rawequal.
+</p>
+
+<h3>Representing Lua's nil, boolean, number, and string types</h3>
+
+<p>
+Lua's <code>nil</code> is represented by Java's <code>null</code>.
+</p>
+
+<p>
+Lua's <code>boolean</code> is represented by Java's
+<code>java.lang.Boolean</code>.
+</p>
+
+<p>
+Lua numbers shall be represented by Java's <code>java.lang.Double</code> class.
+</p>
+
+<p>
+Lua strings shall be represented by Java's <code>java.lang.String</code> class.
+</p>
+
+<p>
+The upshot of representing nil, boolean, strings, and numbers by their
+"obvious" counterparts in Java is that we do not need to implement a new
+class for each type.  This saves space in the <code>.jar</code> file, is
+likely to be faster (less boxing and unboxing to perform), and is more
+natural for Java programmers writing Jili extensions.  A
+consequence is that the basic operations on Lua types (see above) cannot
+be represented by instance methods since Java provides no way for us to
+add an instance method to someone else's class, such as
+<code>java.lang.String</code>.  That's why all the basic operations are
+methods on the <code>Lua</code> class.
+</p>
+
+<p>
+An alternative approach, where all Lua values were represented by an
+(indirect) instance of a particular class, <code>LuaValue</code>, was
+considered, but rejected because of the extra classes it would introduce
+(bloating the <code>.jar</code> file)
+and because it leads to less natural code for the Java programmer, who would
+have to constantly create Java strings from Lua strings, convert Java
+doubles to Lua numbers and so forth.
+</p>
+
+<h3>Representing Functions</h3>
+
+
+<p>
+A function (implemented in Java or Lua) is represented by the class
+LuaFunction.  Implements a call method.  There are two sorts of
+functions, those implemented in Lua and those implemented in Java.  It's
+not yet clear how many classes will be used for the implementation.
+<code>.jar</code> file size concerns may lead to all types of functions
+being implemented in one class.
+</p>
+
+<p>
+The code for functions that are implemented in Java, "Lua Java Functions",
+is represented by an instance of the abstract class
+<code>LuaJavaCallback</code> and an <code>int</code>.  An abstract class
+is preferred over an interface because method invocation is a shorter
+JVM bytecode sequence.
+</p>
+
+<pre>
+/**
+ * This class encapsulates Java code that is invokable from within Lua.
+ * To create a Lua extension in Java you must extend this class and
+ * implement the <code>luaFunction</code> method.  An (indirect) instance
+ * of this class is passed to {@link Lua.createLuaJavaFunction} or
+ * @{link createLuaJavaClosure} to create a Lua function that calls Java
+ * when invoked (the <code>luaFunction</code> method will be invoked).
+ * Each Lua function that need creating must be created by calling
+ * <code>createLuaJavaFunction</code> or
+ * <code>createLuaJavaClosure</code>.
+ */
+public abstract class LuaJavaCallback {
+  int luaFunction(Lua L, int c);
+}
+</pre>
+
+<p>
+They are manipulated as Lua values by creating an (indirect) instance of
+LuaFunction:
+</p>
+
+<pre>
+class Lua {
+  /**
+   * Creates a Lua function that invokes Java when called.
+   * Analagous to lua_pushcfunction in the PUC-Rio API.
+   * @param o  The object whose <code>luaFunction</code> method will be
+   *           invoked.  When Lua code calls the function created by
+   *           this method, the <code>LuaFunction</code> method of the
+   *           object o, specified by {@link LuaJavaCallback},
+   *           will be invoked.  The Lua object, the int c,
+   *           and the actual arguments to the function will be passed
+   *           to the <code>luaFunction</code> method.
+   * @param c  An int closure parameter.  This is passed to o's
+   *           <code>luaFunction</code>.  It can be used for any
+   *           purpose, but the intended purpose is so that one instance
+   *           of {@link LuaFunctionCallback} can implement many
+   *           different Lua functions (distinguishing between them by
+   *           using different choices for c), and thereby reduce the
+   *           proliferation of objects.
+   * @return   The Lua function.  Note: in order for this function to be
+   *           callable from Lua it must be stored somewhere accessible
+   *           to Lua, for example, in the global table.
+   */
+  LuaFunction createLuaJavaFunction(LuaJavaCallback o, int c) {
+    return null; }
+  /**
+   * Creates a Lua function that invokes Java when called.  The java
+   * code, when it is executed, will have access to an upvalue.
+   * @param o  As for {@link createLuaJavaFunction} an object that has a
+   *           <code>luaFunction</code> method.
+   * @param c  As for {@link createLuaJavaFunction} an int closure
+   *           parameter.
+   * @param upvalue  An arbitrary Java object that is made available to
+   *           the <code>luaFunction</code> (via the {@link
+   *           Lua.getUpvalue} method) when it is executed.  Because
+   *           this is an arbitrary object it is possible to store
+   *           multiple values, for example in an array.  Note that the
+   *           upvalue can be any Java object, it need not be a Lua
+   *           value.
+   * @return   The Lua function.
+   */
+  LuaFunction createLuaJavaClosure(LuaJavaCallback o,
+      int c,
+      Object upvalue) {
+    return null; }
+   
+}
+</pre>
+
+<p>
+To consider: get rid of the <code>int c</code> parameter from the
+<code>luaFunction</code> method and remove
+<code>createLuaJavaFunction</code> and <code>createLuaJavaClosure</code>
+methods from <code>Lua</code>.  Clients (Java programmers writing
+extensions) can subclass <code>LuaJavaCallback</code> and provide their
+own <code>int c</code> instance member if desired.  The client allocated
+instances (of <code>LuaJavaCallback</code>) will represent the functions
+directly.  Jili can use <code>instanceof LuaJavaCallback</code> to test
+an object for being a Lua Java Function.
+</p>
+
+<h3>Representing Tables</h3>
+
+<p>
+Lua Tables will be represented by the class <code>LuaTable</code>,
+which will largely
+rely on the services of <code>java.util.Hashtable</code> (which thankfully
+exists in
+CLDC 1.0) to do the heavy lifting.  It's likely that we can implement
+<code>LuaTable</code> as a subclass of <code>java.util.Hashtable</code>
+(smaller and faster than alternatives).
+The services beyond those provided
+by <code>java.util.Hashtable are</code>: metatable, non-raw access (ie a getfield
+which goes via the metatable if there is one), length (non-obvious
+semantics, see <a href="#ref-lrm">LRM</a>: <a
+href="http://www.lua.org/manual/5.1/manual.html#len-op">The Length
+Operator</a>), callable (metatable), concatable (metatable), comparable
+(metatable).  All of these operations will be invoked by the Java
+programming using methods from the <code>LuaValue</code> class; recall
+that this is necessary because in Lua all values support most operations.</p>
+
+<p>Note that we are relying on the underlying table support providing by
+<code>java.util.Hashtable</code>.  This may have different performance
+from the PUC-Rio C implementation of hash tables.  For example, Lua's
+<code>pairs</code> function from the base library will be implemented
+using the <code>java.util.Enumeration</code> returned from the
+<code>Hashtable</code>'s <code>keys</code> method, so this will be
+reasonably efficient.  The <code>next</code> function, also in the base
+library but less commonly used, is not supported efficiently by
+<code>java.util.Hashtable</code> so its implementation in Jili will be
+less efficient.
+</p>
+
+<p>
+Also likely to have an impact on the performance of tables is the hash
+function, which in Java is distributed amongst the classes whose objects
+will be added to the table.  Since we are representing many Lua values
+directly by corresponding Java objects, we will have no control over the
+hash function (which for most of the types we will be using is in fact
+specified by the Java platform.  EG <code>java.lang.String</code>).
+</p>
+
+<h3>Representing Userdata</h3>
+
+<p>
+In PUC-Rio Lua a userdata exists to create Lua values that reference
+C types, either directly or via an additional pointer.  The
+corresponding facility in Jili allows Lua values that reference
+arbitrary Java objects and includes a per-object metatable.  It is a
+simple class with a metatable member and an <code>Object</code> member.
+</p>
+
+<h3>Representing Coroutines</h3>
+
+<p>
+As in PUC-Rio Lua, Jili will represent a coroutine (or thread) by a Lua
+state object that shares a global environment with its parent coroutine.
+Note that whilst coroutines share global environments they do not share
+VM execution states so they represent independent threads of execution.
+</p>
+
+<h2 id="section-A">A. References</h2>
+
+<table>
+
+<tr valign="top">
+    <td>[<a id="ref-lrm">LRM</a>]</td>
+    <td>Lua 5.1 Reference Manual; Roberto Ierusalimschy, Luiz Henrique
+    de Figueiredo, Waldemar Celes; &lt;URL: <a
+    href="http://www.lua.org/manual/5.1/manual.html">http://www.lua.org/manual/5.1/manual.html"</a>
+    &gt;; 2006</td>
+</tr>
+  
+</table>
+
+<h2 id="section-B">B. Document History</h2>
+
+<table>
+
+<tr valign="top">
+    <td>2006-04-26</td>
+    <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+    <td>Created.</td>
+</tr>
+
+</table>
+
+<h2 id="section-C">C. Copyright and Licence</h2>
+
+<p>
+Copyright &copy; 2006 Ravenbrook Limited.  Intuwave Client
+Confidential.
+</p>
+
+<hr />
+
+<div align="center">
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">projects</a> /
+<a href="/project/jili/">Java Implementation of Lua for Intuwave</a>
+</p>
+
+</div>
+
+</body>
+</html>
