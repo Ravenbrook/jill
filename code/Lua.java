@@ -8,6 +8,15 @@ import java.io.Reader;
  */
 public final class Lua {
   /**
+   * Gets the global environment.  The global environment, where global
+   * variables live, is returned as a <code>LuaTable</code>.  Note that
+   * modifying this table has exactly the same effect as creating or
+   * changing global variables from within Lua.
+   * @return  The global environment as a table.
+   */
+  public LuaTable getGlobals() { return null; }
+
+  /**
    * Loads a Lua chunk in binary or source form.
    * Comparable to C's lua_load.  If the chunk is determined to be
    * binary then it is loaded directly.  Otherwise the chunk is assumed

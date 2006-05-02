@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- $Header -->
+
+<project name="Jili" default="compile" basedir=".">
+  <property name="project" value="${ant.project.name}"/>
+
+  <target name="compile">
+    <javac destdir="." srcdir="." />
+  </target>
+
+  <target name="doc">
+    <javadoc sourcepath="." destdir="javadoc"
+        packagenames="">
+      <fileset file="*.java" />
+    </javadoc>
+  </target>
+</project>
