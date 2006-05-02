@@ -31,7 +31,7 @@
 	<array>
 		<dict>
 			<key>Bounds</key>
-			<string>{{-14.0482, 240.945}, {84.9144, 11}}</string>
+			<string>{{-175.579, 263.791}, {396.85, 11}}</string>
 			<key>Class</key>
 			<string>ShapedGraphic</string>
 			<key>FitText</key>
@@ -761,7 +761,7 @@
 		</dict>
 	</array>
 	<key>ModificationDate</key>
-	<string>2006-05-02 10:06:20 +0100</string>
+	<string>2006-05-02 10:08:03 +0100</string>
 	<key>Modifier</key>
 	<string>David Jones</string>
 	<key>NotesVisible</key>
