@@ -17,6 +17,55 @@ public final class Lua {
   public LuaTable getGlobals() { return null; }
 
   /**
+   * Tests that an object is a Lua boolean.  Returns <code>true</code>
+   * if the object represents a boolean Lua value (<code>true</code> or
+   * <code>false</code> in Lua); return <code>false</code> otherwise.
+   */
+  public static boolean isBoolean(Object o) {
+    return o instanceof Boolean;
+  }
+
+  /**
+   * Tests that an object is a Lua function implementated in Java.
+   * Returns <code>true</code> if so, <code>false</code> otherwise.
+   */
+  public static boolean isJavaFunction(Object o) {
+    return o instanceof LuaJavaCallback;
+  }
+  /**
+   * Tests that an object is a Lua function (implemented in Lua or
+   * Java).  Returns <code>true</code> if so, <code>false</code>
+   * otherwise.
+   */
+  public static boolean isFunction(Object o) {
+    return o instanceof LuaFunction ||
+        o instanceof LuaJavaCallback;
+  }
+
+  /**
+   * Tests that an object is a Lua value.  Returns <code>true</code> for
+   * an argument that is a Jili representation of a Lua value,
+   * <code>false</code> for Java references that are not Lua values.
+   * For example <code>isValue("Hello")</code> is <code>true</code>
+   * because Lua strings are represented by Java strings, but
+   * <code>isValue(new Object[] { })</code> because Java arrays are not
+   * a representation of any Lua value.  PUC-Rio Lua provides no
+   * counterpart for this method because in their implementation it is
+   * impossible to get non Lua values on the stack, whereas in Jili it
+   * is common to mix Lua values with ordinary, non Lua, Java objects.
+   */
+  public static boolean isValue(Object o) {
+    return o == null ||
+        o instanceof Boolean ||
+        o instanceof String ||
+        o instanceof Double ||
+        o instanceof LuaFunction ||
+        o instanceof LuaJavaCallback ||
+        o instanceof LuaTable ||
+        o instanceof LuaUserdata;
+  }
+
+  /**
    * Loads a Lua chunk in binary or source form.
    * Comparable to C's lua_load.  If the chunk is determined to be
    * binary then it is loaded directly.  Otherwise the chunk is assumed
