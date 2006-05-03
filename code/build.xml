@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- $Header -->
+<!-- $Header$ -->
 
 <project name="Jili" default="compile" basedir=".">
   <property name="project" value="${ant.project.name}"/>
@@ -11,8 +11,10 @@
 
   <target name="doc">
     <javadoc sourcepath="." destdir="javadoc"
-        packagenames="">
+        packagenames=""
+        access="package" >
       <fileset file="*.java" />
     </javadoc>
   </target>
+
 </project>

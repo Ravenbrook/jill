@@ -14,7 +14,8 @@
  */
 public final class LuaUserdata {
   private Object userdata;
-  private Object metatable;
+  private LuaTable metatable;
+  private LuaTable env;
   /**
    * Wraps an arbitrary Java reference.  To retrieve the reference that
    * was wrapped, use @{link Lua.toUserdata}.
@@ -44,7 +45,22 @@ public final class LuaUserdata {
    * Setter for metatable.
    * @param metatable The metatable.
    */
-  void setMetatable(Object metatable) {
+  void setMetatable(LuaTable metatable) {
     this.metatable = metatable;
+  }
+
+  /**
+   * Getter for environment.
+   * @return The environment.
+   */
+  Object getEnv() {
+    return environment;
+  }
+  /**
+   * Setter for environment.
+   * @param env  The environment.
+   */
+  void setEnv(LuaTable env) {
+    this.env = env;
   }
 }
