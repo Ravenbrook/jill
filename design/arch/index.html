@@ -171,7 +171,7 @@ In order to minimise superfluous classes this class is likely to
 implement a large number of methods.  This class will be the analogue of
 PUC-Rio's <code>lua_State</code> object.  Like PUC-Rio's implementation
 it will be possible to have completely independent Lua execution
-environments by creating multiple instance of <code>Lua</code>
+environments by creating multiple instances of <code>Lua</code>.
 </p>
 
 <p>
@@ -265,6 +265,152 @@ not yet clear how many classes will be used for the implementation.
 <code>.jar</code> file size concerns may lead to all types of functions
 being implemented in one class.
 </p>
+
+<h4>
+Functions implemented in Lua
+</h4>
+
+<p>
+A function (closure) corresponds to some <em>code</em>, some closed over
+variables (variables that are used in an inner function but are defined
+in an outer function) which Lua calls <code>upvalues</code>, and an
+<em>environment</em> (by default a function's environment is the same as
+the function in which it is defined and is usually the global table; see
+<a href="#ref-lrm">LRM</a> <a
+href="http://www.lua.org/manual/5.1/manual.html#environ">2.9 -
+Environments</a>).
+</p>
+
+<p>
+The code is represented in the PUC-Rio source by a <code>Proto</code>
+struct which is quite large; it contains a block of VM instructions, an
+array of constants, an array of functions defined therein (actually an
+array of pointers to <code>Proto</code> structs), the number of upvalues
+used, the number of formal parameters, and some vararg information.
+</p>
+
+<p>
+An upvalue is a reference to a variable defined in an enclosing
+function.  They are represented internally in the PUC-Rio code by the
+<code>UpVal</code> type.
+PUC-Rio uses an optimised representation by which the value
+is kept on the VM stack until the enclosing function returns.  In
+returning, the enclosing function destroys its stack activation frame
+and copies all stack values (that are about to be destroyed)
+that are referred to by <code>UpVal</code>s into the <code>UpVal</code>
+struct.  This operation is referred to as closing the upvalue; upvalues
+that reference values that are still on the stack are <em>open</em>.
+In PUC-Rio the enclosing function, that defines a variable that
+is used by an inner function, has full-speed access to all its
+variables; the inner function pays only a slight penalty (an extra
+pointer indirection).  There is some housekeeping to do when a function
+returns, but this is only necessary if its inner functions use upvalues.
+</p>
+
+<p>
+(In PUC-Rio Lua) Upvalues are bound with a closure when the
+<code>OP_CLOSURE</code> VM instruction is executed.  Each element in the
+closure's <code>upvals</code> array is either a reference to an upvalue of
+the enclosing function (that is, the variable in question in defined in
+a function at least 2 levels "up" and is used by inner functions at
+different levels) which has already been created, or is a reference to
+an upvalue for a variable in the directly enclosing function (the
+function being executed when the <code>OP_CLOSURE</code> instruction is
+executed).  In the latter case the upvalue may already exist, if another
+closure defined in this function needed it, or may need creating.  The
+<code>luaF_findupval</code> does the job of searching for an
+<code>UpVal</code> or creating one if necessary.
+</p>
+
+<p>
+Keeping the same approach imposes the following design requirements on
+Jili's upvalue mechanism:
+</p>
+
+<dl>
+
+<dt>Speed</dt>
+<dd>Must not slow access to non-upvalue variables.</dd>
+
+<dt>Housekeeping</dt>
+<dd>For enclosing functions that have inner functions that use upvalues,
+some extra housekeeping is acceptable when the enclosing function
+returns.</dd>
+
+<dt>Determine</dt>
+<dd>Must be able to quickly determine if any housekeeping is necessary
+when <code>OP_RET</code> is executed
+(that is, whether there are any upvalues that need closing).
+
+<dt>Close</dt>
+<dd>Must be able to identify all upvalues that reference a stack frame
+that is about to be destroyed (on function return).</dd>
+
+<dt>Share</dt>
+<dd>When a closure is created it must be possible to locate an upvalue
+that has already been created for a particular stack slot.  This search
+must be possible using the stack slot as the key.
+</dd>
+
+<dt>New</dt>
+<dd>When a closure is created it must be possible to create new upvalues
+that reference a particular stack slot (slots for which there is no
+existing upvalue yet).</dd>
+
+<dt>Enclosing</dt>
+<dd>(easy) When a closure is create it must be possible to access the
+upvalues of the enclosing function so that the closure can reference
+them as well.  (This must be easy because the <code>OP_GETUPVAL</code>
+instruction requires the same access)</dd>
+
+</dl>
+
+<p>
+The optimised approach to upvalues, used by the PUC-Rio implementation,
+is not directly possible in Java
+since we cannot reference the interior of an array directly.  Jili's
+<code>UpVal</code> will reference a value via an array and an offset.
+An open upvalue will reference the VM stack array and use the
+appropriate offset; a closed upvalue will reference a freshly allocated
+1-element array and use an offset of 0.  Thus accessing an upvalue (from
+an inner function) will cost an extra array access (and two member
+accesses).
+</p>
+
+<p>
+An alternative to this approach is to have the VM stack not reference
+values directly, but indirectly via a binding cell (which could be a
+1-element array for example).  Upvalues could reference the same binding
+cell.  No housekeeping is necessary.  The extra indirection (via the
+binding cell) for <strong>all</strong> stack access is judged to be too
+slow.  So we reject this approach.
+</p>
+
+<p>
+The set of open upvalues is accesssed in a stack-like manner.  New
+upvalues are created and pushed on at one end, and upvalues are removed
+from the same end when they are closed (this is the case because the
+open upvalues follow the call stack).
+That suggests that <code>java.util.Stack</code> could be a reasonable
+choice. Examining the <code>Stack</code> class however,
+we won't be using <code>pop</code>, as a single
+<code>setSize</code> at the end of a close operation is likely to be
+faster, and <code>search</code> is equally performed by
+<code>lastIndexOf</code>.  The other methods of
+<code>java.util.Stack</code> are worthless.  So we may as well use its
+superclass <code>java.util.Vector</code>.
+Of course we could, as in PUC-Rio, use a list-like structure but CLDC
+has no list-like class so we would be forced to implement our own.
+Tedious and pointless.  <code>java.util.Hashtable</code> is rejected
+because it performs poorly for the <em>Close</em> requirement (it
+would be O(n) time in the number of stack slots being destroyed as
+opposed to the PUC-Rio implementation which is O(n) time in the number
+of upvalues that require closing), and although it performs well for the
+other requirements Jili will emphasise <em>Close</em> because PUC-Rio
+does.
+</p>
+
+<h4>Functions implemented in Java</h4>
 
 <p>
 The code for functions that are implemented in Java, "Lua Java Functions",
