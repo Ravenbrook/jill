@@ -6,7 +6,9 @@
   <property name="project" value="${ant.project.name}"/>
 
   <target name="compile">
-    <javac destdir="." srcdir="." />
+    <javac destdir="." srcdir="."
+        target="1.1"
+    />
   </target>
 
   <target name="doc">
