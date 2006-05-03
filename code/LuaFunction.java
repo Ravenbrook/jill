@@ -45,7 +45,7 @@ public final class LuaFunction {
 
   /** Get the Proto object. */
   Proto proto() {
-    return proto;
+    return p;
   }
 
   /** Getter for environment. */

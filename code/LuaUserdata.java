@@ -54,7 +54,7 @@ public final class LuaUserdata {
    * @return The environment.
    */
   Object getEnv() {
-    return environment;
+    return env;
   }
   /**
    * Setter for environment.
