@@ -37,7 +37,7 @@
     <java
         classname="j2meunit.textui.TestRunner"
         classpath=".:${j2meunit}">
-      <arg value="ObjectModelTest" />
+      <arg value="ObjectAllTest" />
     </java>
   </target>
 
