@@ -6,7 +6,7 @@ import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
 /**
- * J2MEUnit tests for Jili's interal UpVal class.  DO NOT SUBLCLASS.  public
+ * J2MEUnit tests for Jili's interal UpVal class.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necesary.
  */
 public class UpValTest extends TestCase {

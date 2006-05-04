@@ -6,7 +6,7 @@ import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
 /**
- * J2MEUnit tests for Jili's Object Model.  DO NOT SUBLCLASS.  public
+ * J2MEUnit tests for Jili's Object Model.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necesary.
  */
 public class ObjectModelTest extends TestCase {

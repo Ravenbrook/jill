@@ -63,6 +63,7 @@
 
   <target name="doc">
     <javadoc sourcepath="." destdir="javadoc"
+        classpath="${j2meunit}"
         packagenames=""
         access="package" >
       <fileset file="*.java" />
