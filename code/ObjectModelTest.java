@@ -61,6 +61,43 @@ public class ObjectModelTest extends TestCase {
   }
 
   /**
+   * Tests basic facts about LuaFunction.
+   */
+  public void testFunction() {
+    System.out.println("ObjectModelTest.testFunction()");
+
+    Proto p = new Proto(new Object[0],
+        new int[0],
+        new Proto[0],
+        2,
+        0,
+        false);
+    UpVal[] upval = new UpVal[2];
+    upval[0] = new UpVal(new Object[1], 0);
+    upval[1] = new UpVal(new Object[2], 1);
+    LuaFunction f = new LuaFunction(p, upval, new LuaTable());
+    assertNotNull(f);
+
+    // Check that the type is correct, according to the API.
+    assertTrue(Lua.isFunction(f));
+    assertTrue(!Lua.isJavaFunction(f));
+    assertTrue(!Lua.isNil(f));
+    assertTrue(!Lua.isBoolean(f));
+    assertTrue(!Lua.isNumber(f));
+    assertTrue(!Lua.isString(f));
+    assertTrue(!Lua.isTable(f));
+    assertTrue(!Lua.isUserdata(f));
+
+    assertSame("{Proto passed, Proto returned}", p, f.proto());
+    assertSame("{upval[0], f.upVal(0)}", upval[0], f.upVal(0));
+    assertSame("{upval[1], f.upVal(1)}", upval[1], f.upVal(1));
+
+    LuaTable e = new LuaTable();
+    f.setEnv(e);
+    assertSame("{env set, env returned}", e, f.getEnv());
+  }
+
+  /**
    * Tests basic facts about Userdata.
    */
   public void testUserdata() {
@@ -113,6 +150,8 @@ public class ObjectModelTest extends TestCase {
         public void runTest() { testTable(); } });
     suite.addTest(new ObjectModelTest("testTableMeta") {
         public void runTest() { testTableMeta(); } });
+    suite.addTest(new ObjectModelTest("testFunction") {
+        public void runTest() { testFunction(); } });
     suite.addTest(new ObjectModelTest("testUserdata") {
         public void runTest() { testUserdata(); } });
     suite.addTest(new ObjectModelTest("testUserdataStore") {
