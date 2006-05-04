@@ -20,14 +20,16 @@ final class UpVal {
   private int offset;
   /**
    * A fresh upvalue from an array and an offset.
+   * @param array  Array of Lua values (usually the VM stack).
+   * @param offset index into array, must be a valid index.
    * @throws NullPointerException if array is null.
-   * @throws IllegalArgumentException if offset is negative.
+   * @throws IllegalArgumentException if offset is negative or >= array.length.
    */
   UpVal(Object[] array, int offset) {
     if (null == array) {
       throw new NullPointerException();
     }
-    if (offset < 0) {
+    if (offset < 0 || offset >= array.length) {
       throw new IllegalArgumentException();
     }
 
