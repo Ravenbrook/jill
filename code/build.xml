@@ -33,6 +33,14 @@
     />
   </target>
 
+  <target name="test" depends="compile">
+    <java
+        classname="j2meunit.textui.TestRunner"
+        classpath=".:${j2meunit}">
+      <arg value="ObjectModelTest" />
+    </java>
+  </target>
+
   <!-- preverify and package targets are works in progress
 
   <target name="preverify" depends="compile">

@@ -42,6 +42,25 @@ public class ObjectModelTest extends TestCase {
   }
 
   /**
+   * Tests Metatable of LuaTable.
+   */
+  public void testTableMeta() {
+    System.out.println("ObjectModelTest.testTableMeta()");
+
+    LuaTable table = new LuaTable();
+    LuaTable meta = new LuaTable();
+    LuaTable another = new LuaTable();
+    LuaTable anotherMeta = new LuaTable();
+
+    table.setMetatable(meta);
+    assertSame("{Metatable set, returned}", meta, table.getMetatable());
+
+    another.setMetatable(anotherMeta);
+    assertTrue("Tables metatables are not same",
+        table.getMetatable() != another.getMetatable());
+  }
+
+  /**
    * Tests basic facts about Userdata.
    */
   public void testUserdata() {
@@ -92,6 +111,8 @@ public class ObjectModelTest extends TestCase {
 
     suite.addTest(new ObjectModelTest("testTable") {
         public void runTest() { testTable(); } });
+    suite.addTest(new ObjectModelTest("testTableMeta") {
+        public void runTest() { testTableMeta(); } });
     suite.addTest(new ObjectModelTest("testUserdata") {
         public void runTest() { testUserdata(); } });
     suite.addTest(new ObjectModelTest("testUserdataStore") {
