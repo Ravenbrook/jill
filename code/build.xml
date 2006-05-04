@@ -3,13 +3,55 @@
 <!-- $Header$ -->
 
 <project name="Jili" default="compile" basedir=".">
-  <property name="project" value="${ant.project.name}"/>
+  <property name="project" value="${ant.project.name}" />
+
+  <!-- Properties that you might want to change.
+  
+    j2meunit - location of j2meunit.jar file.
+    mpp - location of mpowerplayer sdk directory
+
+  -->
+
+  <property name="j2meunit" value="../lib/j2meunit.jar" />
+  <property name="mpp" value="/usr/local/mpp-sdk" />
+
+  <!-- Standard java classes -->
+  <property name="java.classes.jar"
+    value="/System/Library/Frameworks/JavaVM.framework/Classes/classes.jar"
+  />
+
+  <!-- All required J2ME jar files in classpath syntax -->
+  <property name="j2me.jar" value="${mpp}/cldc.jar:${mpp}/midp.jar" />
+  
+  <!-- Location of preverify tool -->
+  <property name="preverify" value="${mpp}/osx/preverify/preverify" />
 
   <target name="compile">
     <javac destdir="." srcdir="."
+        classpath="${j2me.jar}:${j2meunit}"
         target="1.1"
     />
   </target>
+
+  <!-- preverify and package targets are works in progress
+
+  <target name="preverify" depends="compile">
+    <mkdir dir="preverified"/>
+    <exec executable="${preverify}">
+      <arg line="-classpath ${java.classes.jar}:${j2me.jar}:${j2meunit}" />
+      <arg line="-d preverified" />
+      <arg line="ObjectModelTestMIDlet" />
+    </exec>
+  </target>
+
+  <target name="package" depends="preverify">
+    <mkdir dir="bin" />
+    <jar basedir="preverified"
+      jarfile="bin/ObjectModelTestMIDlet.jar"
+      manifest="manifest" />
+  </target>
+
+  End of works in progress -->
 
   <target name="doc">
     <javadoc sourcepath="." destdir="javadoc"
