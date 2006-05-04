@@ -25,10 +25,66 @@ public class ObjectModelTest extends TestCase {
    */
   public void testTable() {
     System.out.println("ObjectModelTest.testTable()");
+
     LuaTable table = new LuaTable();
     assertNotNull(table);
-    assertTrue("table isTable", Lua.isTable(table));
-    assertTrue("table not isNil", !Lua.isNil(table));
+    // Check that the type is correct, according to the API.
+    assertTrue(Lua.isTable(table));
+    assertTrue(!Lua.isNil(table));
+    assertTrue(!Lua.isBoolean(table));
+    assertTrue(!Lua.isNumber(table));
+    assertTrue(!Lua.isString(table));
+    assertTrue(!Lua.isFunction(table));
+    assertTrue(!Lua.isUserdata(table));
+
+    LuaTable another = new LuaTable();
+    assertTrue(another != table);
+  }
+
+  /**
+   * Tests basic facts about Userdata.
+   */
+  public void testUserdata() {
+    System.out.println("ObjectModelTest.testUserdata()");
+
+    Object o = new Object();
+    LuaUserdata u = new LuaUserdata(o);
+    assertNotNull(u);
+    // Check that the type is correct, according to the API.
+    assertTrue(Lua.isUserdata(u));
+    assertTrue(!Lua.isNil(u));
+    assertTrue(!Lua.isBoolean(u));
+    assertTrue(!Lua.isNumber(u));
+    assertTrue(!Lua.isString(u));
+    assertTrue(!Lua.isTable(u));
+    assertTrue(!Lua.isFunction(u));
+
+    LuaUserdata another = new LuaUserdata(o);
+    assertNotNull(another);
+  }
+
+  /**
+   * Tests storage facilities of Userdata.
+   */
+  public void testUserdataStore() {
+    System.out.println("ObjectModelTest.testUserdataStore()");
+
+    Object o = new Object();
+    LuaUserdata u = new LuaUserdata(o);
+    LuaUserdata another = new LuaUserdata(o);
+
+    assertSame("{Object stored, returned}",
+        u.getUserdata(), o);
+    assertSame("{u.getUserData(), another.getUserdata()}",
+        u.getUserdata(), another.getUserdata());
+
+    LuaTable t = new LuaTable();
+    u.setMetatable(t);
+    assertSame("{Metatable set, returned}", u.getMetatable(), t);
+
+    LuaTable e = new LuaTable();
+    u.setEnv(e);
+    assertSame("{Environment set, returned}", u.getEnv(), e);
   }
 
   public Test suite() {
@@ -36,6 +92,10 @@ public class ObjectModelTest extends TestCase {
 
     suite.addTest(new ObjectModelTest("testTable") {
         public void runTest() { testTable(); } });
+    suite.addTest(new ObjectModelTest("testUserdata") {
+        public void runTest() { testUserdata(); } });
+    suite.addTest(new ObjectModelTest("testUserdataStore") {
+        public void runTest() { testUserdataStore(); } });
     return suite;
   }
 }
