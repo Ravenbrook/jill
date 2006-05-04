@@ -41,6 +41,11 @@ final class Proto {
    */
   boolean vararg;
 
+  /** Gets Number of Upvalues */
+  int getNUps() {
+    return nups;
+  }
+
   /**
    * Fresh Proto.  All the arrays that are passed to the constructor are
    * referenced by the instance.  Avoid unintentional sharing.  All
