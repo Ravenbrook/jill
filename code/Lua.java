@@ -32,6 +32,7 @@ public final class Lua {
   public static boolean isJavaFunction(Object o) {
     return o instanceof LuaJavaCallback;
   }
+
   /**
    * Tests that an object is a Lua function (implemented in Lua or
    * Java).  Returns <code>true</code> if so, <code>false</code>
@@ -43,13 +44,63 @@ public final class Lua {
   }
 
   /**
+   * Tests that an object is Lua nil.  Returns <code>true</code> if so,
+   * <code>false</code> otherwise.
+   */
+  public static boolean isNil(Object o) {
+    return null == o;
+  }
+
+  /**
+   * Tests that an object is a Lua number.  Returns <code>true</code> if
+   * so, <code>false</code> otherwise.
+   */
+  public static boolean isNumber(Object o) {
+    return o instanceof Double;
+  }
+
+  /**
+   * Tests that an object is a Lua string.  Returns <code>true</code> if
+   * so, <code>false</code> otherwise.
+   */
+  public static boolean isString(Object o) {
+    return o instanceof String;
+  }
+
+  /**
+   * Tests that an object is a Lua table.  Return <code>true</code> if
+   * so, <code>false</code> otherwise.
+   */
+  public static boolean isTable(Object o) {
+    return o instanceof LuaTable;
+  }
+
+  /**
+   * Tests that an object is a Lua thread.  Return <code>true</code> if
+   * so, <code>false</code> otherwise.
+   */
+  public static boolean isThread(Object o) {
+    // :todo: implement me.
+    return false;
+  }
+
+  /**
+   * Tests that an object is a Lua userdata.  Return <code>true</code>
+   * if so, <code>false</code> otherwise.
+   */
+  public static boolean isUserdata(Object o) {
+    return o instanceof LuaUserdata;
+  }
+
+  /**
    * Tests that an object is a Lua value.  Returns <code>true</code> for
    * an argument that is a Jili representation of a Lua value,
    * <code>false</code> for Java references that are not Lua values.
-   * For example <code>isValue("Hello")</code> is <code>true</code>
-   * because Lua strings are represented by Java strings, but
-   * <code>isValue(new Object[] { })</code> because Java arrays are not
-   * a representation of any Lua value.  PUC-Rio Lua provides no
+   * For example <code>isValue(new LuaTable())</code> is
+   * <code>true</code>, but <code>isValue(new Object[] { })</code> is
+   * <code>false</code> because Java arrays are not a representation of
+   * any Lua value.
+   * PUC-Rio Lua provides no
    * counterpart for this method because in their implementation it is
    * impossible to get non Lua values on the stack, whereas in Jili it
    * is common to mix Lua values with ordinary, non Lua, Java objects.
