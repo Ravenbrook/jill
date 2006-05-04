@@ -50,8 +50,9 @@ final class UpVal {
 
   /**
    * Closes an UpVal.  This ensures that the storage operated on by
-   * {@link getValue} and {@link setValue} is not shared by any other
-   * object.  This is typically used when a function returns (executes
+   * {@link #getValue() getValue} and {@link #setValue(Object) setValue}
+   * is not shared by any other object.
+   * This is typically used when a function returns (executes
    * the <code>OP_RET</code> VM instruction).  Effectively this
    * transfers a variable binding from the stack to the heap.
    */
