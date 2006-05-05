@@ -63,27 +63,95 @@ final class Loader {
     return this.function(null);
   }
 
-  private byte byteLoad() {
-    // :todo: implement me
-    return 0;
+  /**
+   * Primitive reader for undumping.
+   * Reads exactly enough bytes from <code>this.in</code> to fill the
+   * array <code>b</code>.  If there aren't enough to fill
+   * <code>b</code> then an exception is thrown.  Similar to
+   * <code>LoadBlock</code> from PUC-Rio's <code>lundump.c</code>.
+   * @param b  byte array to fill.
+   * @throws EOFException when the stream is exhausted too early.
+   * @throws IOException when the underlying stream does.
+   */
+  private void block(byte []b) throws IOException {
+    int n;
+
+    n = in.read(b);
+    if (n != b.length) {
+      throw new EOFException();
+    }
+  }
+
+  private byte byteLoad() throws IOException {
+    byte[] buf = new byte[1];
+    block(buf);
+    return buf[0];
   }
 
   /**
    * Undumps the code for a <code>Proto</code>.  The code is an array of
    * VM instructions.
    */
-  private int[] code() {
-    // :todo: implement me
-    return null;
+  private int[] code() throws IOException {
+    int n = intLoad();
+    int[] code = new int[n];
+
+    for (int i=0; i<n; ++i) {
+      // :Instruction:size  Here we assume that a dumped Instruction is
+      // the same size as a dumped int.
+      code[i] = intLoad();
+    }
+
+    return code;
   }
 
   /**
    * Undumps the constant array contained inside a <code>Proto</code>
-   * object.
+   * object.  First half of <code>LoadConstants</code>, see
+   * <code>proto</code> for the second half of
+   * <code>LoadConstants</code>.
    */
-  private Object[] constant() {
-    // :todo: implement me
-    return null;
+  private Object[] constant() throws IOException {
+    int n = intLoad();
+    Object[] k = new Object[n];
+
+    // Load each constant one by one.  We use the following values for
+    // the Lua tagtypes (taken from <code>lua.h</code> from the PUC-Rio
+    // Lua 5.1 distribution):
+    // LUA_TNIL         0
+    // LUA_TBOOLEAN     1
+    // LUA_TNUMBER      3
+    // LUA_TSTRING      4
+    // All other tagtypes are invalid
+    for (int i=0; i<n; ++i) {
+      int t = byteLoad();
+      switch (t) {
+        case 0: // LUA_TNIL
+          k[i] = null;
+          break;
+
+        case 1: // LUA_TBOOLEAN
+          byte b = byteLoad();
+          if (b > 1) {
+            throw new IOException();
+          }
+          k[i] = Lua.valueOfBoolean(b != 0);
+          break;
+
+        case 3: // LUA_TNUMBER
+          k[i] = number();
+          break;
+
+        case 4: // LUA_TSTRING
+          k[i] = string();
+          break;
+
+        default:
+          throw new IOException();
+      }
+    }
+
+    return k;
   }
 
   /**
@@ -118,7 +186,11 @@ final class Loader {
     nups = this.byteLoad();
     numparams = this.byteLoad();
     varargByte = this.byteLoad();
-    if (varargByte > 1) {
+    // Curiously "is_vararg" byte values of 0 or 2 are the only ones we
+    // accept.  It's a 3-bit field, the remaining bits (bit 0 and bit 2)
+    // are used for the 5.0 compatibility 'arg' style varargs, which are
+    // deprecated and not supported by Jili.
+    if (!(varargByte == 0 || varargByte == 2)) {
       throw new IOException();
     }
     vararg = (0 != varargByte);
@@ -166,10 +238,7 @@ final class Loader {
     byte[] buf = new byte[HEADERSIZE];
     int n;
 
-    n = in.read(buf);
-    if (n != buf.length) {
-      throw new EOFException();
-    }
+    block(buf);
 
     // A chunk header that is correct.  For comparison with the header
     // that we read.  The endian byte, at index 6, is copied so that it
@@ -185,9 +254,39 @@ final class Loader {
     bigendian = (buf[6] == 0);
   }
 
-  private int intLoad() {
-    // :todo: implement me
-    return 0;
+  /**
+   * Undumps an int.  This is the only method that needs to swab.
+   * size_t and Instruction need swabbing too, but the code 
+   * simply uses this method to load size_t and Instruction.
+   */
+  private int intLoad() throws IOException {
+    // :size:int  Here we assume an int is 4 bytes.
+    byte buf[] = new byte[4];
+    block(buf);
+
+    int i;
+    if (bigendian) {
+      i = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+    } else {
+      i = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
+    }
+    return i;
+  }
+
+  /**
+   * Undumps a Lua number.  Which is assumed to be a 64-bit IEEE double.
+   */
+  private Object number() throws IOException {
+    // :lua_Number:size  Here we assume that the size is 8.
+    byte[] buf = new byte[8];
+    block(buf);
+    // We assume that doubles are always stored with the sign bit first.
+    long l = 0;
+    for (int i=0; i<buf.length; ++i) {
+      l = (l << 8) | buf[i];
+    }
+    double d = Double.longBitsToDouble(l);
+    return Lua.valueOfNumber(d);
   }
 
   /**
@@ -201,9 +300,25 @@ final class Loader {
     return null;
   }
 
-  private String string() {
-    // :todo: implement me
-    return null;
+  /**
+   * Undumps a String or null.  As per <code>LoadString</code> in
+   * PUC-Rio's lundump.c.  Strings are converted from the binary
+   * according to the default character encoding, using the {@link
+   * java.lang.String#String(byte[]) String(byte[])} constructor.
+   */
+  private String string() throws IOException {
+    // :size_t:size we assume that size_t is same size as int.
+    int size = intLoad();
+    if (0 == size) {
+      return null;
+    }
+
+    byte buf[] = new byte[size-1];
+    block(buf);
+    // Discard trailing NUL byte
+    block(new byte[1]);
+
+    return new String(buf);
   }
     
 

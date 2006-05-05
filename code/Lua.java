@@ -153,6 +153,34 @@ public final class Lua {
    * @see java.io.InputStreamReader
    */
   public LuaFunction load(Reader in, String chunkname) { return null; }
+
+  /** Interned for use by valueOfBoolean.  */
+  private static final Boolean FALSE = new Boolean(false);
+  /** Interned for use by valueOfBoolean.  */
+  private static final Boolean TRUE = new Boolean(true);
+
+  /**
+   * Converts primitive boolean into a Lua value.  If CLDC 1.1 had
+   * <code>java.lang.Boolean.valueOf(boolean);</code> then I probably
+   * wouldn't have written this.  This does have a small advantage:
+   * code that used this method does not need to assume that Lua booleans in
+   * Jili are represented using Java.lang.Boolean.
+   */
+  public static Object valueOfBoolean(boolean b) {
+    if (b) {
+      return TRUE;
+    } else {
+      return FALSE;
+    }
+  }
+  /**
+   * Converts primitive number into a Lua value.
+   */
+  public static Object valueOfNumber(double d) {
+    // :todo: consider interning "common" numbers, like 0, 1, -1, etc.
+    return new Double(d);
+  }
+
   /**
    * Provide <code>Reader</code> interface over a <code>String</code>.
    * Equivalent of {@link java.io.StringReader#StringReader} from J2SE.
