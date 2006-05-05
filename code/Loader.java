@@ -171,11 +171,15 @@ final class Loader {
       throw new EOFException();
     }
 
-    byte[] exemplar = new byte[] {
-        0x33, (byte)'L', (byte)'u', (byte)'a',
+    // A chunk header that is correct.  For comparison with the header
+    // that we read.  The endian byte, at index 6, is copied so that it
+    // always compares correctly; we cope with either endianness.
+    byte[] golden = new byte[] {
+        033, (byte)'L', (byte)'u', (byte)'a',
         0x51, 0, buf[6], 4,
         4, 4, 8, 0};
-    if (buf[6] > 1 || !arrayEquals(exemplar, buf)) {
+
+    if (buf[6] > 1 || !arrayEquals(golden, buf)) {
       throw new IOException();
     }
     bigendian = (buf[6] == 0);
