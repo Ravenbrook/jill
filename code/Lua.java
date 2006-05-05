@@ -8,6 +8,17 @@ import java.io.Reader;
  */
 public final class Lua {
   /**
+   * Calls a Lua value.  Normally this is called on functions, but the
+   * semantics of Lua permit calls on any value as long as its metatable
+   * permits it.
+   * :todo: more doc here about argument passing and returning.
+   */
+  public int call(Object f, int n) {
+    // :todo: implement me
+    return 0;
+  }
+
+  /**
    * Gets the global environment.  The global environment, where global
    * variables live, is returned as a <code>LuaTable</code>.  Note that
    * modifying this table has exactly the same effect as creating or
