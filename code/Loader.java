@@ -158,8 +158,33 @@ final class Loader {
    * Undumps the debug info for a <code>Proto</code>.
    * :todo: receive a Proto and decorate it with debug info.
    */
-  private void debug() {
-    // :todo: implement me
+  private void debug() throws IOException {
+    // Currently everything is carefully loaded from the chunk, then
+    // thrown away.
+
+    // lineinfo
+    int n = intLoad();
+    int[] lineinfo = new int[n];
+
+    for (int i=0; i<n; ++i) {
+      lineinfo[i] = intLoad();
+    }
+
+    // locvars
+    n = intLoad();
+    for (int i=0; i<n; ++i) {
+      string();         // Should be locvar.varname
+      intLoad();        // Should be locvar.startpc
+      intLoad();        // Should be locvar.endpc
+    }
+
+    // upvalue (names)
+    n = intLoad();
+    String[] upvalue = new String[n];
+    for (int i=0; i<n; ++i) {
+      upvalue[i] = string();
+    }
+
     return;
   }
 
@@ -169,7 +194,7 @@ final class Loader {
    * @param parentSource_  Reserved for future expansion.
    * @throws IOException  when binary is malformed.
    */
-  private Proto function(String parentSource_) throws IOException {
+  private Proto function(String parentSource) throws IOException {
     String source;
     int linedefined, lastlinedefined;
     int nups, numparams;
@@ -181,6 +206,9 @@ final class Loader {
     Proto[] proto;
 
     source = this.string();
+    if (null == source) {
+      source = parentSource;
+    }
     linedefined = this.intLoad();
     lastlinedefined = this.intLoad();
     nups = this.byteLoad();
@@ -197,7 +225,7 @@ final class Loader {
     maxstacksize = this.byteLoad();
     code = this.code();
     constant = this.constant();
-    proto = this.proto();
+    proto = this.proto(source);
     this.debug();
     // :todo: call code verifier
     return null;
@@ -293,11 +321,18 @@ final class Loader {
    * Undumps the <code>Proto</code> array contained inside a
    * <code>Proto</code> object.  These are the <code>Proto</code>
    * objects for all inner functions defined inside an existing
-   * function.
+   * function.  Corresponds to the second half of PUC-Rio's
+   * <code>LoadConstants</code> function.  See <code>constant</code> for
+   * the first half.
    */
-  private Proto[] proto() {
-    // :todo: implement me
-    return null;
+  private Proto[] proto(String source) throws IOException {
+    int n = intLoad();
+    Proto[] p = new Proto[n];
+
+    for (int i=0; i<n; ++i) {
+      p[i] = function(source);
+    }
+    return p;
   }
 
   /**

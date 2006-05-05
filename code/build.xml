@@ -41,6 +41,16 @@
     </java>
   </target>
 
+  <!-- LoaderTest is an oddball, it currently uses J2SE functions, so we
+       separate it out from the other tests -->
+  <target name="test-loader" depends="compile">
+    <java
+        classname="j2meunit.textui.TestRunner"
+        classpath=".:${j2meunit}">
+      <arg value="LoaderTest" />
+    </java>
+  </target>
+
   <!-- preverify and package targets are works in progress
 
   <target name="preverify" depends="compile">
