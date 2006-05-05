@@ -17,6 +17,7 @@ import java.io.InputStream;
 //    luac - <<'EOF'
 //    return 99
 //  EOF
+// LoaderTest2.luc - test/fib.lua from PUC-Rio Lua 5.1: luac fib.lua
 
 /**
  * J2MEUnit tests for Jili's internal Loader class.  DO NOT SUBCLASS.  public
@@ -75,6 +76,11 @@ public class LoaderTest extends TestCase {
     loadFile("LoaderTest1");
   }
 
+  /** Tests LoaderTest2.luc.  */
+  public void testLoader2() {
+    loadFile("LoaderTest2");
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -82,6 +88,8 @@ public class LoaderTest extends TestCase {
         public void runTest() { testLoader0(); } });
     suite.addTest(new LoaderTest("testLoader1") {
         public void runTest() { testLoader1(); } });
+    suite.addTest(new LoaderTest("testLoader2") {
+        public void runTest() { testLoader2(); } });
     return suite;
   }
 }
