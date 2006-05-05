@@ -40,6 +40,7 @@ final class Proto {
    * defined with '...' in its parameter list.
    */
   boolean vararg;
+  int maxstacksize;
 
   /** Gets Number of Upvalues */
   int getNUps() {
@@ -56,6 +57,7 @@ final class Proto {
    * @param nups       number of upvalues (used by this function).
    * @param numparams  number of fixed formal parameters.
    * @param vararg     whether '...' is used.
+   * @param maxstacksize  number of stack slots required when invoking.
    * @throws NullPointerException if any array arguments are null.
    * @throws IllegalArgumentException if nups or numparams is negative.
    */
@@ -64,11 +66,12 @@ final class Proto {
       Proto[] proto,
       int nups,
       int numparams,
-      boolean vararg) {
+      boolean vararg,
+      int maxstacksize) {
     if (null == constant || null == code || null == proto) {
       throw new NullPointerException();
     }
-    if (nups < 0 || numparams < 0) {
+    if (nups < 0 || numparams < 0 || maxstacksize < 0) {
       throw new IllegalArgumentException();
     }
     this.k = constant;
@@ -77,6 +80,7 @@ final class Proto {
     this.nups = nups;
     this.numparams = numparams;
     this.vararg = vararg;
+    this.maxstacksize = maxstacksize;
   }
 }
 

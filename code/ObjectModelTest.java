@@ -71,7 +71,8 @@ public class ObjectModelTest extends TestCase {
         new Proto[0],
         2,
         0,
-        false);
+        false,
+        0);
     UpVal[] upval = new UpVal[2];
     upval[0] = new UpVal(new Object[1], 0);
     upval[1] = new UpVal(new Object[2], 1);
