@@ -3,20 +3,41 @@
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Vector;
 
 /**
  * Encapsulates a Lua execution environment.
  */
 public final class Lua {
+  /** VM data stack. */
+  private Vector stack = new Vector();
+  private int base = 0;
+  private int nCcalls = 0;
+  /** Instruction to resume execution at.  Index into code array. */
+  private int savedpc = 0;
+  /** Vector of CallInfo records. */
+  Vector civ;
+  /** CallInfo record for currently active function. */
+  CallInfo ci;
+
   /**
    * Calls a Lua value.  Normally this is called on functions, but the
    * semantics of Lua permit calls on any value as long as its metatable
-   * permits it.
-   * :todo: more doc here about argument passing and returning.
+   * permits it.  In order to call a function its arguments must be
+   * {@link push pushed} onto the stack, the first argument is pushed
+   * first, then the following arguments are pushed in order (direct
+   * order).  The parameter <var>n</var> specifies the number of
+   * arguments (which may be 0).
+   * 
+   * @param f  The function to be invoked.
+   * @param n  The number of arguments in this function call.
+   * @param r  The number of results required.
    */
-  public int call(Object f, int n) {
-    // :todo: implement me
-    return 0;
+  public void call(Object f, int n, int r) {
+    if (n < 0 || n + base > stack.size()) {
+      throw new IllegalArgumentException();
+    }
+    this.vmCall(f, n, r);
   }
 
   /**
@@ -164,6 +185,15 @@ public final class Lua {
    */
   public LuaFunction load(Reader in, String chunkname) { return null; }
 
+  /**
+   * Pushes a value onto the stack in preparation for calling a
+   * function.  See {@link call} for the protocol to be used for calling
+   * functions.
+   */
+  public void push(Object o) {
+    stack.addElement(o);
+  }
+
   /** Interned for use by valueOfBoolean.  */
   private static final Boolean FALSE = new Boolean(false);
   /** Interned for use by valueOfBoolean.  */
@@ -200,5 +230,59 @@ public final class Lua {
    * externally as a convenience.
    */
   public Reader StringReader(String s) { return null; }
+
+  // VM
+
+  private static final int PCRLUA = 0;
+
+  /** Equivalent of luaD_call. */
+  private void vmCall(Object f, int n, int r) {
+    ++nCcalls;
+    if (vmPrecall(f, n, r) == PCRLUA) {
+      vmExecute(1);
+    }
+    --nCcalls;
+  }
+
+  private void vmExecute(int nexeccalls) {
+    // :todo: implement me.
+    return ;
+  }
+
+  /** Equivalent of LuaD_precall. */
+  private int vmPrecall(Object fArg, int n, int r) {
+    // :todo: metamethod for non-function values.
+    this.ci.setSavedpc(savedpc);
+    if (fArg instanceof LuaFunction) {
+      LuaFunction f = (LuaFunction)fArg;
+      Proto p = f.proto();
+      // :todo: ensure enough stack
+
+      // :todo: implement vararg convention
+      base = stack.size() - n;
+      if (stack.size() > base + p.numparams()) {
+        // trim stack to the argument list
+        stack.setSize(base + p.numparams());
+      }
+      int top = base + p.maxstacksize();
+
+      CallInfo ci = inc_ci(f, base, top, r);
+
+      savedpc = 0;
+      // expand stack to the function's max stack size.
+      stack.setSize(top);
+      // :todo: implement call hook.
+      return PCRLUA;
+    }
+    // :todo: implement calls to Lua Java functions.
+    throw new IllegalArgumentException();
+  }
+
+  /** Make new CallInfo record. */
+  private CallInfo inc_ci(Object f, int base, int top, int nresults) {
+    CallInfo ci = new CallInfo(f, base, top, nresults);
+    civ.addElement(ci);
+    return ci;
+  }
 }
 

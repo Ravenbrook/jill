@@ -42,11 +42,6 @@ final class Proto {
   boolean vararg;
   int maxstacksize;
 
-  /** Gets Number of Upvalues */
-  int getNUps() {
-    return nups;
-  }
-
   /**
    * Fresh Proto.  All the arrays that are passed to the constructor are
    * referenced by the instance.  Avoid unintentional sharing.  All
@@ -81,6 +76,21 @@ final class Proto {
     this.numparams = numparams;
     this.vararg = vararg;
     this.maxstacksize = maxstacksize;
+  }
+
+  /** Gets Number of Upvalues */
+  int getNUps() {
+    return nups;
+  }
+
+  /** Number of Parameters. */
+  int numparams() {
+    return numparams;
+  }
+
+  /** Maximum Stack Size. */
+  int maxstacksize() {
+    return maxstacksize;
   }
 }
 
