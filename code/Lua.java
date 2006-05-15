@@ -1,6 +1,7 @@
 // $Header$
 
 import java.io.InputStream;
+import java.io.IOException;
 import java.io.Reader;
 
 /**
@@ -140,7 +141,16 @@ public final class Lua {
    * @param chunkname  The name of the chunk.
    * @return           The chunk as a function.
    */
-  public LuaFunction load(InputStream in, String chunkname) { return null; }
+  public LuaFunction load(InputStream in, String chunkname)
+      throws IOException {
+    // Currently always assumes binary.  :todo: implement source loading.
+    Loader l = new Loader(in, chunkname);
+
+    LuaFunction f = new LuaFunction(l.undump(),
+        new UpVal[0],
+        this.getGlobals());
+    return f;
+  }
 
   /**
    * Loads a Lua chunk in source form.
