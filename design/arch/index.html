@@ -275,7 +275,8 @@ A function (closure) corresponds to some <em>code</em>, some closed over
 variables (variables that are used in an inner function but are defined
 in an outer function) which Lua calls <code>upvalues</code>, and an
 <em>environment</em> (by default a function's environment is the same as
-the function in which it is defined and is usually the global table; see
+the environment of the function in which it is defined;
+it is usually the global table, see
 <a href="#ref-lrm">LRM</a> <a
 href="http://www.lua.org/manual/5.1/manual.html#environ">2.9 -
 Environments</a>).
@@ -376,6 +377,12 @@ appropriate offset; a closed upvalue will reference a freshly allocated
 an inner function) will cost an extra array access (and two member
 accesses).
 </p>
+
+<div align="center">
+<img src="upval.png" border="1">
+<p>Illustration of <code>UpVal</code> representation when open and
+closed.</p>
+</div>
 
 <p>
 An alternative to this approach is to have the VM stack not reference
@@ -585,6 +592,12 @@ VM execution states so they represent independent threads of execution.
     <td>2006-04-26</td>
     <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
     <td>Created.</td>
+</tr>
+
+<tr valign="top">
+    <td>2006-05-15</td>
+    <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+    <td>Extended for upvalues.</td>
 </tr>
 
 </table>
