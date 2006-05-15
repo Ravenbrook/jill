@@ -228,7 +228,8 @@ final class Loader {
     proto = this.proto(source);
     this.debug();
     // :todo: call code verifier
-    return null;
+    return new Proto(constant, code, proto, nups, numparams, vararg,
+      maxstacksize);
   }
 
   private static final int HEADERSIZE = 12;

@@ -68,7 +68,8 @@ public class LoaderTest extends TestCase {
 
   /** Tests LoaderTest0.luc.  */
   public void testLoader0() {
-    loadFile("LoaderTest0");
+    Proto p = loadFile("LoaderTest0");
+    assertNotNull(p);
   }
 
   /** Tests LoaderTest1.luc.  */
