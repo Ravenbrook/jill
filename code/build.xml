@@ -34,20 +34,25 @@
   </target>
 
   <target name="test" depends="compile">
-    <java
+    <java fork="yes"
         classname="j2meunit.textui.TestRunner"
         classpath=".:${j2meunit}">
       <arg value="ObjectAllTest" />
     </java>
   </target>
 
-  <!-- LoaderTest is an oddball, it currently uses J2SE functions, so we
-       separate it out from the other tests -->
-  <target name="test-loader" depends="compile">
-    <java
+  <!-- Some tests, LoaderTest, LuaTest currently use J2SE functions, so we
+       separate them out from the other tests -->
+  <target name="test-se" depends="compile">
+    <java fork="yes"
         classname="j2meunit.textui.TestRunner"
         classpath=".:${j2meunit}">
       <arg value="LoaderTest" />
+    </java>
+    <java fork="yes"
+        classname="j2meunit.textui.TestRunner"
+        classpath=".:${j2meunit}">
+      <arg value="LuaTest" />
     </java>
   </target>
 

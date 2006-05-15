@@ -9,6 +9,9 @@ import java.util.Vector;
  * Encapsulates a Lua execution environment.
  */
 public final class Lua {
+  /** Table of globals (global variables).  Actually shared across all
+   * coroutines. */
+  private LuaTable global = new LuaTable();
   /** VM data stack. */
   private Vector stack = new Vector();
   private int base = 0;
@@ -16,9 +19,13 @@ public final class Lua {
   /** Instruction to resume execution at.  Index into code array. */
   private int savedpc = 0;
   /** Vector of CallInfo records. */
-  Vector civ;
+  Vector civ = new Vector();
   /** CallInfo record for currently active function. */
-  CallInfo ci;
+  CallInfo ci = new CallInfo();
+  {
+    civ.addElement(ci);
+  }
+
 
   /**
    * Calls a Lua value.  Normally this is called on functions, but the
@@ -47,7 +54,7 @@ public final class Lua {
    * changing global variables from within Lua.
    * @return  The global environment as a table.
    */
-  public LuaTable getGlobals() { return null; }
+  public LuaTable getGlobals() { return global; }
 
   /**
    * Tests that an object is a Lua boolean.  Returns <code>true</code>
