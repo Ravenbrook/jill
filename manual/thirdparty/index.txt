@@ -1,0 +1,24 @@
+$Header$
+2006-05-15
+David Jones, Ravenbrook Limited
+drj@ravenbrook.com
+
+Third Party Resources
+
+1. INTRODUCTION
+
+This document records the use of 3rd party resources and materials that
+are distributed with the release.
+
+This document is Intuwave confidential.
+
+
+2. SCHEDULE OF RESOURCES
+
+- code/LoaderTest2.luc is derived from the PUC-Rio Lua 5.1 distribution.
+
+A. REFERENCES
+
+B. HISTORY
+
+2006-05-15  DRJ  Created.
