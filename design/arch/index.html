@@ -570,6 +570,105 @@ Note that whilst coroutines share global environments they do not share
 VM execution states so they represent independent threads of execution.
 </p>
 
+<h2 id="section-4">4. Execution</h2>
+
+<p>The VM is responsible for executing Lua code after it has been
+compiled into VM instructions.  The format is identical to the PUC-Rio
+version of Lua:  Each instruction is a
+32-bit quantity, which is represented by Java's 32-bit <code>int</code>
+type.
+</p>
+
+<p>
+The activities of the VM can be divided up as follows:
+</p>
+
+<ul>
+<li>Execution of straight line VM opcodes, for example
+<code>OP_LOADK</code>.</li>
+<li>Calling and returning from functions, both in Lua and Java.</li>
+<li>Handling resume/yield for a coroutine.</li>
+<li>Metamethods, which are generally called as a result of executing the
+straight-line opcodes, for example <code>OP_ADD</code>.</li>
+<li>Debug hooks (per line, per instruction, per call).</li>
+</ul>
+
+<p>
+Within the execution of a single function the VM opcodes can access: the
+"global" table (this is actually the environment table of the currently
+active function), a number of constants (stored in the
+<code>Proto</code> object of the currently active function), 
+a fixed number of stack slots (locals and temporaries), a number of
+upvalues (the upvalues accessible to a function are indexed via an array
+stored in the <code>Proto</code> object for that function).
+</p>
+
+<p>
+The stack slots available to a function activation are fixed in number,
+determined when the function is compiled.  The stack slots are arranged
+in a stack: when a (Lua) function is called the actual arguments are
+top-most stack slots of the calling function, and they become the
+bottom-most stack slots of the called function.  The stack slots that
+are available to a called function are the ones that are used for its
+arguments followed by a fixed number of stack slots for its locals and
+temporaries.  Each function activation gets a private set of stack slots
+to work with.  The range of stack slots available to an activation is
+typically denoted by (base, top), where <var>base</var> is the smallest
+index available to the function, and <var>top</var> is one more than the
+greatest index available to the function (this follows the analogous
+pointer convention used in the PUC-Rio implementation).
+</p>
+
+<p>
+Thus when a function is called the following information needs to be
+retained in order to restore the stack when the called function
+eventually returns:
+</p>
+
+<ul>
+<li>The function (a reference to the function object for the suspended
+function).</li>
+<li>PC.  The next instruction to execute from the function's block of
+instructions.</li>
+<li>base and top stack index values.</li>
+</ul>
+
+<p>
+This data forms the continuation when a function is called.
+Note that much of the information that is used for VM execution, the
+environment table, the upvalue array, the constant array, is retrievable
+using just the function object, so that is all we need to store.
+</p>
+
+<p>
+In order to avoid needless copying of arguments when a function is
+called, the continuation data is stored in a separate stack of
+<code>CallInfo</code> records.  The alternative, which is to store the
+continuation on the regular VM stack would mean that when <code>f</code>
+calls <code>g</code> the arguments would have to be copied from f's
+stack frame to g's stack frame.
+</p>
+
+<div align="center">
+<img src="stack.png" border="1" />
+<p>Principal VM objects, for when Lua function f calls g.</p>
+</div>
+
+<p>
+Note in the diagram that g's stack frame overlaps with f's stack frame.
+When f calls g the arguments that f has pushed onto the stack become the
+bottom-most elements of g's stack frame (a bit like sliding register
+windows in some RISC CPU architectures).</p>
+
+<p>
+There is a small cheat in the diagram.  The <code>CallInfo</code> record
+for the current function, the top-most record, is not completely filled
+in during the execution of g; it's only filled in when g calls another
+function.  So the diagram represents a point in the execution where g is
+about to call another function, but no stack nor <code>CallInfo</code>
+record has been allocation for the callee.
+</p>
+
 <h2 id="section-A">A. References</h2>
 
 <table>
@@ -598,6 +697,12 @@ VM execution states so they represent independent threads of execution.
     <td>2006-05-15</td>
     <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
     <td>Extended for upvalues.</td>
+</tr>
+
+<tr valign="top">
+    <td>2006-05-16</td>
+    <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+    <td>VM and stack diagram.</td>
 </tr>
 
 </table>
