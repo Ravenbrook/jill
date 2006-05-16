@@ -46,7 +46,7 @@ public class LoaderTest extends TestCase {
 
     try {
       in = new FileInputStream(filename);
-    } catch(Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     assertNotNull("Opened file " + filename, in);
@@ -58,7 +58,7 @@ public class LoaderTest extends TestCase {
     try {
       proto = loader.undump();
       loaded = true;
-    } catch(Exception e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
     assertTrue("Loaded okay", loaded);
