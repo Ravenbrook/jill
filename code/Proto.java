@@ -92,5 +92,10 @@ final class Proto {
   int maxstacksize() {
     return maxstacksize;
   }
+
+  /** Instruction block. */
+  int[] code() {
+    return code;
+  }
 }
 

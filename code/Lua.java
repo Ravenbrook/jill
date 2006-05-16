@@ -252,7 +252,15 @@ public final class Lua {
   }
 
   private void vmExecute(int nexeccalls) {
-    // :todo: implement me.
+    // assert ci.function() instanceof LuaFunction;
+    LuaFunction function = (LuaFunction)ci.function();
+    int [] code = function.proto().code();
+
+    for (int i=0; i<code.length; ++i) {
+      String s = "0000000" + Integer.toHexString(code[i]);
+      s = s.substring(s.length()-8);
+      System.out.println(s);
+    }
     return ;
   }
 
@@ -287,7 +295,7 @@ public final class Lua {
 
   /** Make new CallInfo record. */
   private CallInfo inc_ci(Object f, int base, int top, int nresults) {
-    CallInfo ci = new CallInfo(f, base, top, nresults);
+    ci = new CallInfo(f, base, top, nresults);
     civ.addElement(ci);
     return ci;
   }
