@@ -51,7 +51,8 @@ public class LuaTest extends TestCase {
     L.call(0, 1);
     top = L.gettop();
     assertTrue("1 result", 1 == top);
-    System.out.println(L.value(1));
+    Object r = L.value(1);
+    assertTrue("result is 99.0", ((Double)r).doubleValue() == 99.0);
   }
 
   public Test suite() {
