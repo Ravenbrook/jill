@@ -8,13 +8,13 @@
  * example, places them in the global table).  {@link
  * Lua#load(InputStream, String) Lua.load} is used
  * to load a Lua chunk (it returns a <code>LuaFunction</code>),
- * and {@link Lua#call(Object, int) Lua.call} is used to call a function.
+ * and {@link Lua#call Lua.call} is used to call a function.
  * A generic Lua
  * value, one retrieved from a table for example, can be converted to a
  * <code>LuaFunction</code> using {@link Lua#toFunction(Object)
  * Lua.toFunction} or by a
- * narrowing reference conversion, which may of course throw an
- * exception.
+ * narrowing reference conversion (the latter may of course throw an
+ * exception).
  */
 public final class LuaFunction {
   private UpVal[] upval;
