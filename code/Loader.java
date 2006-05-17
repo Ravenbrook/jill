@@ -312,7 +312,12 @@ final class Loader {
     // We assume that doubles are always stored with the sign bit first.
     long l = 0;
     for (int i=0; i<buf.length; ++i) {
-      l = (l << 8) | buf[i];
+      // Convert buf[i] to unsigned and store in b
+      int b = buf[i];
+      if (b < 0) {
+        b += 256;
+      }
+      l = (l << 8) | b;
     }
     double d = Double.longBitsToDouble(l);
     return Lua.valueOfNumber(d);
