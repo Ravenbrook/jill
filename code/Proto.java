@@ -97,5 +97,10 @@ final class Proto {
   int[] code() {
     return code;
   }
+
+  /** Constant array. */
+  Object[] constant() {
+    return k;
+  }
 }
 

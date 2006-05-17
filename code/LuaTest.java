@@ -41,7 +41,17 @@ public class LuaTest extends TestCase {
       e.printStackTrace();
     }
     assertNotNull("Loaded script", f);
-    L.call(f, 0, 0);
+    L.push(f);
+    int top = L.gettop();
+    assertTrue("TOS == 1", 1 == top);
+    L.call(0, 0);
+    top = L.gettop();
+    assertTrue("TOS == 0", 0 == top);
+    L.push(f);
+    L.call(0, 1);
+    top = L.gettop();
+    assertTrue("1 result", 1 == top);
+    System.out.println(L.value(1));
   }
 
   public Test suite() {
