@@ -82,10 +82,14 @@ final class Loader {
     }
   }
 
-  private byte byteLoad() throws IOException {
+  /**
+   * Undumps a byte as an unsigned number in the range [0,255].  Returns
+   * a short to accommodate the range.
+   */
+  private short byteLoad() throws IOException {
     byte[] buf = new byte[1];
     block(buf);
-    return buf[0];
+    return (short)(buf[0] & 0xff);
   }
 
   /**
@@ -131,7 +135,8 @@ final class Loader {
           break;
 
         case 1: // LUA_TBOOLEAN
-          byte b = byteLoad();
+          short b = byteLoad();
+          // assert b >= 0;
           if (b > 1) {
             throw new IOException();
           }
@@ -198,7 +203,7 @@ final class Loader {
     String source;
     int linedefined, lastlinedefined;
     int nups, numparams;
-    byte varargByte;
+    int varargByte;
     boolean vararg;
     int maxstacksize;
     int[] code;
@@ -277,7 +282,7 @@ final class Loader {
         0x51, 0, buf[6], 4,
         4, 4, 8, 0};
 
-    if (buf[6] > 1 || !arrayEquals(golden, buf)) {
+    if (buf[6] < 0 || buf[6] > 1 || !arrayEquals(golden, buf)) {
       throw new IOException();
     }
     bigendian = (buf[6] == 0);
@@ -294,10 +299,13 @@ final class Loader {
     block(buf);
 
     int i;
+    // Caution: byte is signed so "&0xff" converts to unsigned value.
     if (bigendian) {
-      i = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+      i = ((buf[0]&0xff) << 24) | ((buf[1]&0xff) << 16) |
+          ((buf[2]&0xff) << 8) | (buf[3]&0xff);
     } else {
-      i = (buf[3] << 24) | (buf[2] << 16) | (buf[1] << 8) | buf[0];
+      i = ((buf[3]&0xff) << 24) | ((buf[2]&0xff) << 16) |
+          ((buf[1]&0xff) << 8) | (buf[0]&0xff);
     }
     return i;
   }
@@ -312,12 +320,7 @@ final class Loader {
     // We assume that doubles are always stored with the sign bit first.
     long l = 0;
     for (int i=0; i<buf.length; ++i) {
-      // Convert buf[i] to unsigned and store in b
-      int b = buf[i];
-      if (b < 0) {
-        b += 256;
-      }
-      l = (l << 8) | b;
+      l = (l << 8) | (buf[i]&0xff);
     }
     double d = Double.longBitsToDouble(l);
     return Lua.valueOfNumber(d);
