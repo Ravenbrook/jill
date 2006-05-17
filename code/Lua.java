@@ -58,7 +58,11 @@ public final class Lua {
    * Equivalent of LUA_MULTRET.  Required, by vmPoscall, to be
    * negative.
    */
-  public final int MULTRET = -1;
+  public static final int MULTRET = -1;
+  /**
+   * Lua's nil value.
+   */
+  public static final Object NIL = null;
 
   /**
    * Calls a Lua value.  Normally this is called on functions, but the
@@ -475,6 +479,7 @@ reentry:
         int i = code[pc++];       // VM instruction.
         // :todo: count and line hook
         int a = ARGA(i);          // its A field.
+        Object rb, rc;
 
         switch (OPCODE(i)) {
           case OP_MOVE:
@@ -483,6 +488,45 @@ reentry:
           case OP_LOADK:
             stack.setElementAt(k[ARGBx(i)], base+a);
             continue;
+          case OP_LOADBOOL:
+            stack.setElementAt(valueOfBoolean(ARGB(i) != 0), base+a);
+            if (ARGC(i) != 0) {
+              ++pc;
+            }
+            continue;
+          case OP_LOADNIL: {
+            int b = base + ARGB(i);
+            do {
+              stack.setElementAt(NIL, b--);
+            } while (b >= base + a);
+            continue;
+          }
+
+          case OP_ADD:
+            rb = stack.elementAt(base+ARGB(i));
+            rc = stack.elementAt(base+ARGC(i));
+            if (isNumber(rb) && isNumber(rc)) {
+              double sum = ((Double)rb).doubleValue() +
+                  ((Double)rc).doubleValue();
+              stack.setElementAt(valueOfNumber(sum), base+a);
+            } else {
+              // :todo: convert or use metamethod
+              throw new IllegalArgumentException();
+            }
+            continue;
+          case OP_SUB:
+            rb = stack.elementAt(base+ARGB(i));
+            rc = stack.elementAt(base+ARGC(i));
+            if (isNumber(rb) && isNumber(rc)) {
+              double difference = ((Double)rb).doubleValue() +
+                  ((Double)rc).doubleValue();
+              stack.setElementAt(valueOfNumber(difference), base+a);
+            } else {
+              // :todo: convert or use metamethod
+              throw new IllegalArgumentException();
+            }
+            continue;
+
           case OP_RETURN: {
             int b = ARGB(i);
             if (b != 0) {
