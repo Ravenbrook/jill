@@ -495,6 +495,34 @@ public final class Lua {
     --nCcalls;
   }
 
+  /** Equivalent of luaV_concat. */
+  private void vmConcat(int total, int last) {
+    do {
+      int top = base + last + 1;
+      int n = 2;  // number of elements handled in this pass (at least 2)
+      if (!tostring(top-2)|| !tostring(top-1)) {
+        // :todo: implement me
+        throw new IllegalArgumentException();
+      } else if (((String)stack.elementAt(top-1)).length() > 0) {
+        int tl = ((String)stack.elementAt(top-1)).length();
+        for (n = 1; n < total && tostring(top-n); ++n) {
+          tl += ((String)stack.elementAt(top-n-1)).length();
+          if (tl < 0) {
+            // :todo: strength length overflow error
+            throw new IllegalArgumentException();
+          }
+        }
+        StringBuffer buffer = new StringBuffer(tl);
+        for (int i=n; i>0; i--) {       // concat all strings
+          buffer.append(tostring(top-i));
+        }
+        stack.setElementAt(buffer.toString(), top-n);
+      }
+      total -= n-1;     // got n strings to create 1 new
+      last -= n-1;
+    } while (total > 1); // repeat until only 1 result left
+  }
+
   /**
    * Primitive for testing Lua equality of two values.  Equivalent of
    * PUC-Rio's equalobj macro.  Note that using null to model nil
@@ -544,6 +572,7 @@ reentry:
       */
 
       while (true) {      // main loop of interpreter
+        // :todo: implement equivalent of Protect macro throughout
         int i = code[pc++];       // VM instruction.
         // :todo: count and line hook
         int a = ARGA(i);          // its A field.
@@ -600,6 +629,15 @@ reentry:
               throw new IllegalArgumentException();
             }
             continue;
+
+          case OP_CONCAT: {
+            int b = ARGC(i);
+            int c = ARGC(i);
+            // Protect
+            vmConcat(c - ARGB(i) + 1, c);
+            stack.setElementAt(stack.elementAt(base+b), base+a);
+            continue;
+          }
 
           case OP_EQ:
             rb = RK(k, ARGB(i));
@@ -698,6 +736,23 @@ reentry:
     }
     // :todo: implement calls to Lua Java functions.
     throw new IllegalArgumentException();
+  }
+
+  /**
+   * Convert to string.  Returns true if element was number or string
+   * (the number will have bee converted to a string), false otherwise.
+   */
+  private boolean tostring(int idx) {
+    Object o = stack.elementAt(idx);
+    if (o instanceof String) {
+      return true;
+    }
+    if (!(o instanceof Double)) {
+      return false;
+    }
+    Double d = (Double)o;
+    stack.setElementAt(d.toString(), idx);
+    return true;
   }
 
   /** Make new CallInfo record. */
