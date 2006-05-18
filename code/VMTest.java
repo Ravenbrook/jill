@@ -25,6 +25,11 @@ import java.io.InputStream;
 //   luac -s -o VMTestSub.luc - << 'EOF'
 //   local a,b,c = 18, 3, 5;return a - (b - c)
 //   EOF
+// VMTestConcat.luc - a binary chunk containg OP_CONCAT.
+//   luac -s -o VMTestConcat.luc - << 'EOF'
+//   local a,b,c="foo","bar","baz";return a..b..c
+//   EOF
+
 
 
 /**
@@ -123,6 +128,18 @@ public class VMTest extends TestCase {
     assertTrue("Result is 20", d.doubleValue() == 20);
   }
 
+  /** Tests execution of OP_CONCAT opcode. */
+  public void testVMConcat() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestConcat");
+    L.push(f);
+    L.call(0, 1);
+    Object res = L.value(1);
+    String s = (String)res;
+    assertTrue("Result is foobarbaz", s.equals("foobarbaz"));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -134,6 +151,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMAdd(); } });
     suite.addTest(new VMTest("testVMSub") {
         public void runTest() { testVMSub(); } });
+    suite.addTest(new VMTest("testVMConcat") {
+        public void runTest() { testVMConcat(); } });
     return suite;
   }
 }
