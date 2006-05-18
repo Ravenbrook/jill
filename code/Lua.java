@@ -592,7 +592,7 @@ reentry:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
             if (isNumber(rb) && isNumber(rc)) {
-              double difference = ((Double)rb).doubleValue() +
+              double difference = ((Double)rb).doubleValue() -
                   ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(difference), base+a);
             } else {
