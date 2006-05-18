@@ -28,6 +28,7 @@
 
   <target name="compile">
     <javac destdir="." srcdir="."
+        debug="true"
         classpath="${j2me.jar}:${j2meunit}"
         target="1.1"
     />

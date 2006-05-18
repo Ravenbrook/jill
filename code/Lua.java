@@ -270,6 +270,31 @@ public final class Lua {
   }
 
   /**
+   * Gets an element from a table, without using metamethods.
+   * @param t  The table to access.
+   * @param k  The index (key) into the table.
+   * @return The value at the specified index.
+   */
+  public static Object rawget(Object t, Object k) {
+    LuaTable table = (LuaTable)t;
+    return table.get(k);
+  }
+
+  /**
+   * Sets an element in a table, without using metamethods.
+   * @param t  The table to modify.
+   * @param k  The index into the table.
+   * @param v  The new value to be stored at index <var>k</var>.
+   */
+  public static void rawset(Object t, Object k, Object v) {
+    if (k == NIL) {
+      throw new NullPointerException();
+    }
+    LuaTable table = (LuaTable)t;
+    table.put(k, v);
+  }
+
+  /**
    * Gets a value from the stack.  The value at the specified stack
    * position is returned.
    */

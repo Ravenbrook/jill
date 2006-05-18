@@ -50,6 +50,7 @@ public class VMTest extends TestCase {
    * Tests execution of the OP_LOADBOOL opcode.  This opcode is
    * generated when the results of a boolean expression are used for its
    * value (as opposed to inside an "if").  Our test is "return x==nil".
+   * This generates both the skip and non-skip forms.
    */
   public void testVMLoadbool() {
     LuaFunction f;
@@ -60,6 +61,12 @@ public class VMTest extends TestCase {
     Object res = L.value(1);
     Boolean b = (Boolean)res;
     assertTrue("Result is true", b.booleanValue());
+    L.rawset(L.getGlobals(), "x", "foo");
+    L.push(f);
+    L.call(0, 1);
+    res = L.value(-1);
+    b = (Boolean)res;
+    assertTrue("Result is false", b.booleanValue() == false);
   }
 
   public Test suite() {
