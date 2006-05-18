@@ -396,7 +396,23 @@ public final class Lua {
   /** Equivalent of macro GETARG_sBx */
   private static int ARGsBx(int instruction) {
     // As ARGBx but with (2**17-1) subtracted.
-    return (instruction >> 14) - ((2<<17)-1);
+    return (instruction >>> 14) - ((1<<17)-1);
+  }
+
+  /**
+   * Near equivalent of macros RKB and RKC.  Note: non-static as it
+   * requires stack and base instance members.  Stands for "Register or
+   * Konstant" by the way, it gets value from either the register file
+   * (stack) or the constant array (k).
+   */
+  private Object RK(Object[] k, int field) {
+    // The "is constant" bit position depends on the size of the B and C
+    // fields (required to be the same width).
+    // SIZE_B == 9
+    if (field >= 0x100) {
+      return k[field & 0xff];
+    }
+    return stack.elementAt(base + field);
   }
 
   // opcode enumeration.
@@ -454,6 +470,29 @@ public final class Lua {
     --nCcalls;
   }
 
+  /**
+   * Primitive for testing Lua equality of two values.  Equivalent of
+   * PUC-Rio's equalobj macro.  Note that using null to model nil
+   * complicates this test, maybe we should use a nonce object.
+   */
+  private boolean vmEqual(Object a, Object b) {
+    if (NIL == a) {
+      return NIL == b;
+    }
+    // Now a is not null, so a.equals() is a valid call.
+    if (a.equals(b)) {
+      return true;
+    }
+    // Now b is not null (otherwise it would have failed a.equals(b)), so
+    // b.getClass() is a valid call.
+    if (a.getClass() != b.getClass()) {
+      return false;
+    }
+    // Same class, but different objects.  Resort to metamethods.
+    // :todo: metamethods.
+    return false;
+  }
+
   private void vmExecute(int nexeccalls) {
     // This labelled while loop is used to simulate the effect of C's
     // goto.  The end of the while loop is never reached.  The beginning
@@ -469,11 +508,13 @@ reentry:
       int pc = savedpc;
 
       // :todo: remove code printing loop
+      /*
       for (int i=0; i<code.length; ++i) {
         String s = "0000000" + Integer.toHexString(code[i]);
         s = s.substring(s.length()-8);
         System.out.println(s);
       }
+      */
 
       while (true) {      // main loop of interpreter
         int i = code[pc++];       // VM instruction.
@@ -502,9 +543,15 @@ reentry:
             continue;
           }
 
+          case OP_GETGLOBAL:
+            rb = k[ARGBx(i)];
+            // :todo: metamethods
+            stack.setElementAt(getGlobals().get(rb), base+a);
+            continue;
+
           case OP_ADD:
-            rb = stack.elementAt(base+ARGB(i));
-            rc = stack.elementAt(base+ARGC(i));
+            rb = RK(k, ARGB(i));
+            rc = RK(k, ARGC(i));
             if (isNumber(rb) && isNumber(rc)) {
               double sum = ((Double)rb).doubleValue() +
                   ((Double)rc).doubleValue();
@@ -515,8 +562,8 @@ reentry:
             }
             continue;
           case OP_SUB:
-            rb = stack.elementAt(base+ARGB(i));
-            rc = stack.elementAt(base+ARGC(i));
+            rb = RK(k, ARGB(i));
+            rc = RK(k, ARGC(i));
             if (isNumber(rb) && isNumber(rc)) {
               double difference = ((Double)rb).doubleValue() +
                   ((Double)rc).doubleValue();
@@ -525,6 +572,16 @@ reentry:
               // :todo: convert or use metamethod
               throw new IllegalArgumentException();
             }
+            continue;
+
+          case OP_EQ:
+            rb = RK(k, ARGB(i));
+            rc = RK(k, ARGC(i));
+            if (vmEqual(rb, rc) == (a != 0)) {
+              // dojump
+              pc += ARGsBx(code[pc]);
+            }
+            ++pc;
             continue;
 
           case OP_RETURN: {
