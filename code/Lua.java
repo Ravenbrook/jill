@@ -604,6 +604,28 @@ reentry:
             // :todo: metamethods
             stack.setElementAt(getGlobals().get(rb), base+a);
             continue;
+          case OP_GETTABLE: {
+            // Protect
+            // :todo: metamethods
+            LuaTable t = (LuaTable)stack.elementAt(base+ARGB(i));
+            stack.setElementAt(t.get(RK(k, ARGC(i))), base+a);
+            continue;
+          }
+
+          case OP_SETTABLE: {
+            // Protect
+            // :todo: metamethods
+            LuaTable t = (LuaTable)stack.elementAt(base+a);
+            t.put(RK(k, ARGB(i)), RK(k, ARGC(i)));
+            continue;
+          }
+          case OP_NEWTABLE: {
+            // :todo: use the b and c hints, currently ignored.
+            int b = ARGB(i);
+            int c = ARGC(i);
+            stack.setElementAt(new LuaTable(), base+a);
+            continue;
+          }
 
           case OP_ADD:
             rb = RK(k, ARGB(i));
