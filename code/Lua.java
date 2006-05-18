@@ -508,8 +508,10 @@ public final class Lua {
     if (a.equals(b)) {
       return true;
     }
-    // Now b is not null (otherwise it would have failed a.equals(b)), so
-    // b.getClass() is a valid call.
+    if (NIL == b) {
+      return false;
+    }
+    // Now b is not null, so b.getClass() is a valid call.
     if (a.getClass() != b.getClass()) {
       return false;
     }
