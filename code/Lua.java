@@ -505,7 +505,7 @@ public final class Lua {
         throw new IllegalArgumentException();
       } else if (((String)stack.elementAt(top-1)).length() > 0) {
         int tl = ((String)stack.elementAt(top-1)).length();
-        for (n = 1; n < total && tostring(top-n); ++n) {
+        for (n = 1; n < total && tostring(top-n-1); ++n) {
           tl += ((String)stack.elementAt(top-n-1)).length();
           if (tl < 0) {
             // :todo: strength length overflow error
@@ -514,7 +514,7 @@ public final class Lua {
         }
         StringBuffer buffer = new StringBuffer(tl);
         for (int i=n; i>0; i--) {       // concat all strings
-          buffer.append(tostring(top-i));
+          buffer.append(stack.elementAt(top-i));
         }
         stack.setElementAt(buffer.toString(), top-n);
       }
@@ -631,10 +631,15 @@ reentry:
             continue;
 
           case OP_CONCAT: {
-            int b = ARGC(i);
+            int b = ARGB(i);
             int c = ARGC(i);
             // Protect
-            vmConcat(c - ARGB(i) + 1, c);
+            // :todo: It's possible that the compiler assumes that all
+            // stack locations _above_ b end up with junk in them.  In
+            // which case we can improve the speed of vmConcat (by not
+            // converting each stack slot, but simply using
+            // StringBuffer.append on whatever is there).
+            vmConcat(c - b + 1, c);
             stack.setElementAt(stack.elementAt(base+b), base+a);
             continue;
           }
