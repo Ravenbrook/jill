@@ -54,6 +54,11 @@
         classpath=".:${j2meunit}">
       <arg value="LuaTest" />
     </java>
+    <java fork="yes"
+        classname="j2meunit.textui.TestRunner"
+        classpath=".:${j2meunit}">
+      <arg value="VMTest" />
+    </java>
   </target>
 
   <!-- preverify and package targets are works in progress
