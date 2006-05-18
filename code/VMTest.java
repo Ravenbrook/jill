@@ -17,6 +17,14 @@ import java.io.InputStream;
 //   luac -o VMTestLoadnil.luc - << 'EOF'
 //   local a,b,c; a,b,c="foo","bar","baz"; a,b,c=7; return a,b,c
 //   EOF
+// VMTestAdd.luc - a binary chunk containing OP_ADD.
+//   luac -s -o VMTestAdd.luc - << 'EOF'
+//   local a,b,c=3,7,8;return a+b+c
+//   EOF
+// VMTestSub.luc - a binary chunk containing OP_SUB.
+//   luac -s -o VMTestSub.luc - << 'EOF'
+//   local a,b,c = 18, 3, 5;return a - (b - c)
+//   EOF
 
 
 /**
@@ -41,6 +49,7 @@ public class VMTest extends TestCase {
    */
   private LuaFunction loadFile(Lua L, String filename) {
     filename += ".luc";
+    System.out.println(filename);
     LuaFunction f = null;
     try {
       f = L.load(new FileInputStream(filename), filename);
@@ -57,7 +66,6 @@ public class VMTest extends TestCase {
    * This generates both the skip and non-skip forms.
    */
   public void testVMLoadbool() {
-    System.out.println("LOADBOOL");
     Lua L = new Lua();
     LuaFunction f;
     f = loadFile(L, "VMTestLoadbool");
@@ -79,7 +87,6 @@ public class VMTest extends TestCase {
    * assignment sequences like "a,b,c=7".
    */
   public void testVMLoadnil() {
-    System.out.println("LOADNIL");
     Lua L = new Lua();
     LuaFunction f;
     f = loadFile(L, "VMTestLoadnil");
@@ -92,6 +99,30 @@ public class VMTest extends TestCase {
     assertTrue("Third result is nil", L.value(3) == L.NIL);
   }
 
+  /** Tests execution of OP_ADD opcode. */
+  public void testVMAdd() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestAdd");
+    L.push(f);
+    L.call(0, 1);
+    Object res = L.value(1);
+    Double d = (Double)res;
+    assertTrue("Result is 18", d.doubleValue() == 18);
+  }
+
+  /** Tests execution of OP_SUB opcode. */
+  public void testVMSub() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestSub");
+    L.push(f);
+    L.call(0, 1);
+    Object res = L.value(1);
+    Double d = (Double)res;
+    assertTrue("Result is 20", d.doubleValue() == 20);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -99,6 +130,10 @@ public class VMTest extends TestCase {
         public void runTest() { testVMLoadbool(); } });
     suite.addTest(new VMTest("testVMLoadnil") {
         public void runTest() { testVMLoadnil(); } });
+    suite.addTest(new VMTest("testVMAdd") {
+        public void runTest() { testVMAdd(); } });
+    suite.addTest(new VMTest("testVMSub") {
+        public void runTest() { testVMSub(); } });
     return suite;
   }
 }
