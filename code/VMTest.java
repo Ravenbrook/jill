@@ -13,6 +13,10 @@ import java.io.InputStream;
 //   luac -o VMTestLoadbool.luc - << 'EOF'
 //   return x==nil
 //   EOF
+// VMTestLoadnil.luc - a binary chunk containing OP_LOADNIL.
+//   luac -o VMTestLoadnil.luc - << 'EOF'
+//   local a,b,c; a,b,c="foo","bar","baz"; a,b,c=7; return a,b,c
+//   EOF
 
 
 /**
@@ -53,8 +57,9 @@ public class VMTest extends TestCase {
    * This generates both the skip and non-skip forms.
    */
   public void testVMLoadbool() {
-    LuaFunction f;
+    System.out.println("LOADBOOL");
     Lua L = new Lua();
+    LuaFunction f;
     f = loadFile(L, "VMTestLoadbool");
     L.push(f);
     L.call(0, 1);
@@ -69,11 +74,31 @@ public class VMTest extends TestCase {
     assertTrue("Result is false", b.booleanValue() == false);
   }
 
+  /**
+   * Tests execution of OP_LOADNIL opcode.  This opcode is generated for
+   * assignment sequences like "a,b,c=7".
+   */
+  public void testVMLoadnil() {
+    System.out.println("LOADNIL");
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestLoadnil");
+    L.push(f);
+    L.call(0, 3);
+    Object first = L.value(1);
+    Double d = (Double)first;
+    assertTrue("First result is 7", d.doubleValue() == 7);
+    assertTrue("Second result is nil", L.value(2) == L.NIL);
+    assertTrue("Third result is nil", L.value(3) == L.NIL);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
     suite.addTest(new VMTest("testVMLoadbool") {
         public void runTest() { testVMLoadbool(); } });
+    suite.addTest(new VMTest("testVMLoadnil") {
+        public void runTest() { testVMLoadnil(); } });
     return suite;
   }
 }
