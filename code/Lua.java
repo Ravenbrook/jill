@@ -365,7 +365,7 @@ public final class Lua {
   private static int ARGA(int instruction) {
     // POS_A == POS_OP + SIZE_OP == 6 (shift amount)
     // SIZE_A == 8 (operand width)
-    return (instruction >> 6) & 0xff;
+    return (instruction >>> 6) & 0xff;
   }
 
   /** Equivalent of macro GETARG_B */
@@ -381,7 +381,7 @@ public final class Lua {
   private static int ARGC(int instruction) {
     // POS_C == POS_OP + SIZE_OP + SIZE_A == 14 (shift amount)
     // SIZE_C == 9 (operand width)
-    return (instruction >> 14) & 0x1ff;
+    return (instruction >>> 14) & 0x1ff;
   }
 
   /** Equivalent of macro GETARG_Bx */
