@@ -11,9 +11,10 @@ import java.io.InputStream;
 // The VMTest uses ancillary files:
 // Mostly these are compiled versions of one line Lua scripts compiled
 // in the following manner:
-//   luac -o VMTestLoadbool.luc - << 'EOF'
+//   luac -s -o VMTestLoadbool.luc - << 'EOF'
 //   return x==nil
 //   EOF
+// (Mostly they are stripped, but not all of them are)
 //
 // In the following list, the Lua script follows the filename.
 //
@@ -37,6 +38,8 @@ import java.io.InputStream;
 //   return f(7)+1
 // VMTestClosure.luc - a binary chunk containing OP_CLOSURE.
 //   return function(x)return "foo"..x end 
+// VMTestCall1.luc - a binary chunk containing both OP_CLOSURE and OP_CALL.
+//   function f(x)return'f'..x end;return f'x'..f'y'
 
 
 
@@ -228,6 +231,17 @@ public class VMTest extends TestCase {
     assertTrue("Result is foobar", "foobar".equals(L.value(-1)));
   }
 
+  /** Tests execution of OP_CALL for calling Lua. */
+  public void testVMCall1() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestCall1");
+    L.push(f);
+    L.call(0, 1);
+    Object o = L.value(1);
+    assertTrue("Result is fxfy", "fxfy".equals(L.value(-1)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -251,6 +265,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMCall(); } });
     suite.addTest(new VMTest("testVMClosure") {
         public void runTest() { testVMClosure(); } });
+    suite.addTest(new VMTest("testVMCall1") {
+        public void runTest() { testVMCall1(); } });
     return suite;
   }
 }
