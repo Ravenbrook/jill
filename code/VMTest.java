@@ -9,38 +9,33 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 // The VMTest uses ancillary files:
-// VMTestLoadbool.luc - a binary chunk containing OP_LOADBOOL.
+// Mostly these are compiled versions of one line Lua scripts compiled
+// in the following manner:
 //   luac -o VMTestLoadbool.luc - << 'EOF'
 //   return x==nil
 //   EOF
+//
+// In the following list, the Lua script follows the filename.
+//
+// VMTestLoadbool.luc - a binary chunk containing OP_LOADBOOL.
+//   return x==nil
 // VMTestLoadnil.luc - a binary chunk containing OP_LOADNIL.
-//   luac -o VMTestLoadnil.luc - << 'EOF'
 //   local a,b,c; a,b,c="foo","bar","baz"; a,b,c=7; return a,b,c
-//   EOF
 // VMTestAdd.luc - a binary chunk containing OP_ADD.
-//   luac -s -o VMTestAdd.luc - << 'EOF'
 //   local a,b,c=3,7,8;return a+b+c
-//   EOF
 // VMTestSub.luc - a binary chunk containing OP_SUB.
-//   luac -s -o VMTestSub.luc - << 'EOF'
 //   local a,b,c = 18, 3, 5;return a - (b - c)
-//   EOF
 // VMTestConcat.luc - a binary chunk containing OP_CONCAT.
-//   luac -s -o VMTestConcat.luc - << 'EOF'
 //   local a,b,c="foo","bar","baz";return a..b..c
-//   EOF
 // VMTestSettable.luc - a binary chunk containing OP_SETTABLE.
-//   luac -s -o VMTestSettable.luc - << 'EOF'
 //   return {a=1, b=2, c=3}
-//   EOF
 // VMTestGettable.luc - a binary chunk containing OP_GETTABLE.
-//   luac -s -o VMTestGettable.luc - << 'EOF'
 //   local a={a=2,b=3,c=23};return a.a+a.b+a.c
-//   EOF
 // VMTestSetlist.luc - a binary chunk containing OP_SETLIST.
-//   luac -s -o VMTestSetlist.luc - << 'EOF'
 //   local a = {13, 18, 1};return a[1]+a[2]+a[3]
-//   EOF
+// VMTestSetCall.luc - a binary chunk containing OP_CALL.
+//   return f(7)+1
+
 
 
 /**
@@ -199,6 +194,25 @@ public class VMTest extends TestCase {
     assertTrue("Result is 32", d.doubleValue() == 32);
   }
 
+  /** Tests execution of OP_CALL opcode. */
+  public void testVMCall() {
+    Lua L = new Lua();
+    // Create a Lua Java function and install it in the global 'f'.
+    class Mine extends LuaJavaCallback {
+      int luaFunction(Lua L) {
+        double d = L.toNumber(L.value(1));
+        L.pushNumber(d*3);
+        return 1;
+      }
+    }
+    L.rawset(L.getGlobals(), "f", new Mine());
+    LuaFunction f;
+    f = loadFile(L, "VMTestCall");
+    L.push(f);
+    L.call(0, 1);
+    assertTrue("Result is 22", L.toNumber(L.value(1)) == 22);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -218,6 +232,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMGettable(); } });
     suite.addTest(new VMTest("testVMSetlist") {
         public void runTest() { testVMSetlist(); } });
+    suite.addTest(new VMTest("testVMCall") {
+        public void runTest() { testVMCall(); } });
     return suite;
   }
 }
