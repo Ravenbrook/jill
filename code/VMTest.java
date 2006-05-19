@@ -40,7 +40,8 @@ import java.io.InputStream;
 //   return function(x)return "foo"..x end 
 // VMTestCall1.luc - a binary chunk containing both OP_CLOSURE and OP_CALL.
 //   function f(x)return'f'..x end;return f'x'..f'y'
-
+// VMTestJmp.luc - a binary chunk containing OP_JMP (and OP_LT).
+//   local a=0;while a < 10 do a=a*2+1 end;return a
 
 
 /**
@@ -242,6 +243,17 @@ public class VMTest extends TestCase {
     assertTrue("Result is fxfy", "fxfy".equals(L.value(-1)));
   }
 
+  /** Tests execution of OP_JMP opcode. */
+  public void testVMJmp() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestJmp");
+    L.push(f);
+    L.call(0, 1);
+    Object o = L.value(1);
+    assertTrue("Result is 15", o.equals(new Double(15)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -267,6 +279,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMClosure(); } });
     suite.addTest(new VMTest("testVMCall1") {
         public void runTest() { testVMCall1(); } });
+    suite.addTest(new VMTest("testVMJmp") {
+        public void runTest() { testVMJmp(); } });
     return suite;
   }
 }

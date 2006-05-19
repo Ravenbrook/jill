@@ -702,7 +702,18 @@ reentry:
               throw new IllegalArgumentException();
             }
             continue;
-
+          case OP_MUL:
+            rb = RK(k, ARGB(i));
+            rc = RK(k, ARGC(i));
+            if (isNumber(rb) && isNumber(rc)) {
+              double product = ((Double)rb).doubleValue() *
+                ((Double)rc).doubleValue();
+              stack.setElementAt(valueOfNumber(product), base+a);
+            } else {
+              // :todo: convert or use metamethod
+              throw new IllegalArgumentException();
+            }
+            continue;
           case OP_CONCAT: {
             int b = ARGB(i);
             int c = ARGC(i);
@@ -716,11 +727,22 @@ reentry:
             stack.setElementAt(stack.elementAt(base+b), base+a);
             continue;
           }
-
+          case OP_JMP:
+            // dojump
+            pc += ARGsBx(i);
+            continue;
           case OP_EQ:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
             if (vmEqual(rb, rc) == (a != 0)) {
+              // dojump
+              pc += ARGsBx(code[pc]);
+            }
+            ++pc;
+            continue;
+          case OP_LT:
+            // Protect
+            if (vmLessthan(RK(k, ARGB(i)), RK(k, ARGC(i))) == (a != 0)) {
               // dojump
               pc += ARGsBx(code[pc]);
             }
@@ -811,6 +833,23 @@ reentry:
         } /* switch */
       } /* while */
     } /* reentry: while */
+  }
+
+  /** Equivalent of luaV_lessthan. */
+  private boolean vmLessthan(Object l, Object r) {
+    // :todo: currently goes wrong when comparing nil.  Fix it.
+    if (l.getClass() != r.getClass()) {
+      // :todo: Make Lua error
+      throw new IllegalArgumentException();
+    } else if (l instanceof Double) {
+      return ((Double)l).doubleValue() < ((Double)r).doubleValue();
+    } else if (l instanceof String) {
+      // :todo: PUC-Rio use strcoll, maybe we should use something
+      // equivalent.
+      return ((String)l).compareTo((String)r) < 0;
+    }
+    // :todo: metamethods
+    throw new IllegalArgumentException();
   }
 
   /**
