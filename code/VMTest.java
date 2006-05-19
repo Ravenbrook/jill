@@ -25,11 +25,14 @@ import java.io.InputStream;
 //   luac -s -o VMTestSub.luc - << 'EOF'
 //   local a,b,c = 18, 3, 5;return a - (b - c)
 //   EOF
-// VMTestConcat.luc - a binary chunk containg OP_CONCAT.
+// VMTestConcat.luc - a binary chunk containing OP_CONCAT.
 //   luac -s -o VMTestConcat.luc - << 'EOF'
 //   local a,b,c="foo","bar","baz";return a..b..c
 //   EOF
-
+// VMTestSettable.luc - a binary chunk containing OP_SETTABLE.
+//   luac -s -o VMTestSettable.luc - << 'EOF'
+//   return {a=1, b=2, c=3}
+//   EOF
 
 
 /**
@@ -140,6 +143,24 @@ public class VMTest extends TestCase {
     assertTrue("Result is foobarbaz", s.equals("foobarbaz"));
   }
 
+  /** Tests execution of OP_SETTABLE opcode. */
+  public void testVMSettable() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestSettable");
+    L.push(f);
+    L.call(0, 1);
+    Object t = L.value(1);
+    Double d;
+    d = (Double)L.rawget(t, "a");
+    assertTrue("t.a == 1", d.doubleValue() == 1);
+    d = (Double)L.rawget(t, "b");
+    assertTrue("t.b == 2", d.doubleValue() == 2);
+    d = (Double)L.rawget(t, "c");
+    assertTrue("t.c == 3", d.doubleValue() == 3);
+    assertTrue("t.d == nil", L.isNil(L.rawget(t, "d")));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -153,6 +174,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMSub(); } });
     suite.addTest(new VMTest("testVMConcat") {
         public void runTest() { testVMConcat(); } });
+    suite.addTest(new VMTest("testVMSettable") {
+        public void runTest() { testVMSettable(); } });
     return suite;
   }
 }
