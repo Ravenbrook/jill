@@ -33,6 +33,11 @@ import java.io.InputStream;
 //   luac -s -o VMTestSettable.luc - << 'EOF'
 //   return {a=1, b=2, c=3}
 //   EOF
+// VMTestGettable.luc - a binary chunk containing OP_GETTABLE.
+//   luac -s -o VMTestGettable.luc - << 'EOF'
+//   local a={a=2,b=3,c=23};return a.a+a.b+a.c
+//   EOF
+
 
 
 /**
@@ -161,6 +166,17 @@ public class VMTest extends TestCase {
     assertTrue("t.d == nil", L.isNil(L.rawget(t, "d")));
   }
 
+  /** Tests execution of OP_GETTABLE opcode. */
+  public void testVMGettable() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestGettable");
+    L.push(f);
+    L.call(0, 1);
+    Double d = (Double)L.value(1);
+    assertTrue("Result is 28", d.doubleValue() == 28);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -176,6 +192,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMConcat(); } });
     suite.addTest(new VMTest("testVMSettable") {
         public void runTest() { testVMSettable(); } });
+    suite.addTest(new VMTest("testVMGettable") {
+        public void runTest() { testVMGettable(); } });
     return suite;
   }
 }
