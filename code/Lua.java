@@ -693,6 +693,28 @@ reentry:
             ++pc;
             continue;
 
+          case OP_CALL: {
+            int b = ARGB(i);
+            int nresults = ARGC(i) - 1;
+            if (b != 0) {
+              stack.setSize(base+a+b);
+            }
+            savedpc = pc;
+            switch (vmPrecall(base+a, nresults)) {
+              case PCRLUA:
+                nexeccalls++;
+                continue reentry;
+              case PCRJ:
+                // Was Java function called by precall, adjust result
+                if (nresults >= 0) {
+                  stack.setSize(ci.top());
+                }
+                continue;
+              default:
+                return; // yield
+            }
+          }
+
           case OP_RETURN: {
             int b = ARGB(i);
             if (b != 0) {
@@ -701,7 +723,7 @@ reentry:
             }
             // :todo: close UpVals
             savedpc = pc;
-            // adjust replaces aliased 'b' in PUC-Rio code.
+            // 'adjust' replaces aliased 'b' in PUC-Rio code.
             boolean adjust = vmPoscall(a);
             if (--nexeccalls == 0) {
               return;
