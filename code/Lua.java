@@ -7,13 +7,18 @@ import java.util.Stack;
 import java.util.Vector;
 
 /**
+ * <p>
  * Encapsulates a Lua execution environment.  A lot of Jili's public API
  * manifests as public methods in this class.  A key part of the API is
  * the ability to call Lua functions from Java (ultimately, all Lua code
  * is executed in this manner).
+ * </p>
  *
+ * <p>
  * The Stack
+ * </p>
  *
+ * <p>
  * All arguments to Lua functions and all results returned by Lua
  * functions are placed onto a stack.  The stack can be indexed by an
  * integer in the same way as the PUC-Rio implementation.  A positive
@@ -22,16 +27,23 @@ import java.util.Vector;
  * where <var>n</var> is the number of elements on the stack.  Negative
  * indexes are relative indexes, -1 is the top-most element, -2 is the
  * element underneath that, and so on.  0 is not used.
+ * </p>
  *
+ * <p>
  * Note that in Jili the stack is used only for passing arguments and
  * returning results, unlike PUC-Rio.
+ * </p>
  *
+ * <p>
  * The protocol for calling a function is described in the {@link Lua#call}
  * method.  In brief: push the function onto the stack, then push the
  * arguments to the call.
+ * </p>
  *
+ * <p>
  * The methods {@link Lua#push}, {@link Lua#pop}, {@link Lua#value},
  * {@link Lua#gettop}, {@link Lua#settop} are used to manipulate the stack.
+ * </p>
  */
 public final class Lua {
   /** Table of globals (global variables).  Actually shared across all
@@ -47,9 +59,9 @@ public final class Lua {
    * Vector of CallInfo records.  Actually it's a Stack which is a
    * subclass of Vector, but it mostly the Vector methods that are used.
    */
-  Stack civ = new Stack();
+  private Stack civ = new Stack();
   /** CallInfo record for currently active function. */
-  CallInfo ci = new CallInfo();
+  private CallInfo ci = new CallInfo();
   {
     civ.addElement(ci);
   }
@@ -698,7 +710,7 @@ reentry:
    * Equivalent of luaD_poscall.
    * @param firstResult  stack index (relative to base) of the first result
    */
-  boolean vmPoscall(int firstResult) {
+  private boolean vmPoscall(int firstResult) {
     firstResult += base;        // Convert to absolute index
     // :todo: call hook
     CallInfo lci; // local copy, for faster access
