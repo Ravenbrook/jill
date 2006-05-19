@@ -78,6 +78,11 @@ public final class Lua {
    * Lua's nil value.
    */
   public static final Object NIL = null;
+  /**
+   * Minimum stack size that Lua Java functions gets.  May turn out to
+   * be silly / redundant.
+   */
+  public static final int MINSTACK = 20;
 
   /**
    * Calls a Lua value.  Normally this is called on functions, but the
@@ -359,7 +364,9 @@ public final class Lua {
 
   // VM
 
-  private static final int PCRLUA = 0;
+  private static final int PCRLUA =     0;
+  private static final int PCRJ =       1;
+  private static final int PCRYIELD =   2;
 
   // Instruction decomposition.
 
@@ -794,8 +801,21 @@ reentry:
       stack.setSize(top);
       // :todo: implement call hook.
       return PCRLUA;
+    } else if (faso instanceof LuaJavaCallback) {
+      LuaJavaCallback fj = (LuaJavaCallback)faso;
+      // :todo: checkstack (not sure it's necessary)
+      base = func + 1;
+      inc_ci(func, base, stack.size()+MINSTACK, r);
+      // :todo: call hook
+      int n = fj.luaFunction(this);
+      if (n < 0) {      // yielding?
+        return PCRYIELD;
+      } else {
+        vmPoscall(stack.size() - n);
+        return PCRJ;
+      }
     }
-    // :todo: implement calls to Lua Java functions.
+      
     throw new IllegalArgumentException();
   }
 

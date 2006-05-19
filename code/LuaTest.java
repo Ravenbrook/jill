@@ -55,6 +55,22 @@ public class LuaTest extends TestCase {
     assertTrue("result is 99.0", ((Double)r).doubleValue() == 99.0);
   }
 
+  /** Tests that a Lua Java function can be called. */
+  public void testLua2() {
+    Lua L = new Lua();
+    final Object[] v = new Object[1];
+    final Object MAGIC = new Object();
+    class Mine extends LuaJavaCallback {
+      int luaFunction(Lua L) {
+        v[0] = MAGIC;
+        return 0;
+      }
+    }
+    L.push(new Mine());
+    L.call(0, 0);
+    assertTrue("Callback got called", v[0] == MAGIC);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -62,6 +78,8 @@ public class LuaTest extends TestCase {
         public void runTest() { testLua0(); } });
     suite.addTest(new LuaTest("testLua1") {
         public void runTest() { testLua1(); } });
+    suite.addTest(new LuaTest("testLua2") {
+        public void runTest() { testLua2(); } });
     return suite;
   }
 }
