@@ -33,8 +33,10 @@ import java.io.InputStream;
 //   local a={a=2,b=3,c=23};return a.a+a.b+a.c
 // VMTestSetlist.luc - a binary chunk containing OP_SETLIST.
 //   local a = {13, 18, 1};return a[1]+a[2]+a[3]
-// VMTestSetCall.luc - a binary chunk containing OP_CALL.
+// VMTestCall.luc - a binary chunk containing OP_CALL.
 //   return f(7)+1
+// VMTestClosure.luc - a binary chunk containing OP_CLOSURE.
+//   return function(x)return "foo"..x end 
 
 
 
@@ -213,6 +215,19 @@ public class VMTest extends TestCase {
     assertTrue("Result is 22", L.toNumber(L.value(1)) == 22);
   }
 
+  /** Tests execution of OP_CLOSURE opcode. */
+  public void testVMClosure() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestClosure");
+    L.push(f);
+    L.call(0, 1);
+    Object o = L.value(1);
+    L.push("bar");
+    L.call(1, 1);
+    assertTrue("Result is foobar", "foobar".equals(L.value(-1)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -234,6 +249,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMSetlist(); } });
     suite.addTest(new VMTest("testVMCall") {
         public void runTest() { testVMCall(); } });
+    suite.addTest(new VMTest("testVMClosure") {
+        public void runTest() { testVMClosure(); } });
     return suite;
   }
 }
