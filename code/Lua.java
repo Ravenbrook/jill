@@ -649,7 +649,7 @@ reentry:
           case OP_GETGLOBAL:
             rb = k[ARGBx(i)];
             // :todo: metamethods
-            stack.setElementAt(getGlobals().get(rb), base+a);
+            stack.setElementAt(function.getEnv().get(rb), base+a);
             continue;
           case OP_GETTABLE: {
             // Protect
@@ -658,7 +658,11 @@ reentry:
             stack.setElementAt(t.get(RK(k, ARGC(i))), base+a);
             continue;
           }
-
+          case OP_SETGLOBAL:
+            // Protect
+            // :todo: metamethods
+            function.getEnv().put(k[ARGBx(i)], stack.elementAt(base+a));
+            continue;
           case OP_SETTABLE: {
             // Protect
             // :todo: metamethods
