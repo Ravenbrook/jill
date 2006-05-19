@@ -79,7 +79,7 @@ final class Proto {
   }
 
   /** Gets Number of Upvalues */
-  int getNUps() {
+  int nups() {
     return nups;
   }
 
@@ -96,6 +96,11 @@ final class Proto {
   /** Instruction block. */
   int[] code() {
     return code;
+  }
+
+  /** Array of inner protos. */
+  Proto[] proto() {
+    return p;
   }
 
   /** Constant array. */

@@ -41,7 +41,7 @@ public final class LuaFunction {
     if (null == proto || null == upval || null == env) {
       throw new NullPointerException();
     }
-    if (upval.length != proto.getNUps()) {
+    if (upval.length != proto.nups()) {
       throw new IllegalArgumentException();
     }
 

@@ -376,7 +376,23 @@ public final class Lua {
    */
   public Reader StringReader(String s) { return null; }
 
+  ////////////////////////////////////////////////////////////////////////
+  // Func
+
+  // Methods equivalent to the file lfunc.c.  Prefixed with f.
+
+  UpVal fFindupval(int idx) {
+    // :todo: implement  me
+    return null;
+  }
+
+
+  ////////////////////////////////////////////////////////////////////////
   // VM
+
+  // Most of the methods in this section are equivalent to the files
+  // lvm.c and ldo.c from PUC-Rio.  They're mostly prefixed with vm as
+  // well.
 
   private static final int PCRLUA =     0;
   private static final int PCRJ =       1;
@@ -388,14 +404,14 @@ public final class Lua {
   // from a VM instruction.  See lopcodes.h from PUC-Rio.
   // :todo: Consider replacing with m4 macros (or similar).
   // A brief overview of the instruction format:
-  // Logically an instruction has an opcode (6 bits), op, and up to three fields
-  // using one of three formats:
+  // Logically an instruction has an opcode (6 bits), op, and up to
+  // three fields using one of three formats:
   // A B C  (8 bits, 9 bits, 9 bits)
   // A Bx   (8 bits, 18 bits)
   // A sBx  (8 bits, 18 bits signed - excess K)
   // Some instructions do not use all the fields (EG OP_UNM only uses A
   // and B).
-  // When packed into a word (an int in Jili) the following formats are
+  // When packed into a word (an int in Jili) the following layouts are
   // used:
   //  31 (MSB)    23 22          14 13         6 5      0 (LSB)
   // +--------------+--------------+------------+--------+
@@ -769,6 +785,23 @@ reentry:
               t.putnum(last--, val);
             }
             continue;
+          }
+
+          case OP_CLOSURE: {
+            Proto p = function.proto().proto()[ARGBx(i)];
+            int nup = p.nups();
+            UpVal[] up = new UpVal[nup];
+            for (int j=0; j<nup; j++, pc++) {
+              int in = code[pc];
+              if (OPCODE(in) == OP_GETUPVAL) {
+                up[j] = function.upVal(ARGB(in));
+              } else {
+                // assert OPCODE(in) == OP_MOVE;
+                up[j] = fFindupval(base + ARGB(in));
+              }
+            }
+            LuaFunction nf = new LuaFunction(p, up, function.getEnv());
+            stack.setElementAt(nf, base+a);
           }
 
         } /* switch */
