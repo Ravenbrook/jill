@@ -5,7 +5,7 @@
  * this class.
  */
 public final class LuaTable extends java.util.Hashtable {
-  Object metatable;
+  private Object metatable;
   /**
    * Getter for metatable member.
    * @return  The metatable.
@@ -25,4 +25,12 @@ public final class LuaTable extends java.util.Hashtable {
     this.metatable = metatable;
     return;
   }
+
+  /**
+   * Like put for numeric (integer) keys.
+   */
+  void putnum(int k, Object v) {
+    put(new Double(k), v);
+  }
+
 }

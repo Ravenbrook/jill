@@ -66,6 +66,9 @@ public final class Lua {
     civ.addElement(ci);
   }
 
+  /** number of list items to accumuate before a SETLIST instruction. */
+  private static final int LFIELDS_PER_FLUSH = 50;
+
   /**
    * Equivalent of LUA_MULTRET.  Required, by vmPoscall, to be
    * negative.
@@ -701,6 +704,30 @@ reentry:
             }
             continue reentry;
           }
+
+          case OP_SETLIST: {
+            int n = ARGB(i);
+            int c = ARGC(i);
+            int last;
+            LuaTable t;
+            if (0 == n) {
+              n = (stack.size() - a) - 1;
+              // :todo: check this against PUC-Rio
+              // stack.setSize ??
+            }
+            if (0 == c) {
+              c = code[pc++];
+            }
+            t = (LuaTable)stack.elementAt(base+a);
+            last = ((c-1)*LFIELDS_PER_FLUSH) + n;
+            // :todo: consider expanding space in table
+            for (; n > 0; n--) {
+              Object val = stack.elementAt(base+a+n);
+              t.putnum(last--, val);
+            }
+            continue;
+          }
+
         } /* switch */
       } /* while */
     } /* reentry: while */
