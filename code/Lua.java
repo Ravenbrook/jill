@@ -282,11 +282,18 @@ public final class Lua {
 
   /**
    * Pushes a value onto the stack in preparation for calling a
-   * function.  See {@link Lua#call} for the protocol to be used for calling
-   * functions.
+   * function (or returning from one).  See {@link Lua#call} for
+   * the protocol to be used for calling functions.
    */
   public void push(Object o) {
     stack.addElement(o);
+  }
+
+  /**
+   * Pushes a number onto the stack.  See also {@link Lua#push}.
+   */
+  public void pushNumber(double d) {
+    push(new Double(d));
   }
 
   /**
@@ -312,6 +319,13 @@ public final class Lua {
     }
     LuaTable table = (LuaTable)t;
     table.put(k, v);
+  }
+
+  /**
+   * Convert to number and return it.
+   */
+  public double toNumber(Object o) {
+    return ((Double)o).doubleValue();
   }
 
   /**
@@ -724,7 +738,7 @@ reentry:
             // :todo: close UpVals
             savedpc = pc;
             // 'adjust' replaces aliased 'b' in PUC-Rio code.
-            boolean adjust = vmPoscall(a);
+            boolean adjust = vmPoscall(base+a);
             if (--nexeccalls == 0) {
               return;
             }
@@ -764,10 +778,9 @@ reentry:
 
   /**
    * Equivalent of luaD_poscall.
-   * @param firstResult  stack index (relative to base) of the first result
+   * @param firstResult  stack index (absolute) of the first result
    */
   private boolean vmPoscall(int firstResult) {
-    firstResult += base;        // Convert to absolute index
     // :todo: call hook
     CallInfo lci; // local copy, for faster access
     lci = dec_ci(); 
