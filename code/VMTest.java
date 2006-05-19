@@ -37,7 +37,10 @@ import java.io.InputStream;
 //   luac -s -o VMTestGettable.luc - << 'EOF'
 //   local a={a=2,b=3,c=23};return a.a+a.b+a.c
 //   EOF
-
+// VMTestSetlist.luc - a binary chunk containing OP_SETLIST.
+//   luac -s -o VMTestSetlist.luc - << 'EOF'
+//   local a = {13, 18, 1};return a[1]+a[2]+a[3]
+//   EOF
 
 
 /**
@@ -177,6 +180,25 @@ public class VMTest extends TestCase {
     assertTrue("Result is 28", d.doubleValue() == 28);
   }
 
+  /**
+   * Tests execution of OP_SETLIST opcode.
+   * :todo: There are special cases in SETLIST that are currently untested:
+   * When field B is 0 (all elements up to TOS are set);
+   * when field C is 0 (starting index is loaded from next opcode).
+   * The former is presumably generated when a list initialiser has at
+   * least 25,600 (512*50) elements (!).  The latter is generated when an
+   * expression like "{...}" is used.
+   */
+  public void testVMSetlist() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestSetlist");
+    L.push(f);
+    L.call(0, 1);
+    Double d = (Double)L.value(1);
+    assertTrue("Result is 32", d.doubleValue() == 32);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -194,6 +216,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMSettable(); } });
     suite.addTest(new VMTest("testVMGettable") {
         public void runTest() { testVMGettable(); } });
+    suite.addTest(new VMTest("testVMSetlist") {
+        public void runTest() { testVMSetlist(); } });
     return suite;
   }
 }
