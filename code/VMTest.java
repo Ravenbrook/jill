@@ -42,6 +42,12 @@ import java.io.InputStream;
 //   function f(x)return'f'..x end;return f'x'..f'y'
 // VMTestJmp.luc - a binary chunk containing OP_JMP (and OP_LT).
 //   local a=0;while a < 10 do a=a*2+1 end;return a
+// VMTestJmp1.luc - more interesting chunk with OP_JMP
+//   function f(x) 
+//     local y=0
+//     while x~=1 do y=y+1;if x%2==0 then x=x/2 else x=3*x+1 end end 
+//     return y end
+//   return f(27)
 
 
 /**
@@ -254,6 +260,21 @@ public class VMTest extends TestCase {
     assertTrue("Result is 15", o.equals(new Double(15)));
   }
 
+  /**
+   * Tests execution of OP_JMP opcode.  The function is taken from the
+   * "3x+1" problem.  It computes elements from Sloane's sequence A006577
+   * (see http://www.research.att.com/~njas/sequences/A006577 ).
+   */
+  public void testVMJmp1() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestJmp1");
+    L.push(f);
+    L.call(0, 1);
+    Object o = L.value(1);
+    assertTrue("Result is 111", o.equals(new Double(111)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -281,6 +302,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMCall1(); } });
     suite.addTest(new VMTest("testVMJmp") {
         public void runTest() { testVMJmp(); } });
+    suite.addTest(new VMTest("testVMJmp1") {
+        public void runTest() { testVMJmp1(); } });
     return suite;
   }
 }

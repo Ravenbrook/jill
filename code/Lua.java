@@ -714,6 +714,34 @@ reentry:
               throw new IllegalArgumentException();
             }
             continue;
+          case OP_DIV:
+            rb = RK(k, ARGB(i));
+            rc = RK(k, ARGC(i));
+            if (isNumber(rb) && isNumber(rc)) {
+              double quotient = ((Double)rb).doubleValue() /
+                ((Double)rc).doubleValue();
+              stack.setElementAt(valueOfNumber(quotient), base+a);
+            } else {
+              // :todo: convert or use metamethod
+              throw new IllegalArgumentException();
+            }
+            continue;
+          case OP_MOD:
+            rb = RK(k, ARGB(i));
+            rc = RK(k, ARGC(i));
+            if (isNumber(rb) && isNumber(rc)) {
+              // Note: semantics of Lua's % do not match Java's,
+              // therefore we can't just use Java's '%' operator here.
+              double db = ((Double)rb).doubleValue();
+              double dc = ((Double)rc).doubleValue();
+              double modulus = db - Math.floor(db/dc)*dc;
+              stack.setElementAt(valueOfNumber(modulus), base+a);
+            } else {
+              // :todo: convert or use metamethod
+              throw new IllegalArgumentException();
+            }
+            continue;
+
           case OP_CONCAT: {
             int b = ARGB(i);
             int c = ARGC(i);
