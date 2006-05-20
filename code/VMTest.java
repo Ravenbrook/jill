@@ -47,7 +47,7 @@ import java.io.InputStream;
 //     local y=0
 //     while x~=1 do y=y+1;if x%2==0 then x=x/2 else x=3*x+1 end end 
 //     return y end
-//   return f(27)
+//   return(f(27)) -- avoid unimplemented OP_TAILCALL
 
 
 /**
