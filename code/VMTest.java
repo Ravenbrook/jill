@@ -48,6 +48,8 @@ import java.io.InputStream;
 //     while x~=1 do y=y+1;if x%2==0 then x=x/2 else x=3*x+1 end end 
 //     return y end
 //   return(f(27)) -- avoid unimplemented OP_TAILCALL
+// VMTestUpval.luc - creates and uses UpVals.
+//   local a=0;return function()a=a+1;return a;end
 
 
 /**
@@ -261,8 +263,9 @@ public class VMTest extends TestCase {
   }
 
   /**
-   * Tests execution of OP_JMP opcode.  The function is taken from the
-   * "3x+1" problem.  It computes elements from Sloane's sequence A006577
+   * Tests execution of OP_JMP opcode some more.  The function is taken
+   * from the "3x+1" problem.  It computes elements from Sloane's
+   * sequence A006577
    * (see http://www.research.att.com/~njas/sequences/A006577 ).
    */
   public void testVMJmp1() {
@@ -273,6 +276,21 @@ public class VMTest extends TestCase {
     L.call(0, 1);
     Object o = L.value(1);
     assertTrue("Result is 111", o.equals(new Double(111)));
+  }
+
+  /** Tests execution of Upvalues. */
+  public void testVMUpval() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestUpval");
+    L.push(f);
+    L.call(0, 0);
+    L.push(f);
+    L.call(0, 0);
+    L.push(f);
+    L.call(0, 1);
+    Object o = L.value(1);
+    assertTrue("Result is 3", o.equals(new Double(3)));
   }
 
   public Test suite() {
@@ -304,6 +322,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMJmp(); } });
     suite.addTest(new VMTest("testVMJmp1") {
         public void runTest() { testVMJmp1(); } });
+    suite.addTest(new VMTest("testVMUpval") {
+        public void runTest() { testVMUpval(); } });
     return suite;
   }
 }
