@@ -5,9 +5,6 @@ import j2meunit.framework.Test;
 import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-
 // Uses some of the same ancillary files as LoaderTest.
 
 /**
@@ -36,7 +33,8 @@ public class LuaTest extends TestCase {
     Lua L = new Lua();
     LuaFunction f = null;
     try {
-      f = L.load(new FileInputStream("LoaderTest0.luc"), "LoaderTest0.luc");
+      f = L.load(this.getClass().getResourceAsStream("LoaderTest0.luc"),
+          "LoaderTest0.luc");
     } catch (Exception e) {
       e.printStackTrace();
     }

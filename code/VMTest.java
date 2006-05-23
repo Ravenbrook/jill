@@ -5,8 +5,6 @@ import j2meunit.framework.Test;
 import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
-import java.io.InputStream;
-
 // The VMTest uses ancillary files:
 // Mostly these are compiled versions of one line Lua scripts compiled
 // in the following manner:

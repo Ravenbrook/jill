@@ -5,7 +5,6 @@ import j2meunit.framework.Test;
 import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 
 // The LoaderTest uses ancillary files:
@@ -22,7 +21,6 @@ import java.io.InputStream;
 /**
  * J2MEUnit tests for Jili's internal Loader class.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
- * This test does not run in CLDC 1.1.
  */
 public class LoaderTest extends TestCase {
   /** void constructor, necessary for running using
@@ -45,7 +43,7 @@ public class LoaderTest extends TestCase {
     System.out.println(filename);
 
     try {
-      in = new FileInputStream(filename);
+      in = this.getClass().getResourceAsStream(filename);
     } catch (Exception e) {
       e.printStackTrace();
     }
