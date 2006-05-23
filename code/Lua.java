@@ -856,7 +856,30 @@ reentry:
             }
             ++pc;
             continue;
-
+          case OP_LE:
+            // Protect
+            if (vmLessequal(RK(k, ARGB(i)), RK(k, ARGC(i))) == (a != 0)) {
+              // dojump
+              pc += ARGsBx(code[pc]);
+            }
+            ++pc;
+            continue;
+          case OP_TEST:
+            if (isFalse(stack.elementAt(base+a)) != (ARGC(i) != 0)) {
+              // dojump
+              pc += ARGsBx(code[pc]);
+            }
+            ++pc;
+            continue;
+          case OP_TESTSET:
+            rb = stack.elementAt(ARGB(i));
+            if (isFalse(rb) != (ARGC(i) != 0)) {
+              stack.setElementAt(rb, base+a);
+              // dojump
+              pc += ARGsBx(code[pc]);
+            }
+            ++pc;
+            continue;
           case OP_CALL: {
             int b = ARGB(i);
             int nresults = ARGC(i) - 1;
@@ -920,7 +943,9 @@ reentry:
             }
             continue;
           }
-
+          case OP_CLOSE:
+            fClose(base+a);
+            continue;
           case OP_CLOSURE: {
             Proto p = function.proto().proto()[ARGBx(i)];
             int nup = p.nups();
@@ -936,8 +961,28 @@ reentry:
             }
             LuaFunction nf = new LuaFunction(p, up, function.getEnv());
             stack.setElementAt(nf, base+a);
+            continue;
           }
-
+          case OP_VARARG: {
+            int b = ARGB(i)-1;
+            int n = (base - ci.function()) -
+                function.proto().numparams() - 1;
+            if (b == MULTRET) {
+              // Protect
+              // :todo: check stack
+              b = n;
+              stack.setSize(base+a+n);
+            }
+            for (int j=0; j<b; ++j) {
+              if (j < n) {
+                Object src = stack.elementAt(base - n + j);
+                stack.setElementAt(src, base+a+j);
+              } else {
+                stack.setElementAt(NIL, base+a+j);
+              }
+            }
+            continue;
+          }
         } /* switch */
       } /* while */
     } /* reentry: while */
@@ -955,6 +1000,20 @@ reentry:
       // :todo: PUC-Rio use strcoll, maybe we should use something
       // equivalent.
       return ((String)l).compareTo((String)r) < 0;
+    }
+    // :todo: metamethods
+    throw new IllegalArgumentException();
+  }
+  /** Equivalent of luaV_lessequal. */
+  private boolean vmLessequal(Object l, Object r) {
+    // :todo: currently goes wrong when comparing nil.  Fix it.
+    if (l.getClass() != r.getClass()) {
+      // :todo: Make Lua error
+      throw new IllegalArgumentException();
+    } else if (l instanceof Double) {
+      return ((Double)l).doubleValue() <= ((Double)r).doubleValue();
+    } else if (l instanceof String) {
+      return ((String)l).compareTo((String)r) <= 0;
     }
     // :todo: metamethods
     throw new IllegalArgumentException();
