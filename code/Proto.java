@@ -26,7 +26,7 @@ final class Proto {
    * Number of upvalues used by this prototype (and so by all the
    * functions created from this Proto).
    */
-  int nups;
+  private int nups;
   /**
    * Number of formal parameters used by this prototype, and so the
    * number of argument received by a function created from this Proto.
@@ -34,13 +34,18 @@ final class Proto {
    * fixed parameters, the number appearing before '...' in the parameter
    * list.
    */
-  int numparams;
+  private int numparams;
   /**
    * <code>true</code> if and only if the function is variadic, that is,
    * defined with '...' in its parameter list.
    */
-  boolean vararg;
-  int maxstacksize;
+  private boolean vararg;
+  private int maxstacksize;
+  // Debug info
+  /** Map from PC to line number. */
+  private int[] lineinfo;
+  private LocVar[] locvar;
+  private String[] upvalue;
 
   /**
    * Fresh Proto.  All the arrays that are passed to the constructor are
@@ -76,6 +81,16 @@ final class Proto {
     this.numparams = numparams;
     this.vararg = vararg;
     this.maxstacksize = maxstacksize;
+  }
+
+  /**
+   * Augment with debug info.  All the arguments are referenced by the
+   * instance after the method has returned, so try not to share them.
+   */
+  void debug(int[] lineinfo, LocVar[] locvar, String[] upvalue) {
+    this.lineinfo = lineinfo;
+    this.locvar = locvar;
+    this.upvalue = upvalue;
   }
 
   /** Gets Number of Upvalues */

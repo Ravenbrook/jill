@@ -161,9 +161,9 @@ final class Loader {
 
   /**
    * Undumps the debug info for a <code>Proto</code>.
-   * :todo: receive a Proto and decorate it with debug info.
+   * @param proto  The Proto instance to which debug info will be added.
    */
-  private void debug() throws IOException {
+  private void debug(Proto proto) throws IOException {
     // Currently everything is carefully loaded from the chunk, then
     // thrown away.
 
@@ -177,10 +177,12 @@ final class Loader {
 
     // locvars
     n = intLoad();
+    LocVar[] locvar = new LocVar[n];
     for (int i=0; i<n; ++i) {
-      string();         // Should be locvar.varname
-      intLoad();        // Should be locvar.startpc
-      intLoad();        // Should be locvar.endpc
+      String name = string();
+      int s = intLoad();
+      int e = intLoad();
+      locvar[i] = new LocVar(name, s, e);
     }
 
     // upvalue (names)
@@ -189,6 +191,8 @@ final class Loader {
     for (int i=0; i<n; ++i) {
       upvalue[i] = string();
     }
+
+    proto.debug(lineinfo, locvar, upvalue);
 
     return;
   }
@@ -209,6 +213,7 @@ final class Loader {
     int[] code;
     Object[] constant;
     Proto[] proto;
+    Proto newProto;
 
     source = this.string();
     if (null == source) {
@@ -231,10 +236,11 @@ final class Loader {
     code = this.code();
     constant = this.constant();
     proto = this.proto(source);
-    this.debug();
-    // :todo: call code verifier
-    return new Proto(constant, code, proto, nups, numparams, vararg,
+    newProto = new Proto(constant, code, proto, nups, numparams, vararg,
       maxstacksize);
+    this.debug(newProto);
+    // :todo: call code verifier
+    return newProto;
   }
 
   private static final int HEADERSIZE = 12;
