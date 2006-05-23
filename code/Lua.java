@@ -65,7 +65,11 @@ public final class Lua {
   {
     civ.addElement(ci);
   }
-  /** Open Upvalues.  All UpVal objects that reference the VM stack. */
+  /** Open Upvalues.  All UpVal objects that reference the VM stack.
+   * openupval is a java.util.Vector of UpVal stored in order of stack
+   * slot index: higher stack indexes are stored at higher Vector
+   * positions.
+   */
   Vector openupval = new Vector();
 
   /** number of list items to accumuate before a SETLIST instruction. */
@@ -383,16 +387,30 @@ public final class Lua {
 
   // Methods equivalent to the file lfunc.c.  Prefixed with f.
 
+  /** Equivalent of luaF_close.  All open upvalues referencing stack
+   * slots level or higher are closed.
+   * @param level  Absolute stack index.
+   */
+  void fClose(int level) {
+    int i = openupval.size();
+    while (--i >= 0) {
+      UpVal uv = (UpVal)openupval.elementAt(i);
+      if (uv.offset() < level) {
+        break;
+      }
+      uv.close();
+    }
+    openupval.setSize(i+1);
+    return;
+  }
+
   UpVal fFindupval(int idx) {
-    /* openupval is a java.util.Vector of UpVal stored in order of stack
-     * slot index: higher stack indexes are stored at higher Vector
-     * positions.
-     *
+    /*
      * We search from the end of the Vector towards the beginning,
      * looking for an UpVal for the required stack-slot.
      */
     int i = openupval.size();
-    while (--i > 0) {
+    while (--i >= 0) {
       UpVal uv = (UpVal)openupval.elementAt(i);
       if (uv.offset() == idx) {
         return uv;
@@ -667,7 +685,11 @@ reentry:
             } while (b >= base + a);
             continue;
           }
-
+          case OP_GETUPVAL: {
+            int b = ARGB(i);
+            stack.setElementAt(function.upVal(b).getValue(), base+a);
+            continue;
+          }
           case OP_GETGLOBAL:
             rb = k[ARGBx(i)];
             // :todo: metamethods
@@ -678,6 +700,11 @@ reentry:
             // :todo: metamethods
             LuaTable t = (LuaTable)stack.elementAt(base+ARGB(i));
             stack.setElementAt(t.get(RK(k, ARGC(i))), base+a);
+            continue;
+          }
+          case OP_SETUPVAL: {
+            UpVal uv = function.upVal(ARGB(i));
+            uv.setValue(stack.elementAt(base+a));
             continue;
           }
           case OP_SETGLOBAL:
@@ -827,7 +854,7 @@ reentry:
               int top = a + b - 1;
               stack.setSize(base + top);
             }
-            // :todo: close UpVals
+            fClose(base);
             savedpc = pc;
             // 'adjust' replaces aliased 'b' in PUC-Rio code.
             boolean adjust = vmPoscall(base+a);
