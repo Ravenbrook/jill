@@ -1,5 +1,7 @@
 // $Header$
 
+import java.util.Vector;
+
 // For j2meunit see http://j2meunit.sourceforge.net/
 import j2meunit.framework.Test;
 import j2meunit.framework.TestCase;
@@ -74,8 +76,13 @@ public class ObjectModelTest extends TestCase {
         false,
         0);
     UpVal[] upval = new UpVal[2];
-    upval[0] = new UpVal(new Object[1], 0);
-    upval[1] = new UpVal(new Object[2], 1);
+    Vector v;
+    v = new Vector();
+    v.setSize(1);
+    upval[0] = new UpVal(v, 0);
+    v = new Vector();
+    v.setSize(2);
+    upval[1] = new UpVal(v, 1);
     LuaFunction f = new LuaFunction(p, upval, new LuaTable());
     assertNotNull(f);
 

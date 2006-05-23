@@ -1,5 +1,7 @@
 // $Header$
 
+import java.util.Vector;
+
 /**
  * Models an upvalue.  This class is internal to Jili and should not be
  * used by clients.
@@ -16,24 +18,24 @@
  * member).
  */
 final class UpVal {
-  private Object[] array;
+  private Vector a;
   private int offset;
   /**
-   * A fresh upvalue from an array and an offset.
-   * @param array  Array of Lua values (usually the VM stack).
-   * @param offset index into array, must be a valid index.
-   * @throws NullPointerException if array is null.
-   * @throws IllegalArgumentException if offset is negative or >= array.length.
+   * A fresh upvalue from a Vector and an offset.
+   * @param a  Vector of Lua values (usually the VM stack).
+   * @param offset index into vector, must be a valid index.
+   * @throws NullPointerException if a is null.
+   * @throws IllegalArgumentException if offset is negative or too big.
    */
-  UpVal(Object[] array, int offset) {
-    if (null == array) {
+  UpVal(Vector a, int offset) {
+    if (null == a) {
       throw new NullPointerException();
     }
-    if (offset < 0 || offset >= array.length) {
+    if (offset < 0 || offset >= a.size()) {
       throw new IllegalArgumentException();
     }
 
-    this.array = array;
+    this.a = a;
     this.offset = offset;
   }
 
@@ -41,13 +43,19 @@ final class UpVal {
    * Getter for underlying value.
    */
   Object getValue() {
-    return array[offset];
+    return a.elementAt(offset);
   }
   /**
    * Setter for underlying value.
    */
   void setValue(Object o) {
-    array[offset] = o;
+    a.setElementAt(o, offset);
+  }
+  /**
+   * The stack offset.
+   */
+  int offset() {
+    return offset;
   }
 
   /**
@@ -59,7 +67,9 @@ final class UpVal {
    * transfers a variable binding from the stack to the heap.
    */
   void close() {
-    array = new Object[] { array[offset] };
+    Object o = getValue();
+    a = new Vector(1, 0);
+    a.addElement(o);
     offset = 0;
   }
 }

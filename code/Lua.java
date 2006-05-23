@@ -65,6 +65,8 @@ public final class Lua {
   {
     civ.addElement(ci);
   }
+  /** Open Upvalues.  All UpVal objects that reference the VM stack. */
+  Vector openupval = new Vector();
 
   /** number of list items to accumuate before a SETLIST instruction. */
   private static final int LFIELDS_PER_FLUSH = 50;
@@ -382,8 +384,28 @@ public final class Lua {
   // Methods equivalent to the file lfunc.c.  Prefixed with f.
 
   UpVal fFindupval(int idx) {
-    // :todo: implement  me
-    return null;
+    /* openupval is a java.util.Vector of UpVal stored in order of stack
+     * slot index: higher stack indexes are stored at higher Vector
+     * positions.
+     *
+     * We search from the end of the Vector towards the beginning,
+     * looking for an UpVal for the required stack-slot.
+     */
+    int i = openupval.size();
+    while (--i > 0) {
+      UpVal uv = (UpVal)openupval.elementAt(i);
+      if (uv.offset() == idx) {
+        return uv;
+      }
+      if (uv.offset() < idx) {
+        break;
+      }
+    }
+    // i points to be position _after_ which we want to insert a new
+    // UpVal (it's -1 when we want to insert at the beginning).
+    UpVal uv = new UpVal(stack, idx);
+    openupval.insertElementAt(uv, i+1);
+    return uv;
   }
 
 
