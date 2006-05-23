@@ -33,4 +33,35 @@ public final class LuaTable extends java.util.Hashtable {
     put(new Double(k), v);
   }
 
+  /**
+   * Supports Lua's length (#) operator.  More or less equivalent to
+   * "unbound_search" in ltable.c.
+   */
+  int getn() {
+    int i = 0;
+    int j = 1;
+    // Find 'i' and 'j' such that i is present and j is not.
+    while (get(new Double(j)) != null) {
+      i = j;
+      j *= 2;
+      if (j < 0) {      // overflow
+        // Pathological case.  Linear search.
+        i = 1;
+        while (get(new Double(i)) != null) {
+          ++i;
+        }
+        return i-1;
+      }
+    }
+    // binary search between i and j
+    while (j - 1 > 1) {
+      int m = (i+j)/2;
+      if (get(new Double(m)) != null) {
+        j = m;
+      } else {
+        i = m;
+      }
+    }
+    return i;
+  }
 }

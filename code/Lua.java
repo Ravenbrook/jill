@@ -790,7 +790,38 @@ reentry:
               throw new IllegalArgumentException();
             }
             continue;
-
+          case OP_POW:
+            // There's no Math.pow.  :todo: consider implementing.
+            throw new IllegalArgumentException();
+          case OP_UNM: {
+            rb = stack.elementAt(base+ARGB(i));
+            if (isNumber(rb)) {
+              double db = ((Double)rb).doubleValue();
+              stack.setElementAt(new Double(-db), base+a);
+            } else {
+              // :todo: metamethod
+              throw new IllegalArgumentException();
+            }
+            continue;
+          }
+          case OP_NOT: {
+            Object ra = stack.elementAt(base+ARGB(i));
+            stack.setElementAt(valueOfBoolean(isFalse(ra)), base+a);
+            continue;
+          }
+          case OP_LEN:
+            rb = stack.elementAt(base+ARGB(i));
+            if (rb instanceof LuaTable) {
+              LuaTable t = (LuaTable)rb;
+              stack.setElementAt(new Double(t.getn()), base+a);
+              continue;
+            } else if (rb instanceof String) {
+              String s = (String)rb;
+              stack.setElementAt(new Double(s.length()), base+a);
+              continue;
+            }
+            // :todo: metamethod
+            throw new IllegalArgumentException();
           case OP_CONCAT: {
             int b = ARGB(i);
             int c = ARGC(i);
@@ -1022,6 +1053,11 @@ reentry:
     Double d = (Double)o;
     stack.setElementAt(d.toString(), idx);
     return true;
+  }
+
+  /** Lua's is False predicate. */
+  private boolean isFalse(Object o) {
+    return o == NIL || Boolean.FALSE.equals(o);
   }
 
   /** Make new CallInfo record. */
