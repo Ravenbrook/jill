@@ -1,0 +1,7 @@
+#!/bin/sh
+# $Header$
+# Decompose a 32-bit Lua 5.1 VM instruction into its 4 binary fields.
+# Instruction must be given as argument in hex.
+
+echo "16i $1 100000000 + 2op" | dc |
+sed 's/.//;s/\(.\{9\}\)\(.\{9\}\)\(.\{8\}\)\(.\{6\}\)/\1 \2 \3 \4/'
