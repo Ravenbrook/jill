@@ -281,15 +281,18 @@ public class VMTest extends TestCase {
   /** Tests execution of Upvalues. */
   public void testVMUpval() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestUpval");
+    LuaFunction script;
+    script = loadFile(L, "VMTestUpval");
+    L.push(script);
+    L.call(0, 1);
+    LuaFunction f = (LuaFunction)L.value(1);
     L.push(f);
     L.call(0, 0);
     L.push(f);
     L.call(0, 0);
     L.push(f);
     L.call(0, 1);
-    Object o = L.value(1);
+    Object o = L.value(-1);
     assertTrue("Result is 3", o.equals(new Double(3)));
   }
 
