@@ -5,7 +5,6 @@ import j2meunit.framework.Test;
 import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 
 // The VMTest uses ancillary files:
@@ -55,7 +54,6 @@ import java.io.InputStream;
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
- * This test does not run in CLDC 1.1.
  */
 public class VMTest extends TestCase {
   /** void constructor, necessary for running using
@@ -77,7 +75,7 @@ public class VMTest extends TestCase {
     System.out.println(filename);
     LuaFunction f = null;
     try {
-      f = L.load(new FileInputStream(filename), filename);
+      f = L.load(this.getClass().getResourceAsStream(filename), filename);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -208,7 +206,7 @@ public class VMTest extends TestCase {
     assertTrue("Result is 32", d.doubleValue() == 32);
   }
 
-  /** Tests execution of OP_CALL opcode. */
+  /** Tests execution of OP_CALL opcode (when calling Lua Java function). */
   public void testVMCall() {
     Lua L = new Lua();
     // Create a Lua Java function and install it in the global 'f'.
@@ -227,7 +225,8 @@ public class VMTest extends TestCase {
     assertTrue("Result is 22", L.toNumber(L.value(1)) == 22);
   }
 
-  /** Tests execution of OP_CLOSURE opcode. */
+  /** Tests execution of OP_CLOSURE opcode.  Generated when functions
+   * are defined. */
   public void testVMClosure() {
     Lua L = new Lua();
     LuaFunction f;
@@ -278,7 +277,10 @@ public class VMTest extends TestCase {
     assertTrue("Result is 111", o.equals(new Double(111)));
   }
 
-  /** Tests execution of Upvalues. */
+  /**
+   * Tests execution of Upvalues.  This tests OP_GETUPVAL, OP_SETUPVAL,
+   * that OP_CLOSURE creates UpVals, and that OP_RET closes UpVals.
+   */
   public void testVMUpval() {
     Lua L = new Lua();
     LuaFunction script;
