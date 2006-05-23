@@ -47,7 +47,10 @@ import j2meunit.framework.TestSuite;
 //   return(f(27)) -- avoid unimplemented OP_TAILCALL
 // VMTestUpval.luc - creates and uses UpVals.
 //   local a=0;return function()a=a+1;return a;end
-
+// VMTestLe.luc - contains OP_LE
+//   local a=0;while a<=10 do a=a+1 end;return a
+// VMTestTest.luc - contains OP_TEST
+//   if x then return 1 else return 2 end
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -296,6 +299,38 @@ public class VMTest extends TestCase {
     assertTrue("Result is 3", o.equals(new Double(3)));
   }
 
+  /** Tests execution of OP_LE opcode.  */
+  public void testVMLe() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestLe");
+    L.push(f);
+    L.call(0, 1);
+    Object o = L.value(1);
+    assertTrue("Result is 11", o.equals(new Double(11)));
+  }
+
+  /** Tests execution of OP_TEST opcode.  */
+  public void testVMTest() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestTest");
+    L.push(f);
+    L.call(0, 1);
+    Object o = L.value(-1);
+    assertTrue("Result is 2", o.equals(new Double(2)));
+    L.rawset(L.getGlobals(), "x", L.valueOfBoolean(false));
+    L.push(f);
+    L.call(0, 1);
+    o = L.value(-1);
+    assertTrue("Result is 2", o.equals(new Double(2)));
+    L.rawset(L.getGlobals(), "x", L.valueOfBoolean(true));
+    L.push(f);
+    L.call(0, 1);
+    o = L.value(-1);
+    assertTrue("Result is 1", o.equals(new Double(1)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -327,6 +362,10 @@ public class VMTest extends TestCase {
         public void runTest() { testVMJmp1(); } });
     suite.addTest(new VMTest("testVMUpval") {
         public void runTest() { testVMUpval(); } });
+    suite.addTest(new VMTest("testVMLe") {
+        public void runTest() { testVMLe(); } });
+    suite.addTest(new VMTest("testVMTest") {
+        public void runTest() { testVMTest(); } });
     return suite;
   }
 }
