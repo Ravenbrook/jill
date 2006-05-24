@@ -68,6 +68,9 @@ import j2meunit.framework.TestSuite;
 //   return f,function()a=a+1;return a end
 // VMTestVararg.luc - contains OP_VARARG
 //   function f(a, ...) local b,c,d=... return a,c,d end
+// VMTestVararg1.luc - Used to call f defined in VMTestVararg.luc
+//   local a,b,c = f('one', 'two', 'three', 'four', 'five', 'six', 'seven')
+//   return a,b,c
 
 
 /**
@@ -456,6 +459,14 @@ public class VMTest extends TestCase {
     assertTrue("First result is '0'", "0".equals(L.value(-3)));
     assertTrue("Second result is '2'", "2".equals(L.value(-2)));
     assertTrue("Third result is '3'", "3".equals(L.value(-1)));
+
+    // Same, but call f from Lua this time.
+    script = loadFile(L, "VMTestVararg1");
+    L.push(script);
+    L.call(0, 3);
+    assertTrue("First result is one", "one".equals(L.value(-3)));
+    assertTrue("Second result is three", "three".equals(L.value(-2)));
+    assertTrue("Third result is four", "four".equals(L.value(-1)));
   }
 
   public Test suite() {
