@@ -57,6 +57,8 @@ import j2meunit.framework.TestSuite;
 //   local a,b=7;b=-a;return -b,-a
 // VMTestNot.luc - contains OP_NOT
 //   local a,b,c,d=nil,false,true,"";return not a, not b, not c, not d
+// VMTestLen.luc - contains OP_LEN
+//   return #{},#'',#{'bob','rolly','dizzy'},#'length'
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -388,6 +390,23 @@ public class VMTest extends TestCase {
     assertTrue("Fourth result is false", o[3].equals(L.valueOfBoolean(false)));
   }
 
+  /** Tests execution of OP_LEN opcode.  */
+  public void testVMLen() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestLen");
+    L.push(f);
+    L.call(0, 4);
+    Object[] o = new Object[] { L.value(1),
+        L.value(2),
+        L.value(3),
+        L.value(4) };
+    assertTrue("First result is 0", o[0].equals(L.valueOfNumber(0)));
+    assertTrue("Second result is 0", o[1].equals(L.valueOfNumber(0)));
+    assertTrue("Third result is 3", o[2].equals(L.valueOfNumber(3)));
+    assertTrue("Fourth result is 6", o[3].equals(L.valueOfNumber(6)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -429,6 +448,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMUnm(); } });
     suite.addTest(new VMTest("testVMNot") {
         public void runTest() { testVMNot(); } });
+    suite.addTest(new VMTest("testVMLen") {
+        public void runTest() { testVMLen(); } });
     return suite;
   }
 }
