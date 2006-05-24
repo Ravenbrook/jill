@@ -872,7 +872,7 @@ reentry:
             ++pc;
             continue;
           case OP_TESTSET:
-            rb = stack.elementAt(ARGB(i));
+            rb = stack.elementAt(base+ARGB(i));
             if (isFalse(rb) != (ARGC(i) != 0)) {
               stack.setElementAt(rb, base+a);
               // dojump
