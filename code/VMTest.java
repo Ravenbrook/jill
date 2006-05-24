@@ -51,6 +51,8 @@ import j2meunit.framework.TestSuite;
 //   local a=0;while a<=10 do a=a+1 end;return a
 // VMTestTest.luc - contains OP_TEST
 //   if x then return 1 else return 2 end
+// VMTestTestset.luc - contains OP_TESTSET
+//   local x=x;return x or y,x and y
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -331,6 +333,27 @@ public class VMTest extends TestCase {
     assertTrue("Result is 1", o.equals(new Double(1)));
   }
 
+  /** Tests execution of OP_TESTSET opcode.  */
+  public void testVMTestset() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestTestset");
+    L.rawset(L.getGlobals(), "y", L.valueOfNumber(7));
+    L.push(f);
+    L.call(0, 2);
+    Object o = L.value(-2);
+    Object p = L.value(-1);
+    assertTrue("x or y is 7", o.equals(new Double(7)));
+    assertTrue("x and y is nil", L.isNil(p));
+    L.rawset(L.getGlobals(), "x", L.valueOfBoolean(true));
+    L.push(f);
+    L.call(0, 2);
+    o = L.value(-2);
+    p = L.value(-1);
+    assertTrue("x or y is true", o.equals(L.valueOfBoolean(true)));
+    assertTrue("x and y is 7", p.equals(new Double(7)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -366,6 +389,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMLe(); } });
     suite.addTest(new VMTest("testVMTest") {
         public void runTest() { testVMTest(); } });
+    suite.addTest(new VMTest("testVMTestset") {
+        public void runTest() { testVMTestset(); } });
     return suite;
   }
 }
