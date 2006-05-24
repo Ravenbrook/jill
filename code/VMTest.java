@@ -66,6 +66,8 @@ import j2meunit.framework.TestSuite;
 //     f=function() a=a+1;return a end 
 //   end 
 //   return f,function()a=a+1;return a end
+// VMTestVararg.luc - contains OP_VARARG
+//   function f(a, ...) local b,c,d=... return a,c,d end
 
 
 /**
@@ -438,6 +440,13 @@ public class VMTest extends TestCase {
     assertTrue("f's result is 4", L.value(-1).equals(L.valueOfNumber(4)));
   }
 
+  /** Tests execution of OP_VARARG opcode.  */
+  public void testVMVararg() {
+    Lua L = new Lua();
+    LuaFunction script;
+    script = loadFile(L, "VMTestVararg");
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -483,6 +492,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMLen(); } });
     suite.addTest(new VMTest("testVMClose") {
         public void runTest() { testVMClose(); } });
+    suite.addTest(new VMTest("testVMVararg") {
+        public void runTest() { testVMVararg(); } });
     return suite;
   }
 }
