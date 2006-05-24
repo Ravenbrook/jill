@@ -1064,14 +1064,18 @@ reentry:
       Proto p = f.proto();
       // :todo: ensure enough stack
 
-      // :todo: implement vararg convention
-      base = func + 1;
-      if (stack.size() > base + p.numparams()) {
-        // trim stack to the argument list
-        stack.setSize(base + p.numparams());
+      if (!p.vararg()) {
+        base = func + 1;
+        if (stack.size() > base + p.numparams()) {
+          // trim stack to the argument list
+          stack.setSize(base + p.numparams());
+        }
+      } else {
+        int nargs = (stack.size() - func) - 1;
+        base = adjust_varargs(p, nargs);
       }
-      int top = base + p.maxstacksize();
 
+      int top = base + p.maxstacksize();
       CallInfo ci = inc_ci(func, base, top, r);
 
       savedpc = 0;
@@ -1095,6 +1099,24 @@ reentry:
     }
       
     throw new IllegalArgumentException();
+  }
+
+  /** Equivalent of adjust_varargs in "ldo.c". */
+  private int adjust_varargs(Proto p, int actual) {
+    int nfixargs = p.numparams();
+    for (; actual < nfixargs; ++actual) {
+      stack.addElement(NIL);
+    }
+    // PUC-Rio's LUA_COMPAT_VARARG is not supported here.
+    
+    // Move fixed parameters to final position
+    int fixed = stack.size() - actual;  // first fixed argument
+    int base = stack.size();    // final position of first argument
+    for (int i=0; i<nfixargs; ++i) {
+      stack.addElement(stack.elementAt(fixed+i));
+      stack.setElementAt(NIL, fixed+i);
+    }
+    return base;
   }
 
   /**

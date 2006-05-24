@@ -122,5 +122,10 @@ final class Proto {
   Object[] constant() {
     return k;
   }
+
+  /** Predicate for whether function uses ... in its parameter list. */
+  boolean vararg() {
+    return vararg;
+  }
 }
 
