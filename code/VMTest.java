@@ -445,6 +445,17 @@ public class VMTest extends TestCase {
     Lua L = new Lua();
     LuaFunction script;
     script = loadFile(L, "VMTestVararg");
+    L.push(script);
+    L.call(0, 0);  // side-effect, defines global 'f'
+    L.push(L.rawget(L.getGlobals(), "f"));
+    int narg = 7;
+    for (int i=0; i<narg; ++i) {
+      L.push(Integer.toString(i));
+    }
+    L.call(narg, 3);
+    assertTrue("First result is '1'", "1".equals(L.value(-3)));
+    assertTrue("Second result is '3'", "3".equals(L.value(-2)));
+    assertTrue("Third result is '4'", "4".equals(L.value(-1)));
   }
 
   public Test suite() {
