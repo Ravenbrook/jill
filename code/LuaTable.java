@@ -6,6 +6,20 @@
  */
 public final class LuaTable extends java.util.Hashtable {
   private Object metatable;
+
+  LuaTable() {
+    super();
+  }
+
+  /**
+   * Fresh LuaTable with hints for preallocating to size.
+   * @param narray  number of array slots to preallocate.
+   * @param nhash   number of hash slots to preallocate.
+   */
+  LuaTable(int narray, int nhash) {
+    super(narray+nhash);
+  }
+
   /**
    * Getter for metatable member.
    * @return  The metatable.
