@@ -54,9 +54,9 @@ public final class LuaTable extends java.util.Hashtable {
       }
     }
     // binary search between i and j
-    while (j - 1 > 1) {
+    while (j - i > 1) {
       int m = (i+j)/2;
-      if (get(new Double(m)) != null) {
+      if (get(new Double(m)) == null) {
         j = m;
       } else {
         i = m;
