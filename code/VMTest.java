@@ -55,6 +55,8 @@ import j2meunit.framework.TestSuite;
 //   local x=x;return x or y,x and y
 // VMTestUnm.luc - contains OP_UNM
 //   local a,b=7;b=-a;return -b,-a
+// VMTestNot.luc - contains OP_NOT
+//   local a,b,c,d=nil,false,true,"";return not a, not b, not c, not d
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -369,6 +371,23 @@ public class VMTest extends TestCase {
     assertTrue("Second result is -7", p.equals(new Double(-7)));
   }
 
+  /** Tests execution of OP_NOT opcode.  */
+  public void testVMNot() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestNot");
+    L.push(f);
+    L.call(0, 4);
+    Object[] o = new Object[] { L.value(1),
+        L.value(2),
+        L.value(3),
+        L.value(4) };
+    assertTrue("First result is true", o[0].equals(L.valueOfBoolean(true)));
+    assertTrue("Second result is true", o[1].equals(L.valueOfBoolean(true)));
+    assertTrue("Third result is false", o[2].equals(L.valueOfBoolean(false)));
+    assertTrue("Fourth result is false", o[3].equals(L.valueOfBoolean(false)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -408,6 +427,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMTestset(); } });
     suite.addTest(new VMTest("testVMUnm") {
         public void runTest() { testVMUnm(); } });
+    suite.addTest(new VMTest("testVMNot") {
+        public void runTest() { testVMNot(); } });
     return suite;
   }
 }
