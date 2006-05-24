@@ -59,6 +59,14 @@ import j2meunit.framework.TestSuite;
 //   local a,b,c,d=nil,false,true,"";return not a, not b, not c, not d
 // VMTestLen.luc - contains OP_LEN
 //   return #{},#'',#{'bob','rolly','dizzy'},#'length'
+// VMTestClose.luc - contains OP_CLOSE
+//   local a,f=0 
+//   do 
+//     local a=0 
+//     f=function() a=a+1;return a end 
+//   end 
+//   return f,function()a=a+1;return a end
+
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -407,6 +415,29 @@ public class VMTest extends TestCase {
     assertTrue("Fourth result is 6", o[3].equals(L.valueOfNumber(6)));
   }
 
+  /** Tests execution of OP_CLOSE opcode.  */
+  public void testVMClose() {
+    Lua L = new Lua();
+    LuaFunction script;
+    script = loadFile(L, "VMTestClose");
+    L.push(script);
+    L.call(0, 2);
+    Object f = L.value(1);
+    Object g = L.value(2);
+    // Check that f and g have different upvalues by calling them
+    // different numbers of times and checking their results.
+    for (int i=0; i<3; ++i) {
+      L.push(f);
+      L.call(0,0);
+    }
+    L.push(g);
+    L.call(0, 1);
+    assertTrue("g's result is 1", L.value(-1).equals(L.valueOfNumber(1)));
+    L.push(f);
+    L.call(0, 1);
+    assertTrue("f's result is 4", L.value(-1).equals(L.valueOfNumber(4)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -450,6 +481,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMNot(); } });
     suite.addTest(new VMTest("testVMLen") {
         public void runTest() { testVMLen(); } });
+    suite.addTest(new VMTest("testVMClose") {
+        public void runTest() { testVMClose(); } });
     return suite;
   }
 }
