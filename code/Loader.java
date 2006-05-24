@@ -224,11 +224,30 @@ final class Loader {
     nups = this.byteLoad();
     numparams = this.byteLoad();
     varargByte = this.byteLoad();
-    // Curiously "is_vararg" byte values of 0 or 2 are the only ones we
-    // accept.  It's a 3-bit field, the remaining bits (bit 0 and bit 2)
-    // are used for the 5.0 compatibility 'arg' style varargs, which are
-    // deprecated and not supported by Jili.
-    if (!(varargByte == 0 || varargByte == 2)) {
+    // "is_vararg" is a 3-bit field, with the following bit meanings
+    // (see "lobject.h"):
+    // 1 - VARARG_HASARG
+    // 2 - VARARG_ISVARARG
+    // 4 - VARARG_NEEDSARG
+    // Values 1 and 4 (bits 0 and 2) are only used for 5.0
+    // compatibility.
+    // HASARG indicates that a function was compiled in 5.0
+    // compatibility mode and is declared to have ... in its parameter
+    // list.
+    // NEEDSARG indicates that a function was compiled in 5.0
+    // compatibility mode and is declared to have ... in its parameter
+    // list and does _not_ use the 5.1 style of vararg access (using ...
+    // as an expression).  It is assumed to use 5.0 style vararg access
+    // (the local 'arg' variable).  This is not supported in Jili.
+    // ISVARARG indicates that a function has ... in its parameter list
+    // (whether compiled in 5.0 compatibility mode or not).
+    //
+    // At runtime NEEDSARG changes the protocol for calling a vararg
+    // function.  We don't support this, so we check that it is absent
+    // here in the loader.
+    //
+    // That means that the legal values for this field ar 0,1,2,3.
+    if (varargByte < 0 || varargByte > 3) {
       throw new IOException();
     }
     vararg = (0 != varargByte);
