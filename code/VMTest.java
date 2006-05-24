@@ -53,6 +53,8 @@ import j2meunit.framework.TestSuite;
 //   if x then return 1 else return 2 end
 // VMTestTestset.luc - contains OP_TESTSET
 //   local x=x;return x or y,x and y
+// VMTestUnm.luc - contains OP_UNM
+//   local a,b=7;b=-a;return -b,-a
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -354,6 +356,19 @@ public class VMTest extends TestCase {
     assertTrue("x and y is 7", p.equals(new Double(7)));
   }
 
+  /** Tests execution of OP_UNM opcode.  */
+  public void testVMUnm() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestUnm");
+    L.push(f);
+    L.call(0, 2);
+    Object o = L.value(1);
+    Object p = L.value(2);
+    assertTrue("First result is 7", o.equals(new Double(7)));
+    assertTrue("Second result is -7", p.equals(new Double(-7)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -391,6 +406,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMTest(); } });
     suite.addTest(new VMTest("testVMTestset") {
         public void runTest() { testVMTestset(); } });
+    suite.addTest(new VMTest("testVMUnm") {
+        public void runTest() { testVMUnm(); } });
     return suite;
   }
 }
