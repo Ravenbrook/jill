@@ -453,9 +453,9 @@ public class VMTest extends TestCase {
       L.push(Integer.toString(i));
     }
     L.call(narg, 3);
-    assertTrue("First result is '1'", "1".equals(L.value(-3)));
-    assertTrue("Second result is '3'", "3".equals(L.value(-2)));
-    assertTrue("Third result is '4'", "4".equals(L.value(-1)));
+    assertTrue("First result is '0'", "0".equals(L.value(-3)));
+    assertTrue("Second result is '2'", "2".equals(L.value(-2)));
+    assertTrue("Third result is '3'", "3".equals(L.value(-1)));
   }
 
   public Test suite() {
