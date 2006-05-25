@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- $Header$ -->
+
+<project name="Jili" default="compile" basedir=".">
+  <property name="project" value="${ant.project.name}" />
+
+  <!-- Properties that you might want to change.
+  
+    j2meunit - location of j2meunit.jar file.
+    mpp - location of mpowerplayer sdk directory
+
+  -->
+
+  <property name="j2meunit" value="lib/j2meunit.jar" />
+  <property name="mpp" value="/usr/local/mpp-sdk" />
+  <property name="rim" value="C:/Program Files/Research In Motion/BlackBerry JDE 4.1.0/" />
+
+  <!-- Standard java classes -->
+  <property name="java.classes.jar"
+    value="/System/Library/Frameworks/JavaVM.framework/Classes/classes.jar"
+  />
+
+  <!-- All required J2ME jar files in classpath syntax -->
+  <property name="j2me.jar"
+    value="${mpp}/cldc.jar;${mpp}/midp.jar;${rim}/lib/net_rim_api.jar" />
+  
+  <!-- Location of preverify tool -->
+  <!--
+  <property name="preverify" value="${mpp}/osx/preverify/preverify" />
+    -->
+
+  <target name="sysinfo">
+    <echo message="os.name:    ${os.name}" />
+    <echo message="os.arch:    ${os.arch}" />
+    <echo message="os.version: ${os.version}" />
+  </target>
+
+
+  <target name="bin-dir">
+    <mkdir dir="bin" />
+  </target>
+
+  <target name="cod"
+      depends="bin-dir,jar"
+      description="Builds BlackBerry code files in bin/" >
+    <exec executable="rapc" dir="bin" >
+      <arg value="import=${rim}/lib/net_rim_api.jar" />
+      <arg value="-midlet" />
+      <arg value="codename=omt" />
+      <arg value="omt.jar" />
+    </exec>
+  </target>
+
+  <target name="jar"
+      depends="bin-dir,preverify"
+      description="Builds some popular jar files in bin/" >
+    <jar
+      destfile="bin/omt.jar"
+      basedir="preverified"
+      manifest="manifest"
+      />
+  </target>
+
+  <target name="preverify" depends="include-extra,compile" >
+    <exec executable="preverify" >
+      <arg value="-classpath" />
+      <arg value="${j2me.jar}" />
+      <arg value="-d" />
+      <arg value="preverified" />
+      <arg value="compiled" />
+    </exec>
+  </target>
+
+  <target name="include-extra" depends="compiled-dir" >
+    <exec executable="jar" dir="compiled" >
+      <arg value="xf" />
+      <arg value="../lib/j2meunit.jar" />
+    </exec>
+    <copy todir="compiled">
+      <fileset dir="code">
+        <include name="*.luc" />
+      </fileset>
+    </copy>
+  </target>
+
+  <target name="compiled-dir">
+    <mkdir dir="compiled" />
+  </target>
+
+  <target name="compile"
+      depends="compiled-dir"
+      description="Compiles java code from code/ to compiled/" >
+    <javac destdir="compiled" srcdir="code"
+        debug="true"
+        classpath="${j2me.jar}:${j2meunit}"
+	source="1.2"
+        target="1.1"
+    />
+  </target>
+
+  <target name="doc"
+      description="Creates documentation in javadoc/" >
+    <javadoc destdir="javadoc"
+        classpath="${j2meunit};${j2me.jar}"
+        access="public" >
+      <fileset dir="code" />
+    </javadoc>
+    <javadoc destdir="javadoc-private"
+        classpath="${j2meunit};${j2me.jar}"
+	access="private" >
+      <fileset dir="code" />
+    </javadoc>
+  </target>
+
+  <target name="test" depends="compile,include-extra" >
+    <java fork="yes"
+        classname="j2meunit.textui.TestRunner"
+        classpath="compiled:${j2meunit}">
+      <arg value="ObjectAllTest" />
+    </java>
+    <java fork="yes"
+        classname="j2meunit.textui.TestRunner"
+        classpath="compiled:${j2meunit}">
+      <arg value="LoaderTest" />
+    </java>
+    <java fork="yes"
+        classname="j2meunit.textui.TestRunner"
+        classpath="compiled:${j2meunit}">
+      <arg value="LuaTest" />
+    </java>
+    <java fork="yes"
+        classname="j2meunit.textui.TestRunner"
+        classpath="compiled:${j2meunit}">
+      <arg value="VMTest" />
+    </java>
+  </target>
+
+</project>
