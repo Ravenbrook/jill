@@ -47,7 +47,7 @@
     <exec executable="javaloader" >
       <arg value="-u" />
       <arg value="load" />
-      <arg value="bin/omt.cod" />
+      <arg value="bin/jilit.cod" />
     </exec>
   </target>
 
@@ -57,8 +57,8 @@
     <exec executable="rapc" dir="bin" >
       <arg value="import=${rim}/lib/net_rim_api.jar" />
       <arg value="-midlet" />
-      <arg value="codename=omt" />
-      <arg value="omt.jar" />
+      <arg value="codename=jilit" />
+      <arg value="jilit.jar" />
     </exec>
   </target>
 
@@ -66,7 +66,7 @@
       depends="bin-dir,preverify"
       description="Builds some popular jar files in bin/" >
     <jar
-      destfile="bin/omt.jar"
+      destfile="bin/jilit.jar"
       basedir="preverified"
       manifest="manifest"
       />
@@ -80,6 +80,11 @@
       <arg value="preverified" />
       <arg value="compiled" />
     </exec>
+    <copy todir="preverified" >
+      <fileset dir="compiled">
+        <exclude name="**/*.class" />
+      </fileset>
+    </copy>
   </target>
 
   <target name="include-extra" depends="compiled-dir" >
@@ -128,22 +133,7 @@
     <java fork="yes"
         classname="j2meunit.textui.TestRunner"
         classpath="compiled:${j2meunit}">
-      <arg value="ObjectAllTest" />
-    </java>
-    <java fork="yes"
-        classname="j2meunit.textui.TestRunner"
-        classpath="compiled:${j2meunit}">
-      <arg value="LoaderTest" />
-    </java>
-    <java fork="yes"
-        classname="j2meunit.textui.TestRunner"
-        classpath="compiled:${j2meunit}">
-      <arg value="LuaTest" />
-    </java>
-    <java fork="yes"
-        classname="j2meunit.textui.TestRunner"
-        classpath="compiled:${j2meunit}">
-      <arg value="VMTest" />
+      <arg value="METest" />
     </java>
   </target>
 
