@@ -41,6 +41,16 @@
     <mkdir dir="bin" />
   </target>
 
+  <target name="load"
+      depends="cod"
+      description="Loads cod file onto USB-attached device" >
+    <exec executable="javaloader" >
+      <arg value="-u" />
+      <arg value="load" />
+      <arg value="bin/omt.cod" />
+    </exec>
+  </target>
+
   <target name="cod"
       depends="bin-dir,jar"
       description="Builds BlackBerry code files in bin/" >
@@ -113,7 +123,8 @@
     </javadoc>
   </target>
 
-  <target name="test" depends="compile,include-extra" >
+  <target name="test" depends="compile,include-extra"
+      description="Runs j2meunit tests using j2meunit.textui.TestRunner" >
     <java fork="yes"
         classname="j2meunit.textui.TestRunner"
         classpath="compiled:${j2meunit}">
