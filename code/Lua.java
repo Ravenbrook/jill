@@ -726,7 +726,16 @@ reentry:
             stack.setElementAt(new LuaTable(), base+a);
             continue;
           }
-
+	  case OP_SELF: {
+	    int b = ARGB(i);
+	    rb = stack.elementAt(base+b);
+	    stack.setElementAt(rb, base+a+1);
+	    // Protect
+	    // :todo: metamethods
+	    LuaTable t = (LuaTable)rb;
+	    stack.setElementAt(t.get(RK(k, ARGC(i))), base+a);
+	    continue;
+	  }
           case OP_ADD:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
