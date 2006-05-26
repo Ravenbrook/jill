@@ -1121,7 +1121,9 @@ reentry:
 
   /**
    * Convert to string.  Returns true if element was number or string
-   * (the number will have bee converted to a string), false otherwise.
+   * (the number will have been converted to a string), false otherwise.
+   * Note this actually modifies the element stored at <var>idx</var> in
+   * the stack (in faithful emulation of the PUC-Rio code).
    */
   private boolean tostring(int idx) {
     Object o = stack.elementAt(idx);
