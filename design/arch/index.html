@@ -394,11 +394,28 @@ slow.  So we reject this approach.
 </p>
 
 <p>
-The set of open upvalues is accesssed in a stack-like manner.  New
-upvalues are created and pushed on at one end, and upvalues are removed
-from the same end when they are closed (this is the case because the
-open upvalues follow the call stack).
-That suggests that <code>java.util.Stack</code> could be a reasonable
+The set of open upvalues is accesssed in a near stack-like manner.
+New upvalues are created by the <cod>OP_CLOSURE</code> opcode, and only
+the currently active (topmost) function can create upvalues.  Whilst a
+suspended function might have create some upvalues and might create some
+more when execution returns to it, no upvalues that correspond to the
+local variables of a suspended function will be created (until that
+function becomes active again).  So the set of open upvalues consists of
+all the upvalues created by one function, followed by all the upvalues
+created by a function it called, followed by all the upvalues created by
+a function it called, and so on.  The upvalues for the currently active
+function can be created in any order.  All the upvalues for a function
+(or block) are removed (by <code>OP_RET</code> or <code>OP_CLOSE</code>)
+when the function returns.  Thus the access is near stack-like, new
+upvalues are created within a set of upvalues confined to the current
+function, and all the upvalues of a function are removed together.
+</p>
+
+<p>
+PUC-Rio uses a linked list to manage the set of open upvalues.  The list
+is kept in order of stack slot position (top-most stack slot comes
+earliest in the list).  In Jili
+<code>java.util.Stack</code> could be a reasonable
 choice. Examining the <code>Stack</code> class however,
 we won't be using <code>pop</code>, as a single
 <code>setSize</code> at the end of a close operation is likely to be
