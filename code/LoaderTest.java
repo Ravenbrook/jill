@@ -8,7 +8,8 @@ import j2meunit.framework.TestSuite;
 import java.io.InputStream;
 
 // The LoaderTest uses ancillary files:
-// LoaderTest0.luc - compiled lua chunk, result of:
+// LoaderTest0.luc - compiled lua chunk (compiled on big-endian machine),
+// result of:
 //   luac -s - <<'EOF'
 //   return 99
 //   EOF
@@ -17,6 +18,9 @@ import java.io.InputStream;
 //    return 99
 //  EOF
 // LoaderTest2.luc - test/fib.lua from PUC-Rio Lua 5.1: luac fib.lua
+// LoaderTest3.luc - as LoaderTest0.luc but compiled on little-endian
+// machine.
+
 
 /**
  * J2MEUnit tests for Jili's internal Loader class.  DO NOT SUBCLASS.  public
@@ -80,6 +84,11 @@ public class LoaderTest extends TestCase {
     loadFile("LoaderTest2");
   }
 
+  /** Tests LoaderTest3.luc. */
+  public void testLoader3() {
+    loadFile("LoaderTest3");
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -89,6 +98,8 @@ public class LoaderTest extends TestCase {
         public void runTest() { testLoader1(); } });
     suite.addTest(new LoaderTest("testLoader2") {
         public void runTest() { testLoader2(); } });
+    suite.addTest(new LoaderTest("testLoader3") {
+        public void runTest() { testLoader3(); } });
     return suite;
   }
 }
