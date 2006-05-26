@@ -910,7 +910,40 @@ reentry:
                 return; // yield
             }
           }
-
+	  case OP_TAILCALL: {
+	    int b = ARGB(i);
+	    if (b != 0) {
+	      stack.setSize(base+a+b);
+	    }
+	    savedpc = pc;
+	    // assert ARGC(i) - 1 == MULTRET
+	    switch (vmPrecall(base+a, MULTRET)) {
+	      case PCRLUA: {
+	        // tail call: put new frame in place of previous one.
+		CallInfo ci = (CallInfo)civ.elementAt(civ.size()-2);
+		int func = ci.function();
+		int pfunc = this.ci.function();
+		fClose(base);
+		base = func + (this.ci.base() - pfunc);
+		int aux;	// loop index is used after loop ends
+		for (aux=0; pfunc+aux < stack.size(); ++aux) {
+		  // move frame down
+		  stack.setElementAt(stack.elementAt(pfunc+aux), func+aux);
+		}
+		stack.setSize(func+aux);	// correct top
+		// assert stack.size() == base + // ((LuaFunction)stack.elementAt(func)).proto().maxstacksize();
+		ci.tailcall(base, stack.size());
+		dec_ci();	// remove new frame.
+		continue reentry;
+	      }
+	      case PCRJ: {	// It was a Java function
+	        continue;
+	      }
+	      default: {
+	        return;	// yield
+	      }
+	    }
+	  }
           case OP_RETURN: {
             int b = ARGB(i);
             if (b != 0) {

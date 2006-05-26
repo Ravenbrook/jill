@@ -6,6 +6,7 @@ final class CallInfo {
   private int base;
   private int top;
   private int nresults;
+  private int tailcalls;
 
   /** Only used to create the first instance. */
   CallInfo() { }
@@ -68,5 +69,13 @@ final class CallInfo {
    */
   int nresults() {
     return nresults;
+  }
+  /**
+   * Used during tailcall to set the base and top members.
+   */
+  void tailcall(int base, int top) {
+    this.base = base;
+    this.top = top;
+    ++tailcalls;
   }
 }
