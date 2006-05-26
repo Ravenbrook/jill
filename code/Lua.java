@@ -1133,8 +1133,17 @@ reentry:
     if (!(o instanceof Double)) {
       return false;
     }
+    // Convert number to string.  PUC-Rio abstracts this operation into
+    // a macro, lua_number2str.  The macro is only invoked from their
+    // equivalent of this code.
     Double d = (Double)o;
-    stack.setElementAt(d.toString(), idx);
+    String repr = d.toString();
+    // Note: A naive conversion results in 3..4 == "3.04.0" which isn't
+    // good.  We special case the integers.
+    if (repr.endsWith(".0")) {
+      repr = repr.substring(0, repr.length()-2);
+    }
+    stack.setElementAt(repr, idx);
     return true;
   }
 
