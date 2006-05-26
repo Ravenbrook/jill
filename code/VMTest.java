@@ -71,6 +71,8 @@ import j2meunit.framework.TestSuite;
 // VMTestVararg1.luc - Used to call f defined in VMTestVararg.luc
 //   local a,b,c = f('one', 'two', 'three', 'four', 'five', 'six', 'seven')
 //   return a,b,c
+// VMTestSelf.luc - contains OP_SELF
+//   local t={foo='bar'}function t:f(k)return self[k]end return(t:f'foo')
 
 
 /**
@@ -469,6 +471,17 @@ public class VMTest extends TestCase {
     assertTrue("Third result is four", "four".equals(L.value(-1)));
   }
 
+  /** Tests execution of OP_SELF opcode.  Generated when functions
+   * are called using the colon syntax (t:f()). */
+  public void testVMSelf() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestSelf");
+    L.push(f);
+    L.call(0, 1);
+    assertTrue("Result is bar", "bar".equals(L.value(-1)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -516,6 +529,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMClose(); } });
     suite.addTest(new VMTest("testVMVararg") {
         public void runTest() { testVMVararg(); } });
+    suite.addTest(new VMTest("testVMSelf") {
+        public void runTest() { testVMSelf(); } });
     return suite;
   }
 }
