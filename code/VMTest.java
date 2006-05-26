@@ -73,6 +73,14 @@ import j2meunit.framework.TestSuite;
 //   return a,b,c
 // VMTestSelf.luc - contains OP_SELF
 //   local t={foo='bar'}function t:f(k)return self[k]end return(t:f'foo')
+// VMTestTailcall.luc - contains OP_TAILCALL
+//   x=0
+//   function f(a, ...)
+//     if a then x=x+1 return f(...) end
+//     return x
+//   end
+//   return f(6, 7, 8)
+
 
 
 /**
@@ -482,6 +490,17 @@ public class VMTest extends TestCase {
     assertTrue("Result is bar", "bar".equals(L.value(-1)));
   }
 
+  /** Tests execution of OP_TAILCALL opcode.  Both when b==0 and when b
+   * > 0. */
+  public void testVMTailcall() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestTailcall");
+    L.push(f);
+    L.call(0, 1);
+    assertTrue("Result is 3", L.valueOfNumber(3).equals(L.value(-1)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -531,6 +550,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMVararg(); } });
     suite.addTest(new VMTest("testVMSelf") {
         public void runTest() { testVMSelf(); } });
+    suite.addTest(new VMTest("testVMTailcall") {
+        public void runTest() { testVMTailcall(); } });
     return suite;
   }
 }
