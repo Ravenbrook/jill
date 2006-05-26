@@ -342,10 +342,17 @@ final class Loader {
     // :lua_Number:size  Here we assume that the size is 8.
     byte[] buf = new byte[8];
     block(buf);
-    // We assume that doubles are always stored with the sign bit first.
+    // Big-endian architectures store doubles with the sign bit first;
+    // little-endian is the other way around.
     long l = 0;
-    for (int i=0; i<buf.length; ++i) {
-      l = (l << 8) | (buf[i]&0xff);
+    if (bigendian) {
+      for (int i=0; i<buf.length; ++i) {
+	l = (l << 8) | (buf[i]&0xff);
+      }
+    } else {
+      for (int i=0; i<buf.length; ++i) {
+        l = (l >>> 8) | (((long)(buf[i]&0xff)) << 56);
+      }
     }
     double d = Double.longBitsToDouble(l);
     return Lua.valueOfNumber(d);
