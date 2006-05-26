@@ -10,7 +10,6 @@ import j2meunit.framework.TestSuite;
 /**
  * J2MEUnit tests for Jili's public API.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
- * This test does not run in CLDC 1.1.
  */
 public class LuaTest extends TestCase {
   /** void constructor, necessary for running using
@@ -28,13 +27,14 @@ public class LuaTest extends TestCase {
     Lua L = new Lua();
   }
 
-  /** Tests loading and execution of simple file. */
-  public void testLua1() {
+  /** Helper used by testLua1. */
+  public void simpleScript(String filename) {
     Lua L = new Lua();
     LuaFunction f = null;
+    System.out.println(filename);
     try {
-      f = L.load(this.getClass().getResourceAsStream("LoaderTest0.luc"),
-          "LoaderTest0.luc");
+      f = L.load(this.getClass().getResourceAsStream(filename),
+          filename);
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -51,6 +51,16 @@ public class LuaTest extends TestCase {
     assertTrue("1 result", 1 == top);
     Object r = L.value(1);
     assertTrue("result is 99.0", ((Double)r).doubleValue() == 99.0);
+  }
+
+  /** Test loading and executition of simple file.  LoaderTest0.luc and
+   * LoaderTest3.luc are compiled from the same Lua source, but '0' is
+   * compiled on a big-endian architecture, and '3' is compiled on a
+   * little-endian architecture.
+   */
+  public void testLua1() {
+    simpleScript("LoaderTest0.luc");
+    simpleScript("LoaderTest3.luc");
   }
 
   /** Tests that a Lua Java function can be called. */
