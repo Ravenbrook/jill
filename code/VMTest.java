@@ -80,7 +80,8 @@ import j2meunit.framework.TestSuite;
 //     return x
 //   end
 //   return f(6, 7, 8)
-
+// VMTestConvert.luc - contains a number to string conversion.
+//   local x = 1 - 1e-16; return 1==x,x..''
 
 
 /**
@@ -501,6 +502,20 @@ public class VMTest extends TestCase {
     assertTrue("Result is 3", L.valueOfNumber(3).equals(L.value(-1)));
   }
 
+  /** Tests conversion of numbers to string.  Pretty weak, but
+   * illustrates a difference between PUC-Rio Lua 5.1 and Jili.
+   */
+  public void testVMConvert() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestConvert");
+    L.push(f);
+    L.call(0, 2);
+    assertTrue("First result is false",
+      L.valueOfBoolean(false).equals(L.value(-2)));
+    System.out.println("VMTestConvert conversion: " + L.value(-1));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -552,6 +567,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMSelf(); } });
     suite.addTest(new VMTest("testVMTailcall") {
         public void runTest() { testVMTailcall(); } });
+    suite.addTest(new VMTest("testVMConvert") {
+        public void runTest() { testVMConvert(); } });
     return suite;
   }
 }
