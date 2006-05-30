@@ -439,10 +439,22 @@ public final class Lua {
     try {
       out[0] = Double.parseDouble(s);
       return true;
-    } catch (NumberFormatException e_) {
-      // :todo: try hexadecimal
-      // (warning: Integer.parseInt does not trim whitespace)
-      return false;
+    } catch (NumberFormatException e0_) {
+      try {
+        // Attempt hexadecimal conversion.
+	// :todo: using String.trim is not strictly accurate, because it
+	// trims other ASCII control characters as well as whitespace.
+	s = s.trim().toUpperCase();
+	if (s.startsWith("0X")) {
+	  s = s.substring(2);
+	} else if (s.startsWith("-0X")) {
+	  s = "-" + s.substring(3);
+	}
+        out[0] = Integer.parseInt(s, 16);
+	return true;
+      } catch (NumberFormatException e1_) {
+        return false;
+      }
     }
   }
 
