@@ -84,6 +84,9 @@ import j2meunit.framework.TestSuite;
 //   local x = 1 - 1e-16; return 1==x,x..''
 // VMTestConvert1.luc - contains several string to number conversions.
 //   return (-'1'+'2'-'3'*'7'/'8')%'1'
+// VMTestConvert2.luc - contains hexadecimal string to number
+// conversion.
+//   return '0x99' + '0x66'
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -527,6 +530,16 @@ public class VMTest extends TestCase {
     assertTrue("Result is 0.375", L.valueOfNumber(0.375).equals(L.value(-1)));
   }
 
+  /** Tests conversion of a hexadecimal string to number.  */
+  public void testVMConvert2() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestConvert2");
+    L.push(f);
+    L.call(0, 1);
+    assertTrue("Result is 255", L.valueOfNumber(255).equals(L.value(-1)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -582,6 +595,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMConvert(); } });
     suite.addTest(new VMTest("testVMConvert1") {
         public void runTest() { testVMConvert1(); } });
+    suite.addTest(new VMTest("testVMConvert2") {
+        public void runTest() { testVMConvert2(); } });
     return suite;
   }
 }
