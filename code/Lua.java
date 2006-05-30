@@ -428,6 +428,26 @@ public final class Lua {
 
 
   ////////////////////////////////////////////////////////////////////////
+  // Object
+
+  // Methods equivalent to the file lobject.c.  Prefixed with o.
+
+  /** Equivalent to luaO_str2d. */
+  private static boolean oStr2d(String s, double[] out) {
+    // :todo: using try/catch may be too slow.  In which case we'll have
+    // to recognise the valid formats first.
+    try {
+      out[0] = Double.parseDouble(s);
+      return true;
+    } catch (NumberFormatException e_) {
+      // :todo: try hexadecimal
+      // (warning: Integer.parseInt does not trim whitespace)
+      return false;
+    }
+  }
+
+
+  ////////////////////////////////////////////////////////////////////////
   // VM
 
   // Most of the methods in this section are equivalent to the files
@@ -635,6 +655,12 @@ public final class Lua {
     return false;
   }
 
+  /**
+   * Array of numeric operands.  Used when converting strings to numbers
+   * by an arithmetic opcode (ADD, SUB, MUL, DIV, MOD, POW, UNM).
+   */
+  private static final double[] numop = new double[2];
+
   private void vmExecute(int nexeccalls) {
     // This labelled while loop is used to simulate the effect of C's
     // goto.  The end of the while loop is never reached.  The beginning
@@ -743,8 +769,11 @@ reentry:
               double sum = ((Double)rb).doubleValue() +
                   ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(sum), base+a);
+	    } else if (toNumberPair(rb, rc, numop)) {
+	      double sum = numop[0] + numop[1];
+              stack.setElementAt(valueOfNumber(sum), base+a);
             } else {
-              // :todo: convert or use metamethod
+              // :todo: use metamethod
               throw new IllegalArgumentException();
             }
             continue;
@@ -755,8 +784,11 @@ reentry:
               double difference = ((Double)rb).doubleValue() -
                   ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(difference), base+a);
+	    } else if (toNumberPair(rb, rc, numop)) {
+	      double difference = numop[0] - numop[1];
+              stack.setElementAt(valueOfNumber(difference), base+a);
             } else {
-              // :todo: convert or use metamethod
+              // :todo: use metamethod
               throw new IllegalArgumentException();
             }
             continue;
@@ -767,8 +799,11 @@ reentry:
               double product = ((Double)rb).doubleValue() *
                 ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(product), base+a);
+	    } else if (toNumberPair(rb, rc, numop)) {
+	      double product = numop[0] * numop[1];
+              stack.setElementAt(valueOfNumber(product), base+a);
             } else {
-              // :todo: convert or use metamethod
+              // :todo: use metamethod
               throw new IllegalArgumentException();
             }
             continue;
@@ -779,8 +814,11 @@ reentry:
               double quotient = ((Double)rb).doubleValue() /
                 ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(quotient), base+a);
+	    } else if (toNumberPair(rb, rc, numop)) {
+	      double quotient = numop[0] / numop[1];
+              stack.setElementAt(valueOfNumber(quotient), base+a);
             } else {
-              // :todo: convert or use metamethod
+              // :todo: use metamethod
               throw new IllegalArgumentException();
             }
             continue;
@@ -788,14 +826,15 @@ reentry:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
             if (isNumber(rb) && isNumber(rc)) {
-              // Note: semantics of Lua's % do not match Java's,
-              // therefore we can't just use Java's '%' operator here.
               double db = ((Double)rb).doubleValue();
               double dc = ((Double)rc).doubleValue();
-              double modulus = db - Math.floor(db/dc)*dc;
+              double modulus = modulus(db, dc);
+              stack.setElementAt(valueOfNumber(modulus), base+a);
+	    } else if (toNumberPair(rb, rc, numop)) {
+	      double modulus = modulus(numop[0], numop[1]);
               stack.setElementAt(valueOfNumber(modulus), base+a);
             } else {
-              // :todo: convert or use metamethod
+              // :todo: use metamethod
               throw new IllegalArgumentException();
             }
             continue;
@@ -806,7 +845,9 @@ reentry:
             rb = stack.elementAt(base+ARGB(i));
             if (isNumber(rb)) {
               double db = ((Double)rb).doubleValue();
-              stack.setElementAt(new Double(-db), base+a);
+              stack.setElementAt(valueOfNumber(-db), base+a);
+	    } else if (tonumber(rb, numop)) {
+	      stack.setElementAt(valueOfNumber(-numop[0]), base+a);
             } else {
               // :todo: metamethod
               throw new IllegalArgumentException();
@@ -1159,6 +1200,43 @@ reentry:
       stack.setElementAt(NIL, fixed+i);
     }
     return base;
+  }
+
+  /**
+   * Computes the result of Lua's modules operator (%).  Note that this
+   * modulus operator does not match Java's %. */
+  private static double modulus(double x, double y) {
+    return x - Math.floor(x/y)*y;
+  }
+
+  /**
+   * Convert to number.  Returns true if the argument o was converted to
+   * a number.  Converted number is placed in out[0].  Returns false if
+   * the argument o could not be converted to a number.
+   */
+  private static boolean tonumber(Object o, double[] out) {
+    if (isNumber(o)) {
+      out[0] = ((Double)o).doubleValue();
+      return true;
+    }
+    if (!isString(o)) {
+      return false;
+    }
+    if (oStr2d((String)o, out)) {
+      return true;
+    }
+    return false;
+  }
+
+  /** Convert a pair of operands for an arithmetic opcode. */
+  private static boolean toNumberPair(Object x, Object y, double[] out) {
+    if (tonumber(y, out)) {
+      out[1] = out[0];
+      if (tonumber(x, out)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
