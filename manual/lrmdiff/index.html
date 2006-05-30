@@ -52,6 +52,14 @@ characters.  Binary chunks are sequences of bytes.
 </p>
 
 <dl>
+  <dt>LRM 2.2.1</dt> <dd>The conversion of strings to numbers and
+  numbers to strings in Jili may be slightly different from the
+  corresponding conversions in PUC-Rio Lua.  For example, the value
+  <code>(1 - 1e-16)</code> is converted to "1" in a stock version of
+  PUC-Rio Lua 5.1 running on a reasonable quality C implementation.  In
+  Jili the same value is converted to "0.9999999999999999".
+  Jili uses Java's underlying conversion mechanisms which are more
+  precisely specified than C.</dd>
   <dt>LRM 2.10</dt> <dd>GC provided by JVM</dd>
   <dt>LRM 2.10.1</td> <dd><code>__gc</code> metamethod not
     supported.</dd>
