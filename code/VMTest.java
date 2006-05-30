@@ -82,7 +82,8 @@ import j2meunit.framework.TestSuite;
 //   return f(6, 7, 8)
 // VMTestConvert.luc - contains a number to string conversion.
 //   local x = 1 - 1e-16; return 1==x,x..''
-
+// VMTestConvert1.luc - contains several string to number conversions.
+//   return (-'1'+'2'-'3'*'7'/'8')%'1'
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -516,6 +517,16 @@ public class VMTest extends TestCase {
     System.out.println("VMTestConvert conversion: " + L.value(-1));
   }
 
+  /** Tests conversion of strings to numbers.  */
+  public void testVMConvert1() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestConvert1");
+    L.push(f);
+    L.call(0, 1);
+    assertTrue("Result is 0.375", L.valueOfNumber(0.375).equals(L.value(-1)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -569,6 +580,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMTailcall(); } });
     suite.addTest(new VMTest("testVMConvert") {
         public void runTest() { testVMConvert(); } });
+    suite.addTest(new VMTest("testVMConvert1") {
+        public void runTest() { testVMConvert1(); } });
     return suite;
   }
 }
