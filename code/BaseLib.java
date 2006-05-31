@@ -50,6 +50,10 @@ public final class BaseLib extends LuaJavaCallback {
     switch (which) {
       case PRINT:
         return print(L);
+      case TONUMBER:
+        return tonumber(L);
+      case TOSTRING:
+        return tostring(L);
     }
     return 0;
   }
@@ -111,5 +115,61 @@ public final class BaseLib extends LuaJavaCallback {
     }
     System.out.println();
     return 0;
+  }
+
+  /** Implements tonumber. */
+  private static int tonumber(Lua L) {
+    int base = L.optInt(2, 10);
+    if (base == 10) {	// standard conversion
+      L.checkAny(1);
+      Object o = L.value(1);
+      if (L.isNumber(o)) {
+        L.pushNumber(L.toNumber(o));
+	return 1;
+      }
+    } else {
+      String s = L.checkString(1);
+      L.argCheck(2 <= base && base <= 36, 2, "base out of range");
+      // :todo: consider stripping space and sharing some code with
+      // Lua.vmTostring
+      try {
+	int i = Integer.parseInt(s, base);
+	L.pushNumber(i);
+	return 1;
+      } catch (NumberFormatException e_) {
+      }
+    }
+    L.push(L.NIL);
+    return 1;
+  }
+
+  /** Implements tostring. */
+  private static int tostring(Lua L) {
+    L.checkAny(1);
+    Object o = L.value(1);
+
+    // :todo: metamethod
+    switch (L.type(1)) {
+      case Lua.TNUMBER:
+        L.push(L.toString(o));
+	break;
+      case Lua.TSTRING:
+        L.push(o);
+	break;
+      case Lua.TBOOLEAN:
+        if (L.toBoolean(o)) {
+	  L.pushLiteral("true");
+	} else {
+	  L.pushLiteral("false");
+	}
+	break;
+      case Lua.TNIL:
+        L.pushLiteral("nil");
+	break;
+      default:
+        L.push(o.toString());
+	break;
+    }
+    return 1;
   }
 }

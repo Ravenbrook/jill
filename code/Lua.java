@@ -75,6 +75,10 @@ public final class Lua {
   /** number of list items to accumuate before a SETLIST instruction. */
   private static final int LFIELDS_PER_FLUSH = 50;
 
+  //////////////////////////////////////////////////////////////////////
+  // Public API
+  
+
   /**
    * Equivalent of LUA_MULTRET.  Required, by vmPoscall, to be
    * negative.
@@ -84,6 +88,19 @@ public final class Lua {
    * Lua's nil value.
    */
   public static final Object NIL = null;
+
+  // Lua type tags, from lua.h
+  public static final int TNONE		= -1;
+  public static final int TNIL		= 0;
+  public static final int TBOOLEAN	= 1;
+  // TLIGHTUSERDATA not available.  :todo: make available?
+  public static final int TNUMBER	= 3;
+  public static final int TSTRING	= 4;
+  public static final int TTABLE	= 5;
+  public static final int TFUNCTION	= 6;
+  public static final int TUSERDATA	= 7;
+  public static final int TTHREAD	= 8;
+
   /**
    * Minimum stack size that Lua Java functions gets.  May turn out to
    * be silly / redundant.
@@ -185,15 +202,17 @@ public final class Lua {
   }
 
   /**
-   * Tests that an object is a Lua number.  Returns <code>true</code> if
-   * so, <code>false</code> otherwise.
+   * Tests that an object is a Lua number or a string convertible to a
+   * number.  Returns <code>true</code> if so,
+   * <code>false</code> otherwise.
    */
   public static boolean isNumber(Object o) {
-    return o instanceof Double;
+    return tonumber(o, numop);
   }
 
   /**
-   * Tests that an object is a Lua string.  Returns <code>true</code> if
+   * Tests that an object is a Lua string or a number (which is always
+   * convertible to a string).  Returns <code>true</code> if
    * so, <code>false</code> otherwise.
    */
   public static boolean isString(Object o) {
@@ -306,6 +325,11 @@ public final class Lua {
     stack.addElement(o);
   }
 
+  /** Push literal string onto the stack. */
+  public void pushLiteral(String s) {
+    push(s);
+  }
+
   /**
    * Pushes a number onto the stack.  See also {@link Lua#push}.
    */
@@ -355,10 +379,32 @@ public final class Lua {
   }
 
   /**
-   * Convert to number and return it.
+   * Convert to boolean.
+   */
+  public boolean toBoolean(Object o) {
+    return !(o == NIL || Boolean.FALSE.equals(o));
+  }
+
+  /**
+   * Convert to integer and return it.  Returns 0 if cannot be
+   * converted.
+   */
+  public int toInteger(Object o) {
+    if (tonumber(o, numop)) {
+      return (int)numop[0];
+    }
+    return 0;
+  }
+
+  /**
+   * Convert to number and return it.  Returns 0 if cannot be
+   * converted.
    */
   public double toNumber(Object o) {
-    return ((Double)o).doubleValue();
+    if (tonumber(o, numop)) {
+      return (int)numop[0];
+    }
+    return 0;
   }
 
   /**
@@ -370,13 +416,53 @@ public final class Lua {
   }
 
   /**
+   * Returns the type of the Lua value at the specified stack index.
+   */
+  public int type(int idx) {
+    Object o;
+    if (idx == 0) {
+      return TNONE;
+    }
+    if (idx > 0) {
+      if (idx > stack.size()) {
+        return TNONE;
+      }
+      o = stack.elementAt(idx - 1);
+    } else {
+      if (-idx > stack.size()) {
+        return TNONE;
+      }
+      o = stack.elementAt(stack.size() + idx);
+    }
+    if (o == NIL) {
+      return TNIL;
+    } else if (o instanceof Double) {
+      return TNUMBER;
+    } else if (o instanceof Boolean) {
+      return TBOOLEAN;
+    } else if (o instanceof String) {
+      return TSTRING;
+    } else if (o instanceof LuaTable) {
+      return TTABLE;
+    } else if (o instanceof LuaFunction || o instanceof LuaJavaCallback) {
+      return TFUNCTION;
+    } else if (o instanceof LuaUserdata) {
+      return TUSERDATA;
+    }
+    // :todo: thread
+    return TNONE;
+  }
+
+  /**
    * Gets a value from the stack.  The value at the specified stack
-   * position is returned.
+   * position is returned.  If <var>idx</var> is positive and exceeds
+   * the size of the stack, {@link Lua#NIL} is returned.
    */
   public Object value(int idx) {
-    // :todo: Should we return null for indexes above the TOS?  Compare
-    // with lua_pushvalue in PUC-Rio.
     if (idx > 0) {
+      if (idx > stack.size()) {
+        return NIL;
+      }
       return stack.elementAt(base + idx - 1);
     }
     if (idx < 0) {
@@ -407,6 +493,61 @@ public final class Lua {
     return new Double(d);
   }
 
+  //////////////////////////////////////////////////////////////////////
+  // Auxiliary API
+
+  public void argCheck(boolean cond, int numarg, String extramsg) {
+    if (cond) {
+      return;
+    }
+    argError(numarg, extramsg);
+  }
+
+  /**
+   * Equivalent to luaL_argerror.
+   */
+  public void argError(int narg, String extramsg) {
+    // :todo: generate error
+    throw new IllegalArgumentException();
+  }
+
+  public void checkAny(int narg) {
+    if (type(narg) == TNONE) {
+      argError(narg, "value expected");
+    }
+  }
+
+  public int checkInteger(int narg) {
+    Object o = value(narg);
+    int d = toInteger(o);
+    if (d == 0 && !isNumber(o)) {
+      // :todo: error
+      throw new IllegalArgumentException();
+    }
+    return d;
+  }
+
+  public String checkString(int narg) {
+    String s = toString(value(narg));
+    if (s == null) {
+      // :todo: error
+      throw new IllegalArgumentException();
+    }
+    return s;
+  }
+
+  private boolean isnoneornil(int narg) {
+    Object o = value(narg);
+    return o == NIL;
+  }
+
+  public int optInt(int narg, int def) {
+    if (isnoneornil(narg)) {
+      return def;
+    }
+    return checkInteger(narg);
+  }
+
   /**
    * Provide <code>Reader</code> interface over a <code>String</code>.
    * Equivalent of {@link java.io.StringReader#StringReader} from J2SE.
@@ -417,7 +558,7 @@ public final class Lua {
    */
   public Reader StringReader(String s) { return null; }
 
-  ////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
   // Func
 
   // Methods equivalent to the file lfunc.c.  Prefixed with f.
@@ -462,7 +603,7 @@ public final class Lua {
   }
 
 
-  ////////////////////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////
   // Object
 
   // Methods equivalent to the file lobject.c.  Prefixed with o.
@@ -812,7 +953,7 @@ reentry:
           case OP_ADD:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (isNumber(rb) && isNumber(rc)) {
+            if (rb instanceof Double && rc instanceof Double) {
               double sum = ((Double)rb).doubleValue() +
                   ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(sum), base+a);
@@ -827,7 +968,7 @@ reentry:
           case OP_SUB:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (isNumber(rb) && isNumber(rc)) {
+            if (rb instanceof Double && rc instanceof Double) {
               double difference = ((Double)rb).doubleValue() -
                   ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(difference), base+a);
@@ -842,7 +983,7 @@ reentry:
           case OP_MUL:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (isNumber(rb) && isNumber(rc)) {
+            if (rb instanceof Double && rc instanceof Double) {
               double product = ((Double)rb).doubleValue() *
                 ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(product), base+a);
@@ -857,7 +998,7 @@ reentry:
           case OP_DIV:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (isNumber(rb) && isNumber(rc)) {
+            if (rb instanceof Double && rc instanceof Double) {
               double quotient = ((Double)rb).doubleValue() /
                 ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(quotient), base+a);
@@ -872,7 +1013,7 @@ reentry:
           case OP_MOD:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (isNumber(rb) && isNumber(rc)) {
+            if (rb instanceof Double && rc instanceof Double) {
               double db = ((Double)rb).doubleValue();
               double dc = ((Double)rc).doubleValue();
               double modulus = modulus(db, dc);
@@ -890,7 +1031,7 @@ reentry:
             throw new IllegalArgumentException();
           case OP_UNM: {
             rb = stack.elementAt(base+ARGB(i));
-            if (isNumber(rb)) {
+            if (rb instanceof Double) {
               double db = ((Double)rb).doubleValue();
               stack.setElementAt(valueOfNumber(-db), base+a);
 	    } else if (tonumber(rb, numop)) {
@@ -1285,22 +1426,23 @@ reentry:
 
   /**
    * Computes the result of Lua's modules operator (%).  Note that this
-   * modulus operator does not match Java's %. */
+   * modulus operator does not match Java's %.
+   */
   private static double modulus(double x, double y) {
     return x - Math.floor(x/y)*y;
   }
 
   /**
    * Convert to number.  Returns true if the argument o was converted to
-   * a number.  Converted number is placed in out[0].  Returns false if
-   * the argument o could not be converted to a number.
+   * a number.  Converted number is placed in <var>out[0]</var>.  Returns
+   * false if the argument <var>o</var> could not be converted to a number.
    */
   private static boolean tonumber(Object o, double[] out) {
-    if (isNumber(o)) {
+    if (o instanceof Double) {
       out[0] = ((Double)o).doubleValue();
       return true;
     }
-    if (!isString(o)) {
+    if (!(o instanceof String)) {
       return false;
     }
     if (oStr2d((String)o, out)) {
