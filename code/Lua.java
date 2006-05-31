@@ -122,6 +122,15 @@ public final class Lua {
   }
 
   /**
+   * Get a global variable.
+   * @param name  The name of the global variable.
+   * @return  The value of the global variable.
+   */
+  public Object getglobal(String name) {
+    return vmGettable(global, name);
+  }
+
+  /**
    * Gets the global environment.  The global environment, where global
    * variables live, is returned as a <code>LuaTable</code>.  Note that
    * modifying this table has exactly the same effect as creating or
@@ -289,7 +298,9 @@ public final class Lua {
   /**
    * Pushes a value onto the stack in preparation for calling a
    * function (or returning from one).  See {@link Lua#call} for
-   * the protocol to be used for calling functions.
+   * the protocol to be used for calling functions.  See {@link
+   * Lua#pushNumber} for pushing numbers, and {@link Lua#pushvalue} for
+   * pushing a value that is already on the stack.
    */
   public void push(Object o) {
     stack.addElement(o);
@@ -300,6 +311,15 @@ public final class Lua {
    */
   public void pushNumber(double d) {
     push(new Double(d));
+  }
+
+  /**
+   * Pushes a value onto the stack.  <var>idx</var> specifies the stack
+   * index of a value, it is pushed (copied) onto the top of the stack.
+   * Equivalent to <code>L.push(L.value(idx))</code>.
+   */
+  public void pushvalue(int idx) {
+    push(value(idx));
   }
 
   /**
@@ -328,10 +348,25 @@ public final class Lua {
   }
 
   /**
+   * Set a global variable.
+   */
+  public void setglobal(String name, Object value) {
+    vmSettable(global, name, value);
+  }
+
+  /**
    * Convert to number and return it.
    */
   public double toNumber(Object o) {
     return ((Double)o).doubleValue();
+  }
+
+  /**
+   * Convert to string and return it.  If value cannot be converted then
+   * null is returned.
+   */
+  public String toString(Object o) {
+    return vmTostring(o);
   }
 
   /**
@@ -1083,6 +1118,13 @@ reentry:
     } /* reentry: while */
   }
 
+  /** Equivalent of luaV_gettable. */
+  private Object vmGettable(Object t, Object key) {
+    // :todo: metamethods
+    LuaTable h = (LuaTable)t;
+    return h.get(key);
+  }
+
   /** Equivalent of luaV_lessthan. */
   private boolean vmLessthan(Object l, Object r) {
     // :todo: currently goes wrong when comparing nil.  Fix it.
@@ -1196,6 +1238,33 @@ reentry:
     throw new IllegalArgumentException();
   }
 
+  /** Equivalent of luaV_settable. */
+  private void vmSettable(Object t, Object key, Object val) {
+    // :todo: metamethods
+    LuaTable h = (LuaTable)t;
+    h.put(key, val);
+  }
+
+  private String vmTostring(Object o) {
+    if (o instanceof String) {
+      return (String)o;
+    }
+    if (!(o instanceof Double)) {
+      return null;
+    }
+    // Convert number to string.  PUC-Rio abstracts this operation into
+    // a macro, lua_number2str.  The macro is only invoked from their
+    // equivalent of this code.
+    Double d = (Double)o;
+    String repr = d.toString();
+    // Note: A naive conversion results in 3..4 == "3.04.0" which isn't
+    // good.  We special case the integers.
+    if (repr.endsWith(".0")) {
+      repr = repr.substring(0, repr.length()-2);
+    }
+    return repr;
+  }
+
   /** Equivalent of adjust_varargs in "ldo.c". */
   private int adjust_varargs(Proto p, int actual) {
     int nfixargs = p.numparams();
@@ -1259,23 +1328,11 @@ reentry:
    */
   private boolean tostring(int idx) {
     Object o = stack.elementAt(idx);
-    if (o instanceof String) {
-      return true;
-    }
-    if (!(o instanceof Double)) {
+    String s = vmTostring(o);
+    if (s == null) {
       return false;
     }
-    // Convert number to string.  PUC-Rio abstracts this operation into
-    // a macro, lua_number2str.  The macro is only invoked from their
-    // equivalent of this code.
-    Double d = (Double)o;
-    String repr = d.toString();
-    // Note: A naive conversion results in 3..4 == "3.04.0" which isn't
-    // good.  We special case the integers.
-    if (repr.endsWith(".0")) {
-      repr = repr.substring(0, repr.length()-2);
-    }
-    stack.setElementAt(repr, idx);
+    stack.setElementAt(s, idx);
     return true;
   }
 

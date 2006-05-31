@@ -21,6 +21,8 @@ public class METest extends TestCase {
     suite.addTest(t.suite());
     t = new VMTest();
     suite.addTest(t.suite());
+    t = new BaseLibTest();
+    suite.addTest(t.suite());
 
     return suite;
   }
