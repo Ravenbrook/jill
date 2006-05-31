@@ -43,7 +43,7 @@
 
   <target name="load"
       depends="cod"
-      description="Loads cod file onto USB-attached device" >
+      description="Loads cod file onto USB-attached BlackBerry device" >
     <exec executable="javaloader" >
       <arg value="-u" />
       <arg value="load" />
@@ -112,6 +112,12 @@
 	source="1.2"
         target="1.1"
     />
+  </target>
+
+  <target name="clean"
+      description="Cleans intermediate build products (not bin/)" >
+    <delete dir="compiled" />
+    <delete dir="preverified" />
   </target>
 
   <target name="doc"
