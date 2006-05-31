@@ -100,6 +100,12 @@ public final class Lua {
   public static final int TFUNCTION	= 6;
   public static final int TUSERDATA	= 7;
   public static final int TTHREAD	= 8;
+  // Names for above type tags, starting from TNIL.
+  // Equivalent to luaT_typenames
+  private static final String[] typename = {
+    "nil", "boolean", "userdata", "number",
+    "string", "table", "function", "userdata", "thread"
+  };
 
   /**
    * Minimum stack size that Lua Java functions gets.  May turn out to
@@ -454,6 +460,16 @@ public final class Lua {
   }
 
   /**
+   * Name of type.
+   */
+  public String typeName(int type) {
+    if (TNONE == type) {
+      return "no value";
+    }
+    return typename[type];
+  }
+
+  /**
    * Gets a value from the stack.  The value at the specified stack
    * position is returned.  If <var>idx</var> is positive and exceeds
    * the size of the stack, {@link Lua#NIL} is returned.
@@ -517,7 +533,7 @@ public final class Lua {
     }
   }
 
-  public int checkInteger(int narg) {
+  public int checkInt(int narg) {
     Object o = value(narg);
     int d = toInteger(o);
     if (d == 0 && !isNumber(o)) {
@@ -536,6 +552,12 @@ public final class Lua {
     return s;
   }
 
+  public void checkType(int narg, int t) {
+    if (type(narg) != t) {
+      tagError(narg, t);
+    }
+  }
+
   private boolean isnoneornil(int narg) {
     Object o = value(narg);
     return o == NIL;
@@ -545,7 +567,17 @@ public final class Lua {
     if (isnoneornil(narg)) {
       return def;
     }
-    return checkInteger(narg);
+    return checkInt(narg);
+  }
+
+  private void tagError(int narg, int tag) {
+    // :todo: implement me
+    throw new IllegalArgumentException();
+  }
+
+  /** Name of type of value at <var>idx</var>. */
+  public String typeNameOfIndex(int idx) {
+    return typename[type(idx)];
   }
 
   /**

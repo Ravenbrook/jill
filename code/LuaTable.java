@@ -40,6 +40,11 @@ public final class LuaTable extends java.util.Hashtable {
     return;
   }
 
+  /** Like get for numeric (integer) keys. */
+  Object getnum(int k) {
+    return get(new Double(k));
+  }
+
   /**
    * Like put for numeric (integer) keys.
    */

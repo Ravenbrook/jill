@@ -50,10 +50,16 @@ public final class BaseLib extends LuaJavaCallback {
     switch (which) {
       case PRINT:
         return print(L);
+      case SELECT:
+        return select(L);
       case TONUMBER:
         return tonumber(L);
       case TOSTRING:
         return tostring(L);
+      case TYPE:
+        return type(L);
+      case UNPACK:
+        return unpack(L);
     }
     return 0;
   }
@@ -92,6 +98,23 @@ public final class BaseLib extends LuaJavaCallback {
   private static void r(Lua L, String name, int which) {
     BaseLib f = new BaseLib(which);
     L.setglobal(name, f);
+  }
+
+  /** Implements select. */
+  private static int select(Lua L) {
+    int n = L.gettop();
+    if (L.type(1) == Lua.TSTRING && "#".equals(L.toString(L.value(1)))) {
+      L.pushNumber(n-1);
+      return 1;
+    }
+    int i = L.checkInt(1);
+    if (i < 0) {
+      i = n + i;
+    } else if (i > n) {
+      i = n;
+    }
+    L.argCheck(1 <= i, 1, "index out of range");
+    return n-i;
   }
 
   /** Implements print. */
@@ -172,4 +195,29 @@ public final class BaseLib extends LuaJavaCallback {
     }
     return 1;
   }
+
+  /** Implements type. */
+  private static int type(Lua L) {
+    L.checkAny(1);
+    L.push(L.typeNameOfIndex(1));
+    return 1;
+  }
+
+  /** Implements unpack. */
+  private static int unpack(Lua L) {
+    L.checkType(1, Lua.TTABLE);
+    LuaTable t = (LuaTable)L.value(1);
+    int i = L.optInt(2, 1);
+    int e = L.optInt(3, t.getn());
+    int n = e - i + 1;	// number of elements
+    if (n <= 0) {
+      return 0;		// empty range
+    }
+    // i already initialised to start index, which isn't necessarily 1
+    for (; i<=e; ++i) {
+      L.push(t.getnum(i));
+    }
+    return n;
+  }
+
 }
