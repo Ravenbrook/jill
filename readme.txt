@@ -36,20 +36,22 @@ Here's a brief overview of its contents (not comprehensive):
 jili-0.X.Y/	- top level directory.
   readme.txt	- this file.
   build.xml	- Apache Ant build file.  See ant -projecthelp.
-  code/		- all the source code.
+  code/		- source code for Jili.
   design/	- design documentation, mostly in HTML.
     design/arch/	- Architecture
   lib/		- imported libraries used in building.
   manual/	- User's Manual.
+  test/		- All test code and materials.
 
 In addition various Ant build targets will populate the following
 directories:
 
-  bin/		- Installable binaries.  .cod and .jar files.
-  compiled/	- Results of compilation (.class files).
-  javadoc/	- Public documentation for users.
-  javadoc-private	- Private documentation for maintainers.
-  preverified/	- Results of preverification (.class files).
+  bin/			- Installable binaries.  .cod and .jar files.
+  compiled/		- Results of compiling code/ (.class files).
+  javadoc/		- Public documentation for users.
+  javadoc-private/	- Private documentation for maintainers.
+  preverified/		- Results of preverification (.class files).
+  test-compiled/	- Results of compiling test/ .
 
 
 3. INSTALLATION

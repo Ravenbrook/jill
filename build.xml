@@ -87,13 +87,13 @@
     </copy>
   </target>
 
-  <target name="include-extra" depends="compiled-dir" >
+  <target name="include-extra" depends="compiled-dir,test-compiled-dir" >
     <exec executable="jar" dir="compiled" >
       <arg value="xf" />
       <arg value="../lib/j2meunit.jar" />
     </exec>
-    <copy todir="compiled">
-      <fileset dir="code">
+    <copy todir="test-compiled">
+      <fileset dir="test">
         <include name="*.luc" />
       </fileset>
     </copy>
@@ -111,6 +111,20 @@
         classpath="${j2me.jar}:${j2meunit}"
 	source="1.2"
         target="1.1"
+    />
+  </target>
+
+  <target name="test-compiled-dir">
+    <mkdir dir="test-compiled" />
+  </target>
+
+  <target name="compile-test"
+      depends="test-compiled-dir" >
+    <javac destdir="test-compiled" srcdir="test"
+        debug="true"
+	classpath="${j2me.jar}:${j2meunit}:compiled"
+	source="1.2"
+	target="1.1"
     />
   </target>
 
@@ -134,11 +148,11 @@
     </javadoc>
   </target>
 
-  <target name="test" depends="compile,include-extra"
+  <target name="test" depends="compile,compile-test,include-extra"
       description="Runs j2meunit tests using j2meunit.textui.TestRunner" >
     <java fork="yes"
         classname="j2meunit.textui.TestRunner"
-        classpath="compiled:${j2meunit}">
+        classpath="compiled:test-compiled:${j2meunit}">
       <arg value="METest" />
     </java>
   </target>
