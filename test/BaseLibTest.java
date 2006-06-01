@@ -7,8 +7,10 @@ import j2meunit.framework.TestSuite;
 
 // Auxiliary files
 // BaseLibTestPrint.luc - calls print
-//   print()
-//   print(7, "foo", {}, nil, function()end, true, false, -0.0)
+//   function testprint()
+//     print()
+//     print(7, "foo", {}, nil, function()end, true, false, -0.0)
+//   end
 
 /**
  * J2MEUnit tests for Jili's BaseLib (base library).  DO NOT SUBCLASS.
@@ -73,6 +75,8 @@ public class BaseLibTest extends TestCase {
 
     LuaFunction f = loadFile(L, "BaseLibTestPrint");
     L.push(f);
+    L.call(0, 0);
+    L.push(L.getGlobal("testprint"));
     L.call(0, 0);
   }
 
