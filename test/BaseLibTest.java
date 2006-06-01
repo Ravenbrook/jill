@@ -6,7 +6,8 @@ import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
 // Auxiliary files
-// BaseLibTestPrint.luc - calls print
+// BaseLibTest.luc - contains functions that test each of base library
+// functions:
 //   function testprint()
 //     print()
 //     print(7, 'foo', {}, nil, function()end, true, false, -0.0)
@@ -82,7 +83,7 @@ public class BaseLibTest extends TestCase {
     Lua L = new Lua();
     BaseLib.open(L);
 
-    LuaFunction f = loadFile(L, "BaseLibTestPrint");
+    LuaFunction f = loadFile(L, "BaseLibTest");
     L.push(f);
     L.call(0, 0);
     L.push(L.getGlobal("testprint"));
@@ -92,7 +93,7 @@ public class BaseLibTest extends TestCase {
   public void testTostring() {
     Lua L = new Lua();
     BaseLib.open(L);
-    LuaFunction f = loadFile(L, "BaseLibTestPrint");
+    LuaFunction f = loadFile(L, "BaseLibTest");
     L.push(f);
     L.call(0, 0);
     L.push(L.getGlobal("testtostring"));
