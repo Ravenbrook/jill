@@ -408,7 +408,7 @@ public final class Lua {
    */
   public double toNumber(Object o) {
     if (tonumber(o, numop)) {
-      return (int)numop[0];
+      return numop[0];
     }
     return 0;
   }
