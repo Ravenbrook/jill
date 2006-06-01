@@ -9,7 +9,14 @@ import j2meunit.framework.TestSuite;
 // BaseLibTestPrint.luc - calls print
 //   function testprint()
 //     print()
-//     print(7, "foo", {}, nil, function()end, true, false, -0.0)
+//     print(7, 'foo', {}, nil, function()end, true, false, -0.0)
+//   end
+//   function testtostring()
+//     return '7' == tostring(7),
+//         'foo' == tostring'foo',
+//         'nil' == tostring(nil),
+//         'true' == tostring(true),
+//         'false' == tostring(false)
 //   end
 
 /**
@@ -67,7 +74,9 @@ public class BaseLibTest extends TestCase {
   /**
    * Tests print.  Not much we can reasonably do here apart from call
    * it.  We can't automatically check that the output appears anywhere
-   * or is correct.
+   * or is correct.  This also tests tostring to some extent; print
+   * calls tostring internally, so this tests that it can be called
+   * without error, for example.
    */
   public void testPrint() {
     Lua L = new Lua();
@@ -80,6 +89,20 @@ public class BaseLibTest extends TestCase {
     L.call(0, 0);
   }
 
+  public void testTostring() {
+    Lua L = new Lua();
+    BaseLib.open(L);
+    LuaFunction f = loadFile(L, "BaseLibTestPrint");
+    L.push(f);
+    L.call(0, 0);
+    L.push(L.getGlobal("testtostring"));
+    L.call(0,5);
+    for (int i=1; i<=5; ++i) {
+      assertTrue("Result " + i + " is true",
+	  L.valueOfBoolean(true).equals(L.value(i)));
+    }
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -87,6 +110,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testBaseLib(); } });
     suite.addTest(new BaseLibTest("testPrint") {
         public void runTest() { testPrint(); } });
+    suite.addTest(new BaseLibTest("testTostring") {
+        public void runTest() { testTostring(); } });
     return suite;
   }
 }
