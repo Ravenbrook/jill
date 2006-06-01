@@ -169,7 +169,7 @@ public final class Lua {
    * empty then this is the index of the top-most element.
    */
   public int getTop() {
-    return stack.size();
+    return stack.size() - base;
   }
 
   /**
@@ -429,17 +429,10 @@ public final class Lua {
     if (idx == 0) {
       return TNONE;
     }
-    if (idx > 0) {
-      if (idx > stack.size()) {
-        return TNONE;
-      }
-      o = stack.elementAt(idx - 1);
-    } else {
-      if (-idx > stack.size()) {
-        return TNONE;
-      }
-      o = stack.elementAt(stack.size() + idx);
+    if (idx > stack.size() || -idx > stack.size()) {
+      return TNONE;
     }
+    o = value(idx);
     if (o == NIL) {
       return TNIL;
     } else if (o instanceof Double) {
