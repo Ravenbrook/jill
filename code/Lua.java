@@ -629,6 +629,17 @@ public final class Lua {
 
 
   //////////////////////////////////////////////////////////////////////
+  // Debug
+
+  // Methods equivalent to the file ldebug.c.  Prefixed with g.
+
+  private void gRunerror(String s) {
+    // :todo: raise error properly.
+    throw new IllegalArgumentException();
+  }
+
+
+  //////////////////////////////////////////////////////////////////////
   // Object
 
   // Methods equivalent to the file lobject.c.  Prefixed with o.
@@ -1216,6 +1227,44 @@ reentry:
             }
             continue reentry;
           }
+	  case OP_FORLOOP: {
+	    double step =
+	        ((Double)stack.elementAt(base+a+2)).doubleValue();
+	    double idx =
+	        ((Double)stack.elementAt(base+a)).doubleValue() + step;
+	    double limit =
+	        ((Double)stack.elementAt(base+a+1)).doubleValue();
+	    if ( (0 < step && idx <= limit) ||
+	        (step <= 0 && limit <= idx) ) {
+	      // dojump
+	      pc += ARGsBx(i);
+	      Object d = valueOfNumber(idx);
+	      stack.setElementAt(d, base+a);	// internal index
+	      stack.setElementAt(d, base+a+3);	// external index
+	    }
+	    continue;
+	  }
+	  case OP_FORPREP: {
+	    int init = base+a;
+	    int plimit = base+a+1;
+	    int pstep = base+a+2;
+	    savedpc = pc;	// next steps may throw errors
+	    if (!tonumber(init)) {
+	      gRunerror("'for' initial value must be a number");
+	    } else if (!tonumber(plimit)) {
+	      gRunerror("'for' limit must be a number");
+	    } else if (!tonumber(pstep)) {
+	      gRunerror("'for' step must be a number");
+	    }
+	    double step =
+	        ((Double)stack.elementAt(pstep)).doubleValue();
+	    double idx =
+	        ((Double)stack.elementAt(init)).doubleValue() - step;
+	    stack.setElementAt(new Double(idx), init);
+	    // dojump
+	    pc += ARGsBx(i);
+	    continue;
+	  }
 
           case OP_SETLIST: {
             int n = ARGB(i);
@@ -1471,6 +1520,22 @@ reentry:
       return false;
     }
     if (oStr2d((String)o, out)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Converts a stack slot to number.  Returns true if the element at
+   * the specified stack slot was converted to a number.  False
+   * otherwise.  Note that this actually modifies the element stored at
+   * <var>idx</var> in the stack (in faithful emulation of the PUC-Rio
+   * code).  Corrupts <code>numop[0]</code>.
+   * @param idx  absolute stack slot.
+   */
+  private boolean tonumber(int idx) {
+    if (tonumber(stack.elementAt(idx), numop)) {
+      stack.setElementAt(new Double(numop[0]), idx);
       return true;
     }
     return false;
