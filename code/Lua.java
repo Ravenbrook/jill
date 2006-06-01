@@ -429,7 +429,7 @@ public final class Lua {
     if (idx == 0) {
       return TNONE;
     }
-    if (idx > stack.size() || -idx > stack.size()) {
+    if (base + idx > stack.size() || stack.size() + idx < base) {
       return TNONE;
     }
     o = value(idx);
@@ -469,12 +469,13 @@ public final class Lua {
    */
   public Object value(int idx) {
     if (idx > 0) {
-      if (idx > stack.size()) {
+      if (base + idx > stack.size()) {
         return NIL;
       }
       return stack.elementAt(base + idx - 1);
     }
     if (idx < 0) {
+      // :todo: check negative bounds too
       return stack.elementAt(stack.size() + idx);
     }
     throw new IllegalArgumentException();
@@ -552,8 +553,7 @@ public final class Lua {
   }
 
   private boolean isnoneornil(int narg) {
-    Object o = value(narg);
-    return o == NIL;
+    return type(narg) <= TNIL;
   }
 
   public int optInt(int narg, int def) {
