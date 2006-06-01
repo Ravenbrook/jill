@@ -87,6 +87,8 @@ import j2meunit.framework.TestSuite;
 // VMTestConvert2.luc - contains hexadecimal string to number
 // conversion.
 //   return '0x99' + '0x66'
+// VMTestFor.luc - contains a for loop
+//   local x=0 for i=1,10 do x = x + i end return x
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -540,6 +542,16 @@ public class VMTest extends TestCase {
     assertTrue("Result is 255", L.valueOfNumber(255).equals(L.value(-1)));
   }
 
+  /** Tests for loop. */
+  public void testVMFor() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestFor");
+    L.push(f);
+    L.call(0, 1);
+    assertTrue("Result is 55", L.valueOfNumber(55).equals(L.value(-1)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -597,6 +609,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMConvert1(); } });
     suite.addTest(new VMTest("testVMConvert2") {
         public void runTest() { testVMConvert2(); } });
+    suite.addTest(new VMTest("testVMFor") {
+        public void runTest() { testVMFor(); } });
     return suite;
   }
 }
