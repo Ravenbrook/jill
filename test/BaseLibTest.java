@@ -34,6 +34,10 @@ import j2meunit.framework.TestSuite;
 //         type(function()end) == 'function',
 //         type(type==type) == 'boolean'
 //   end
+//   function testselect()
+//     return select(2, 6, 7, 8) == 7,
+//         select('#', 6, 7, 8) == 3
+//   end
 
 /**
  * J2MEUnit tests for Jili's BaseLib (base library).  DO NOT SUBCLASS.
@@ -106,6 +110,18 @@ public class BaseLibTest extends TestCase {
   }
 
   /**
+   * Calls a global lua function and checks that <var>n</var> results
+   * are all true.
+   */
+  private void nTrue(String name, int n) {
+    Lua L = luaGlobal(name, n);
+    for (int i=1; i<=n; ++i) {
+      assertTrue("Result " + i + " is true",
+	  L.valueOfBoolean(true).equals(L.value(i)));
+    }
+  }
+
+  /**
    * Tests print.  Not much we can reasonably do here apart from call
    * it.  We can't automatically check that the output appears anywhere
    * or is correct.  This also tests tostring to some extent; print
@@ -143,6 +159,10 @@ public class BaseLibTest extends TestCase {
     }
   }
 
+  public void testSelect() {
+    nTrue("testselect", 2);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -156,6 +176,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testTonumber(); } });
     suite.addTest(new BaseLibTest("testType") {
         public void runTest() { testType(); } });
+    suite.addTest(new BaseLibTest("testSelect") {
+        public void runTest() { testSelect(); } });
     return suite;
   }
 }
