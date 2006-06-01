@@ -42,6 +42,8 @@ import j2meunit.framework.TestSuite;
 //     a,b,c = unpack{'foo', 'bar', 'baz'}
 //     return a == 'foo', b == 'bar', c == 'baz'
 //   end
+// :todo: test radix conversion for tonumber.
+// :todo: test unpack with non-default arguments.
 
 /**
  * J2MEUnit tests for Jili's BaseLib (base library).  DO NOT SUBCLASS.
@@ -137,30 +139,15 @@ public class BaseLibTest extends TestCase {
   }
 
   public void testTostring() {
-    int n = 5;
-    Lua L = luaGlobal("testtostring", n);
-    for (int i=1; i<=n; ++i) {
-      assertTrue("Result " + i + " is true",
-	  L.valueOfBoolean(true).equals(L.value(i)));
-    }
+    nTrue("testtostring", 5);
   }
 
   public void testTonumber() {
-    int n = 5;
-    Lua L = luaGlobal("testtonumber", n);
-    for (int i=1; i<=n; ++i) {
-      assertTrue("Result " + i + " is true",
-	  L.valueOfBoolean(true).equals(L.value(i)));
-    }
+    nTrue("testtonumber", 5);
   }
 
   public void testType() {
-    int n = 6;
-    Lua L = luaGlobal("testtype", n);
-    for (int i=1; i<=n; ++i) {
-      assertTrue("Result " + i + " is true",
-	  L.valueOfBoolean(true).equals(L.value(i)));
-    }
+    nTrue("testtype", 6);
   }
 
   public void testSelect() {
