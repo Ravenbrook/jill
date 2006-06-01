@@ -19,6 +19,13 @@ import j2meunit.framework.TestSuite;
 //         'true' == tostring(true),
 //         'false' == tostring(false)
 //   end
+//   function testtonumber()
+//     return 1 == tonumber'1',
+//         nil == tonumber'',
+//         nil == tonumber{},
+//         nil == tonumber(false),
+//         -2.5 == tonumber'-2.5'
+//   end
 
 /**
  * J2MEUnit tests for Jili's BaseLib (base library).  DO NOT SUBCLASS.
@@ -104,6 +111,20 @@ public class BaseLibTest extends TestCase {
     }
   }
 
+  public void testTonumber() {
+    Lua L = new Lua();
+    BaseLib.open(L);
+    LuaFunction f = loadFile(L, "BaseLibTest");
+    L.push(f);
+    L.call(0, 0);
+    L.push(L.getGlobal("testtonumber"));
+    L.call(0,5);
+    for (int i=1; i<=5; ++i) {
+      assertTrue("Result " + i + " is true",
+	  L.valueOfBoolean(true).equals(L.value(i)));
+    }
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -113,6 +134,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testPrint(); } });
     suite.addTest(new BaseLibTest("testTostring") {
         public void runTest() { testTostring(); } });
+    suite.addTest(new BaseLibTest("testTonumber") {
+        public void runTest() { testTonumber(); } });
     return suite;
   }
 }
