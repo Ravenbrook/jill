@@ -130,8 +130,9 @@
 
   <target name="clean"
       description="Cleans intermediate build products (not bin/)" >
-    <delete dir="compiled" />
-    <delete dir="preverified" />
+    <delete dir="compiled" quiet="true" />
+    <delete dir="preverified" quiet="true" />
+    <delete dir="test-compiled" quiet="true" />
   </target>
 
   <target name="doc"
