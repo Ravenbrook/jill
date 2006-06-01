@@ -70,9 +70,9 @@ public final class Lua {
    * slot index: higher stack indexes are stored at higher Vector
    * positions.
    */
-  Vector openupval = new Vector();
+  private Vector openupval = new Vector();
 
-  /** number of list items to accumuate before a SETLIST instruction. */
+  /** Number of list items to accumuate before a SETLIST instruction. */
   private static final int LFIELDS_PER_FLUSH = 50;
 
   //////////////////////////////////////////////////////////////////////
@@ -149,7 +149,7 @@ public final class Lua {
    * @param name  The name of the global variable.
    * @return  The value of the global variable.
    */
-  public Object getglobal(String name) {
+  public Object getGlobal(String name) {
     return vmGettable(global, name);
   }
 
@@ -168,7 +168,7 @@ public final class Lua {
    * Gets the number of elements in the stack.  If the stack is not
    * empty then this is the index of the top-most element.
    */
-  public int gettop() {
+  public int getTop() {
     return stack.size();
   }
 
@@ -348,7 +348,7 @@ public final class Lua {
    * index of a value, it is pushed (copied) onto the top of the stack.
    * Equivalent to <code>L.push(L.value(idx))</code>.
    */
-  public void pushvalue(int idx) {
+  public void pushValue(int idx) {
     push(value(idx));
   }
 
@@ -358,7 +358,7 @@ public final class Lua {
    * @param k  The index (key) into the table.
    * @return The value at the specified index.
    */
-  public static Object rawget(Object t, Object k) {
+  public static Object rawGet(Object t, Object k) {
     LuaTable table = (LuaTable)t;
     return table.get(k);
   }
@@ -369,7 +369,7 @@ public final class Lua {
    * @param k  The index into the table.
    * @param v  The new value to be stored at index <var>k</var>.
    */
-  public static void rawset(Object t, Object k, Object v) {
+  public static void rawSet(Object t, Object k, Object v) {
     if (k == NIL) {
       throw new NullPointerException();
     }
@@ -380,7 +380,7 @@ public final class Lua {
   /**
    * Set a global variable.
    */
-  public void setglobal(String name, Object value) {
+  public void setGlobal(String name, Object value) {
     vmSettable(global, name, value);
   }
 

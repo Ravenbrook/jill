@@ -66,7 +66,7 @@ public final class BaseLib extends LuaJavaCallback {
 
   public static void open(Lua L) {
     // set global _G
-    L.setglobal("_G", L.getGlobals());
+    L.setGlobal("_G", L.getGlobals());
     r(L, "assert", ASSERT);
     r(L, "collectgarbage", COLLECTGARBAGE);
     r(L, "dofile", DOFILE);
@@ -97,12 +97,12 @@ public final class BaseLib extends LuaJavaCallback {
   /** Register a function. */
   private static void r(Lua L, String name, int which) {
     BaseLib f = new BaseLib(which);
-    L.setglobal(name, f);
+    L.setGlobal(name, f);
   }
 
   /** Implements select. */
   private static int select(Lua L) {
-    int n = L.gettop();
+    int n = L.getTop();
     if (L.type(1) == Lua.TSTRING && "#".equals(L.toString(L.value(1)))) {
       L.pushNumber(n-1);
       return 1;
@@ -119,11 +119,11 @@ public final class BaseLib extends LuaJavaCallback {
 
   /** Implements print. */
   private static int print(Lua L) {
-    int n = L.gettop();
-    Object tostring = L.getglobal("tostring");
+    int n = L.getTop();
+    Object tostring = L.getGlobal("tostring");
     for(int i=1; i<=n; ++i) {
       L.push(tostring);
-      L.pushvalue(i);
+      L.pushValue(i);
       L.call(1, 1);
       String s = L.toString(L.value(-1));
       if (s == null) {

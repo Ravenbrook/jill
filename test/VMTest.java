@@ -134,7 +134,7 @@ public class VMTest extends TestCase {
     Object res = L.value(1);
     Boolean b = (Boolean)res;
     assertTrue("Result is true", b.booleanValue());
-    L.rawset(L.getGlobals(), "x", "foo");
+    L.rawSet(L.getGlobals(), "x", "foo");
     L.push(f);
     L.call(0, 1);
     res = L.value(-1);
@@ -204,13 +204,13 @@ public class VMTest extends TestCase {
     L.call(0, 1);
     Object t = L.value(1);
     Double d;
-    d = (Double)L.rawget(t, "a");
+    d = (Double)L.rawGet(t, "a");
     assertTrue("t.a == 1", d.doubleValue() == 1);
-    d = (Double)L.rawget(t, "b");
+    d = (Double)L.rawGet(t, "b");
     assertTrue("t.b == 2", d.doubleValue() == 2);
-    d = (Double)L.rawget(t, "c");
+    d = (Double)L.rawGet(t, "c");
     assertTrue("t.c == 3", d.doubleValue() == 3);
-    assertTrue("t.d == nil", L.isNil(L.rawget(t, "d")));
+    assertTrue("t.d == nil", L.isNil(L.rawGet(t, "d")));
   }
 
   /** Tests execution of OP_GETTABLE opcode. */
@@ -254,7 +254,7 @@ public class VMTest extends TestCase {
         return 1;
       }
     }
-    L.rawset(L.getGlobals(), "f", new Mine());
+    L.rawSet(L.getGlobals(), "f", new Mine());
     LuaFunction f;
     f = loadFile(L, "VMTestCall");
     L.push(f);
@@ -355,12 +355,12 @@ public class VMTest extends TestCase {
     L.call(0, 1);
     Object o = L.value(-1);
     assertTrue("Result is 2", o.equals(new Double(2)));
-    L.rawset(L.getGlobals(), "x", L.valueOfBoolean(false));
+    L.rawSet(L.getGlobals(), "x", L.valueOfBoolean(false));
     L.push(f);
     L.call(0, 1);
     o = L.value(-1);
     assertTrue("Result is 2", o.equals(new Double(2)));
-    L.rawset(L.getGlobals(), "x", L.valueOfBoolean(true));
+    L.rawSet(L.getGlobals(), "x", L.valueOfBoolean(true));
     L.push(f);
     L.call(0, 1);
     o = L.value(-1);
@@ -372,14 +372,14 @@ public class VMTest extends TestCase {
     Lua L = new Lua();
     LuaFunction f;
     f = loadFile(L, "VMTestTestset");
-    L.rawset(L.getGlobals(), "y", L.valueOfNumber(7));
+    L.rawSet(L.getGlobals(), "y", L.valueOfNumber(7));
     L.push(f);
     L.call(0, 2);
     Object o = L.value(-2);
     Object p = L.value(-1);
     assertTrue("x or y is 7", o.equals(new Double(7)));
     assertTrue("x and y is nil", L.isNil(p));
-    L.rawset(L.getGlobals(), "x", L.valueOfBoolean(true));
+    L.rawSet(L.getGlobals(), "x", L.valueOfBoolean(true));
     L.push(f);
     L.call(0, 2);
     o = L.value(-2);
@@ -465,7 +465,7 @@ public class VMTest extends TestCase {
     script = loadFile(L, "VMTestVararg");
     L.push(script);
     L.call(0, 0);  // side-effect, defines global 'f'
-    L.push(L.rawget(L.getGlobals(), "f"));
+    L.push(L.rawGet(L.getGlobals(), "f"));
     int narg = 7;
     for (int i=0; i<narg; ++i) {
       L.push(Integer.toString(i));

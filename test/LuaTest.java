@@ -50,14 +50,14 @@ public class LuaTest extends TestCase {
     LuaFunction f = loadFile(L, filename);
     assertNotNull("Loaded script", f);
     L.push(f);
-    int top = L.gettop();
+    int top = L.getTop();
     assertTrue("TOS == 1", 1 == top);
     L.call(0, 0);
-    top = L.gettop();
+    top = L.getTop();
     assertTrue("TOS == 0", 0 == top);
     L.push(f);
     L.call(0, 1);
-    top = L.gettop();
+    top = L.getTop();
     assertTrue("1 result", 1 == top);
     Object r = L.value(1);
     assertTrue("result is 99.0", ((Double)r).doubleValue() == 99.0);
