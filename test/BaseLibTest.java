@@ -26,6 +26,14 @@ import j2meunit.framework.TestSuite;
 //         nil == tonumber(false),
 //         -2.5 == tonumber'-2.5'
 //   end
+//   function testtype()
+//     return type(nil) == 'nil',
+//         type(1) == 'number',
+//         type'nil' == 'string',
+//         type{} == 'table',
+//         type(function()end) == 'function',
+//         type(type==type) == 'boolean'
+//   end
 
 /**
  * J2MEUnit tests for Jili's BaseLib (base library).  DO NOT SUBCLASS.
@@ -80,6 +88,24 @@ public class BaseLibTest extends TestCase {
   }
 
   /**
+   * Opens the base library into a fresh Lua state, calls a global
+   * function, and returns the Lua state.
+   * @param name  name of function to call.
+   * @param n     number of results expected from function.
+   */
+  private Lua luaGlobal(String name, int n) {
+    Lua L = new Lua();
+    BaseLib.open(L);
+    LuaFunction f = loadFile(L, "BaseLibTest");
+    L.push(f);
+    L.call(0, 0);
+    System.out.println(name);
+    L.push(L.getGlobal(name));
+    L.call(0, n);
+    return L;
+  }
+
+  /**
    * Tests print.  Not much we can reasonably do here apart from call
    * it.  We can't automatically check that the output appears anywhere
    * or is correct.  This also tests tostring to some extent; print
@@ -87,39 +113,31 @@ public class BaseLibTest extends TestCase {
    * without error, for example.
    */
   public void testPrint() {
-    Lua L = new Lua();
-    BaseLib.open(L);
-
-    LuaFunction f = loadFile(L, "BaseLibTest");
-    L.push(f);
-    L.call(0, 0);
-    L.push(L.getGlobal("testprint"));
-    L.call(0, 0);
+    luaGlobal("testprint", 0);
   }
 
   public void testTostring() {
-    Lua L = new Lua();
-    BaseLib.open(L);
-    LuaFunction f = loadFile(L, "BaseLibTest");
-    L.push(f);
-    L.call(0, 0);
-    L.push(L.getGlobal("testtostring"));
-    L.call(0,5);
-    for (int i=1; i<=5; ++i) {
+    int n = 5;
+    Lua L = luaGlobal("testtostring", n);
+    for (int i=1; i<=n; ++i) {
       assertTrue("Result " + i + " is true",
 	  L.valueOfBoolean(true).equals(L.value(i)));
     }
   }
 
   public void testTonumber() {
-    Lua L = new Lua();
-    BaseLib.open(L);
-    LuaFunction f = loadFile(L, "BaseLibTest");
-    L.push(f);
-    L.call(0, 0);
-    L.push(L.getGlobal("testtonumber"));
-    L.call(0,5);
-    for (int i=1; i<=5; ++i) {
+    int n = 5;
+    Lua L = luaGlobal("testtonumber", n);
+    for (int i=1; i<=n; ++i) {
+      assertTrue("Result " + i + " is true",
+	  L.valueOfBoolean(true).equals(L.value(i)));
+    }
+  }
+
+  public void testType() {
+    int n = 6;
+    Lua L = luaGlobal("testtype", n);
+    for (int i=1; i<=n; ++i) {
       assertTrue("Result " + i + " is true",
 	  L.valueOfBoolean(true).equals(L.value(i)));
     }
@@ -136,6 +154,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testTostring(); } });
     suite.addTest(new BaseLibTest("testTonumber") {
         public void runTest() { testTonumber(); } });
+    suite.addTest(new BaseLibTest("testType") {
+        public void runTest() { testType(); } });
     return suite;
   }
 }
