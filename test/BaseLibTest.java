@@ -38,6 +38,10 @@ import j2meunit.framework.TestSuite;
 //     return select(2, 6, 7, 8) == 7,
 //         select('#', 6, 7, 8) == 3
 //   end
+//   function testunpack()
+//     a,b,c = unpack{'foo', 'bar', 'baz'}
+//     return a == 'foo', b == 'bar', c == 'baz'
+//   end
 
 /**
  * J2MEUnit tests for Jili's BaseLib (base library).  DO NOT SUBCLASS.
@@ -163,6 +167,10 @@ public class BaseLibTest extends TestCase {
     nTrue("testselect", 2);
   }
 
+  public void testUnpack() {
+    nTrue("testunpack", 1);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -178,6 +186,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testType(); } });
     suite.addTest(new BaseLibTest("testSelect") {
         public void runTest() { testSelect(); } });
+    suite.addTest(new BaseLibTest("testUnpack") {
+        public void runTest() { testUnpack(); } });
     return suite;
   }
 }
