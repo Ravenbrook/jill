@@ -347,7 +347,7 @@ final class Loader {
     long l = 0;
     if (bigendian) {
       for (int i=0; i<buf.length; ++i) {
-	l = (l << 8) | (buf[i]&0xff);
+        l = (l << 8) | (buf[i]&0xff);
       }
     } else {
       for (int i=0; i<buf.length; ++i) {

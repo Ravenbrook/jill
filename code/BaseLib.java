@@ -150,7 +150,7 @@ public final class BaseLib extends LuaJavaCallback {
       String s = L.toString(L.value(-1));
       if (s == null) {
         // :todo: error
-	throw new NullPointerException();
+        throw new NullPointerException();
       }
       if (i>1) {
         System.out.print('\t');
@@ -182,12 +182,12 @@ public final class BaseLib extends LuaJavaCallback {
   /** Implements tonumber. */
   private static int tonumber(Lua L) {
     int base = L.optInt(2, 10);
-    if (base == 10) {	// standard conversion
+    if (base == 10) {   // standard conversion
       L.checkAny(1);
       Object o = L.value(1);
       if (L.isNumber(o)) {
         L.pushNumber(L.toNumber(o));
-	return 1;
+        return 1;
       }
     } else {
       String s = L.checkString(1);
@@ -195,9 +195,9 @@ public final class BaseLib extends LuaJavaCallback {
       // :todo: consider stripping space and sharing some code with
       // Lua.vmTostring
       try {
-	int i = Integer.parseInt(s, base);
-	L.pushNumber(i);
-	return 1;
+        int i = Integer.parseInt(s, base);
+        L.pushNumber(i);
+        return 1;
       } catch (NumberFormatException e_) {
       }
     }
@@ -214,23 +214,23 @@ public final class BaseLib extends LuaJavaCallback {
     switch (L.type(1)) {
       case Lua.TNUMBER:
         L.push(L.toString(o));
-	break;
+        break;
       case Lua.TSTRING:
         L.push(o);
-	break;
+        break;
       case Lua.TBOOLEAN:
         if (L.toBoolean(o)) {
-	  L.pushLiteral("true");
-	} else {
-	  L.pushLiteral("false");
-	}
-	break;
+          L.pushLiteral("true");
+        } else {
+          L.pushLiteral("false");
+        }
+        break;
       case Lua.TNIL:
         L.pushLiteral("nil");
-	break;
+        break;
       default:
         L.push(o.toString());
-	break;
+        break;
     }
     return 1;
   }
@@ -248,9 +248,9 @@ public final class BaseLib extends LuaJavaCallback {
     LuaTable t = (LuaTable)L.value(1);
     int i = L.optInt(2, 1);
     int e = L.optInt(3, t.getn());
-    int n = e - i + 1;	// number of elements
+    int n = e - i + 1;  // number of elements
     if (n <= 0) {
-      return 0;		// empty range
+      return 0;         // empty range
     }
     // i already initialised to start index, which isn't necessarily 1
     for (; i<=e; ++i) {
