@@ -58,9 +58,32 @@ import j2meunit.framework.TestSuite;
 //     end
 //     return u[1]=='a', u[2]=='b', u[3]=='c', u.foo==nil
 //   end
+//   function testrawequal()
+//     local eq = rawequal
+//     return eq(nil, nil),
+//         eq(1, 1),
+//         eq('foo', "foo"),
+//         eq(true, true),
+//         not eq(nil, false),
+//         not eq({}, {}),
+//         not eq(1, 2)
+//   end
+//   function testrawget()
+//     local t = {a='foo'}
+//     return rawget(t, 'a')=='foo', rawget(t, 'foo')==nil
+//   end
+//   function testrawset()
+//     local t = {}
+//     rawset(t, 'b', 'bar')
+//     return t.b=='bar', t.bar==nil
+//   end
+
 
 // :todo: test radix conversion for tonumber.
 // :todo: test unpack with non-default arguments.
+// :todo: test rawequal for things with metamethods.
+// :todo: test rawget for tables with metamethods.
+// :todo: test rawset for tables with metamethods.
 
 /**
  * J2MEUnit tests for Jili's BaseLib (base library).  DO NOT SUBCLASS.
@@ -106,8 +129,8 @@ public class BaseLibTest extends TestCase {
 
     // Test that each global name is defined as expected.
     String[] name = {
-      "_G", "ipairs", "pairs", "print", "select",
-      "tonumber", "tostring", "type", "unpack"
+      "_G", "ipairs", "pairs", "print", "rawequal", "rawget", "rawset",
+      "select", "tonumber", "tostring", "type", "unpack"
     };
     for (int i=0; i<name.length; ++i) {
       Object o = L.getGlobal(name[i]);
@@ -184,6 +207,18 @@ public class BaseLibTest extends TestCase {
     nTrue("testipairs", 4);
   }
 
+  public void testRawequal() {
+    nTrue("testrawequal", 7);
+  }
+
+  public void testRawget() {
+    nTrue("testrawget", 2);
+  }
+
+  public void testRawset() {
+    nTrue("testrawset", 2);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -205,6 +240,12 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testPairs(); } });
     suite.addTest(new BaseLibTest("testIpairs") {
         public void runTest() { testIpairs(); } });
+    suite.addTest(new BaseLibTest("testRawequal") {
+        public void runTest() { testRawequal(); } });
+    suite.addTest(new BaseLibTest("testRawget") {
+        public void runTest() { testRawget(); } });
+    suite.addTest(new BaseLibTest("testRawset") {
+        public void runTest() { testRawset(); } });
     return suite;
   }
 }
