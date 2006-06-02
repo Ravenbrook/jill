@@ -331,6 +331,11 @@ public final class Lua {
     stack.addElement(o);
   }
 
+  /** Push boolean onto the stack. */
+  public void pushBoolean(boolean b) {
+    push(valueOfBoolean(b));
+  }
+
   /** Push literal string onto the stack. */
   public void pushLiteral(String s) {
     push(s);
@@ -350,6 +355,13 @@ public final class Lua {
    */
   public void pushValue(int idx) {
     push(value(idx));
+  }
+
+  /**
+   * Implements equality without metamethods.
+   */
+  public static boolean rawEqual(Object o1, Object o2) {
+    return oRawequal(o1, o2);
   }
 
   /**
@@ -651,6 +663,19 @@ public final class Lua {
   // Object
 
   // Methods equivalent to the file lobject.c.  Prefixed with o.
+
+  /** Equivalent to luaO_rawequalObj. */
+  private static boolean oRawequal(Object a, Object b) {
+    // see also vmEqual
+    if (NIL == a) {
+      return NIL == b;
+    }
+    // Now a is not null, so a.equals() is a valid call.
+    // Numbers (Doubles), Booleans, Strings all get compared by values,
+    // as they should; tables, functions, get compared by identity as
+    // they should.
+    return a.equals(b);
+  }
 
   /** Equivalent to luaO_str2d. */
   private static boolean oStr2d(String s, double[] out) {

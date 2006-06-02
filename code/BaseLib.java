@@ -72,6 +72,8 @@ public final class BaseLib extends LuaJavaCallback {
         return pairs(L);
       case PRINT:
         return print(L);
+      case RAWEQUAL:
+        return rawequal(L);
       case SELECT:
         return select(L);
       case TONUMBER:
@@ -204,6 +206,14 @@ public final class BaseLib extends LuaJavaCallback {
     }
     System.out.println();
     return 0;
+  }
+
+  /** Implements rawequal. */
+  private static int rawequal(Lua L) {
+    L.checkAny(1);
+    L.checkAny(2);
+    L.pushBoolean(L.rawEqual(L.value(1), L.value(2)));
+    return 1;
   }
 
   /** Implements select. */
