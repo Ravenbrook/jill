@@ -364,6 +364,14 @@ public final class Lua {
   }
 
   /**
+   * Gets an element from an array.
+   */
+  public static Object rawGetI(Object t, int i) {
+    LuaTable table = (LuaTable)t;
+    return table.getnum(i);
+  }
+
+  /**
    * Sets an element in a table, without using metamethods.
    * @param t  The table to modify.
    * @param k  The index into the table.

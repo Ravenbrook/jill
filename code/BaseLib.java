@@ -35,6 +35,17 @@ public final class BaseLib extends LuaJavaCallback {
   private static final int UNPACK = 23;
   private static final int XPCALL = 24;
 
+  private static final int IPAIRS = 25;
+  private static final int PAIRS = 26;
+  private static final int IPAIRS_AUX = 27;
+  private static final int PAIRS_AUX = 28;
+
+  /**
+   * Lua value that represents the generator function for ipairs.  In
+   * PUC-Rio this is implemented as an upvalue of ipairs.
+   */
+  private static final Object ipairsauxFunction = new BaseLib(IPAIRS_AUX);
+
   /**
    * Which library function this object represents.  This value should
    * be one of the "enums" defined in the class.
@@ -48,6 +59,8 @@ public final class BaseLib extends LuaJavaCallback {
 
   public int luaFunction(Lua L) {
     switch (which) {
+      case IPAIRS:
+        return ipairs(L);
       case PRINT:
         return print(L);
       case SELECT:
@@ -60,6 +73,8 @@ public final class BaseLib extends LuaJavaCallback {
         return type(L);
       case UNPACK:
         return unpack(L);
+      case IPAIRS_AUX:
+        return ipairsaux(L);
     }
     return 0;
   }
@@ -74,6 +89,7 @@ public final class BaseLib extends LuaJavaCallback {
     r(L, "gcinfo", GCINFO);
     r(L, "getfenv", GETFENV);
     r(L, "getmetatable", GETMETATABLE);
+    r(L, "ipairs", IPAIRS);
     r(L, "loadfile", LOADFILE);
     r(L, "load", LOAD);
     r(L, "loadstring", LOADSTRING);
@@ -100,21 +116,27 @@ public final class BaseLib extends LuaJavaCallback {
     L.setGlobal(name, f);
   }
 
-  /** Implements select. */
-  private static int select(Lua L) {
-    int n = L.getTop();
-    if (L.type(1) == Lua.TSTRING && "#".equals(L.toString(L.value(1)))) {
-      L.pushNumber(n-1);
-      return 1;
+  /** Implements ipairs. */
+  private static int ipairs(Lua L) {
+    L.checkType(1, Lua.TTABLE);
+    L.push(ipairsauxFunction);
+    L.pushValue(1);
+    L.pushNumber(0);
+    return 3;
+  }
+
+  /** Generator for ipairs. */
+  private static int ipairsaux(Lua L) {
+    int i = L.checkInt(2);
+    L.checkType(1, Lua.TTABLE);
+    ++i;
+    Object v = L.rawGetI(L.value(1), i);
+    if (L.isNil(v)) {
+      return 0;
     }
-    int i = L.checkInt(1);
-    if (i < 0) {
-      i = n + i;
-    } else if (i > n) {
-      i = n;
-    }
-    L.argCheck(1 <= i, 1, "index out of range");
-    return n-i;
+    L.pushNumber(i);
+    L.push(v);
+    return 2;
   }
 
   /** Implements print. */
@@ -138,6 +160,23 @@ public final class BaseLib extends LuaJavaCallback {
     }
     System.out.println();
     return 0;
+  }
+
+  /** Implements select. */
+  private static int select(Lua L) {
+    int n = L.getTop();
+    if (L.type(1) == Lua.TSTRING && "#".equals(L.toString(L.value(1)))) {
+      L.pushNumber(n-1);
+      return 1;
+    }
+    int i = L.checkInt(1);
+    if (i < 0) {
+      i = n + i;
+    } else if (i > n) {
+      i = n;
+    }
+    L.argCheck(1 <= i, 1, "index out of range");
+    return n-i;
   }
 
   /** Implements tonumber. */
