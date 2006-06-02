@@ -77,6 +77,9 @@ import j2meunit.framework.TestSuite;
 //     rawset(t, 'b', 'bar')
 //     return t.b=='bar', t.bar==nil
 //   end
+//   function testgetfenv()
+//     return type(getfenv(type))=='table'
+//   end
 
 
 // :todo: test radix conversion for tonumber.
@@ -219,6 +222,10 @@ public class BaseLibTest extends TestCase {
     nTrue("testrawset", 2);
   }
 
+  public void testGetfenv() {
+    nTrue("testgetfenv", 1);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -246,6 +253,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testRawget(); } });
     suite.addTest(new BaseLibTest("testRawset") {
         public void runTest() { testRawset(); } });
+    suite.addTest(new BaseLibTest("testGetfenv") {
+        public void runTest() { testGetfenv(); } });
     return suite;
   }
 }
