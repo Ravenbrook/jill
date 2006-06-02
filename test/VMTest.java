@@ -13,6 +13,12 @@ import j2meunit.framework.TestSuite;
 //   EOF
 // (Mostly they are stripped, but not all of them are)
 //
+// Note that because the VM is a core component of the Lua system, the
+// tests are arranged so that they test the VM whilst using very few
+// other facilities.  Note that in particular none of the tests rely on
+// facilities implemented by any libraries (including even the base
+// library).
+//
 // In the following list, the Lua script follows the filename.
 //
 // VMTestLoadbool.luc - a binary chunk containing OP_LOADBOOL.
@@ -89,6 +95,18 @@ import j2meunit.framework.TestSuite;
 //   return '0x99' + '0x66'
 // VMTestFor.luc - contains a for loop
 //   local x=0 for i=1,10 do x = x + i end return x
+// VMTestFor1.luc - contains a generator based for loop
+//   function range(i,j)
+//     local function upto(s, v) if v == nil then return i end
+//         v=v+1
+//         if v<=j then return v end
+//       end
+//     return upto
+//   end
+//   local x=0
+//   for i in range(1,10) do x = x + i end
+//   return x
+
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -552,6 +570,16 @@ public class VMTest extends TestCase {
     assertTrue("Result is 55", L.valueOfNumber(55).equals(L.value(-1)));
   }
 
+  /** Tests generator based for loop. */
+  public void testVMFor1() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestFor1");
+    L.push(f);
+    L.call(0, 1);
+    assertTrue("Result is 55", L.valueOfNumber(55).equals(L.value(-1)));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -611,6 +639,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMConvert2(); } });
     suite.addTest(new VMTest("testVMFor") {
         public void runTest() { testVMFor(); } });
+    suite.addTest(new VMTest("testVMFor1") {
+        public void runTest() { testVMFor1(); } });
     return suite;
   }
 }
