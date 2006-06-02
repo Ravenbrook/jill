@@ -106,7 +106,8 @@ import j2meunit.framework.TestSuite;
 //   local x=0
 //   for i in range(1,10) do x = x + i end
 //   return x
-
+// VMTestRet.luc - test that OP_RET pads out correctly with nils
+//   local a,b,c=1,2,function()end a,b,c=c() return a,b,c
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -580,6 +581,19 @@ public class VMTest extends TestCase {
     assertTrue("Result is 55", L.valueOfNumber(55).equals(L.value(-1)));
   }
 
+  /** Tests that OP_RET pads out correctly with nils. */
+  public void testVMRet() {
+    Lua L = new Lua();
+    LuaFunction f;
+    f = loadFile(L, "VMTestRet");
+    L.push(f);
+    L.call(0, 3);
+    for (int i=1; i<=3; ++i) {
+      assertTrue("Result " + i + " is nil",
+          L.isNil(L.value(i)));
+    }
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -641,6 +655,8 @@ public class VMTest extends TestCase {
         public void runTest() { testVMFor(); } });
     suite.addTest(new VMTest("testVMFor1") {
         public void runTest() { testVMFor1(); } });
+    suite.addTest(new VMTest("testVMRet") {
+        public void runTest() { testVMRet(); } });
     return suite;
   }
 }
