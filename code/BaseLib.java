@@ -1,5 +1,7 @@
 // $Header$
 
+import java.util.Enumeration;
+
 /**
  * Contains Lua's base library.  The base library is generally
  * considered essential for running any Lua program.  The base library
@@ -45,6 +47,11 @@ public final class BaseLib extends LuaJavaCallback {
    * PUC-Rio this is implemented as an upvalue of ipairs.
    */
   private static final Object ipairsauxFunction = new BaseLib(IPAIRS_AUX);
+  /**
+   * Lua value that represents the generator function for pairs.  In
+   * PUC-Rio this is implemented as an upvalue of pairs.
+   */
+  private static final Object pairsauxFunction = new BaseLib(PAIRS_AUX);
 
   /**
    * Which library function this object represents.  This value should
@@ -61,6 +68,8 @@ public final class BaseLib extends LuaJavaCallback {
     switch (which) {
       case IPAIRS:
         return ipairs(L);
+      case PAIRS:
+        return pairs(L);
       case PRINT:
         return print(L);
       case SELECT:
@@ -75,6 +84,8 @@ public final class BaseLib extends LuaJavaCallback {
         return unpack(L);
       case IPAIRS_AUX:
         return ipairsaux(L);
+      case PAIRS_AUX:
+        return pairsaux(L);
     }
     return 0;
   }
@@ -94,6 +105,7 @@ public final class BaseLib extends LuaJavaCallback {
     r(L, "load", LOAD);
     r(L, "loadstring", LOADSTRING);
     r(L, "next", NEXT);
+    r(L, "pairs", PAIRS);
     r(L, "pcall", PCALL);
     r(L, "print", PRINT);
     r(L, "rawequal", RAWEQUAL);
@@ -107,7 +119,6 @@ public final class BaseLib extends LuaJavaCallback {
     r(L, "type", TYPE);
     r(L, "unpack", UNPACK);
     r(L, "xpcall", XPCALL);
-    // :todo: ipairs and pairs
   }
 
   /** Register a function. */
@@ -136,6 +147,39 @@ public final class BaseLib extends LuaJavaCallback {
     }
     L.pushNumber(i);
     L.push(v);
+    return 2;
+  }
+
+  /** Implements pairs.  PUC-Rio uses "next" as the generator for pairs.
+   * Jili doesn't do that because it would be way too slow.  We use the
+   * java.util.Enumeration returned from java.util.Table.elements.
+   */
+  private static int pairs(Lua L) {
+    L.checkType(1, Lua.TTABLE);
+    L.push(pairsauxFunction);                   // return generator,
+    LuaTable t = (LuaTable)L.value(1);
+    L.push(new Object[] { t, t.elements() });   // state,
+    L.push(Lua.NIL);                            // and initial value.
+    return 3;
+  }
+
+  /** Generator for pairs.  This expects a <var>state</var> and
+   * <var>var</var> as (Lua) arguments.
+   * The state is setup by {@link BaseLib#pairs} and is a
+   * pair of {LuaTable, Enumeration} stored in a 2-element array.  The
+   * <var>var</var> is not used.  This is in contrast to the PUC-Rio
+   * implementation, where the state is the table, and the var is used
+   * to generated the next key in sequence.
+   */
+  private static int pairsaux(Lua L) {
+    Object[] a = (Object[])L.value(1);
+    LuaTable t = (LuaTable)a[0];
+    Enumeration e = (Enumeration)a[1];
+    if (!e.hasMoreElements()) {
+      return 0;
+    }
+    L.pushValue(1);
+    L.push(e.nextElement());
     return 2;
   }
 
