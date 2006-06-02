@@ -1265,7 +1265,23 @@ reentry:
 	    pc += ARGsBx(i);
 	    continue;
 	  }
-
+	  case OP_TFORLOOP: {
+	    int cb = base+a+3;	// call base
+	    stack.setElementAt(stack.elementAt(base+a+2), cb+2);
+	    stack.setElementAt(stack.elementAt(base+a+1), cb+1);
+	    stack.setElementAt(stack.elementAt(base+a), cb);
+	    stack.setSize(cb+3);
+	    // Protect
+	    vmCall(cb, ARGC(i));
+	    stack.setSize(ci.top());
+	    if (NIL != stack.elementAt(cb)) {	// continue loop
+	      stack.setElementAt(stack.elementAt(cb), cb-1);
+	      // dojump
+	      pc += ARGsBx(code[pc]);
+	    }
+	    ++pc;
+	    continue;
+	  }
           case OP_SETLIST: {
             int n = ARGB(i);
             int c = ARGC(i);
