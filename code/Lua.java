@@ -1436,7 +1436,9 @@ reentry:
       stack.setElementAt(stack.elementAt(firstResult++), res++);
       i--;
     }
-    stack.setSize(res+i);
+    if (i > 0) {
+      stack.setSize(res+i);
+    }
     // :todo: consider using two stack.setSize calls to nil out
     // remaining required results.
     // This trick only works if Lua.NIL == null, whereas the current
