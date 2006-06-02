@@ -66,6 +66,8 @@ public final class BaseLib extends LuaJavaCallback {
 
   public int luaFunction(Lua L) {
     switch (which) {
+      case GETFENV:
+        return getfenv(L);
       case IPAIRS:
         return ipairs(L);
       case PAIRS:
@@ -131,6 +133,28 @@ public final class BaseLib extends LuaJavaCallback {
   private static void r(Lua L, String name, int which) {
     BaseLib f = new BaseLib(which);
     L.setGlobal(name, f);
+  }
+
+  /** helper for getfenv. */
+  private static Object getfunc(Lua L) {
+    Object o = L.value(1);
+    if (L.isFunction(o)) {
+      return o;
+    }
+    // :todo: support integer args
+    throw new IllegalArgumentException();
+  }
+
+  /** Implements getfenv. */
+  private static int getfenv(Lua L) {
+    Object o = getfunc(L);
+    if (L.isJavaFunction(o)) {
+      L.push(L.getGlobals());
+    } else {
+      LuaFunction f = (LuaFunction)o;
+      L.push(f.getEnv());
+    }
+    return 1;
   }
 
   /** Implements ipairs. */
