@@ -20,6 +20,14 @@ public final class LuaTable extends java.util.Hashtable {
     super(narray+nhash);
   }
 
+  /** Implements discriminating equality.  <code>o1.equals(o2) == (o1 ==
+   * o2) </code>.  This method is not necessary in CLDC, it's only
+   * necessary in J2SE because java.util.Hashtable overrides equals.
+   */
+  public boolean equals(Object o) {
+    return this == o;
+  }
+
   /**
    * Getter for metatable member.
    * @return  The metatable.
