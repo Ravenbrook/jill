@@ -1412,7 +1412,15 @@ reentry:
       stack.setElementAt(stack.elementAt(firstResult++), res++);
       i--;
     }
-    stack.setSize(res + i);
+    stack.setSize(res+i);
+    // :todo: consider using two stack.setSize calls to nil out
+    // remaining required results.
+    // This trick only works if Lua.NIL == null, whereas the current
+    // code works regardless of what Lua.NIL is.
+    while (i-- > 0) {
+      stack.setElementAt(NIL, res++);
+    }
+    stack.setSize(res);
     return wanted != MULTRET;
   }
 
