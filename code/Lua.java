@@ -42,7 +42,7 @@ import java.util.Vector;
  *
  * <p>
  * The methods {@link Lua#push}, {@link Lua#pop}, {@link Lua#value},
- * {@link Lua#gettop}, {@link Lua#settop} are used to manipulate the stack.
+ * {@link Lua#getTop}, {@link Lua#setTop} are used to manipulate the stack.
  * </p>
  */
 public final class Lua {
@@ -90,16 +90,16 @@ public final class Lua {
   public static final Object NIL = null;
 
   // Lua type tags, from lua.h
-  public static final int TNONE		= -1;
-  public static final int TNIL		= 0;
-  public static final int TBOOLEAN	= 1;
+  public static final int TNONE         = -1;
+  public static final int TNIL          = 0;
+  public static final int TBOOLEAN      = 1;
   // TLIGHTUSERDATA not available.  :todo: make available?
-  public static final int TNUMBER	= 3;
-  public static final int TSTRING	= 4;
-  public static final int TTABLE	= 5;
-  public static final int TFUNCTION	= 6;
-  public static final int TUSERDATA	= 7;
-  public static final int TTHREAD	= 8;
+  public static final int TNUMBER       = 3;
+  public static final int TSTRING       = 4;
+  public static final int TTABLE        = 5;
+  public static final int TFUNCTION     = 6;
+  public static final int TUSERDATA     = 7;
+  public static final int TTHREAD       = 8;
   // Names for above type tags, starting from TNIL.
   // Equivalent to luaT_typenames
   private static final String[] typename = {
@@ -303,7 +303,7 @@ public final class Lua {
    * Comparable to C's lua_load.  Since this takes a Reader parameter,
    * this method is restricted to loading Lua chunks in source form.
    * @param in         The source chunk as a Reader, for example from
-   *                   <code>java.io.InputStreamReader(Class.getResourceAsStream)</code>.
+   *                   <code>java.io.InputStreamReader(Class.getResourceAsStream())</code>.
    * @param chunkname  The name of the chunk.
    * @return           The chunk as a function (after having been compiled).
    * @see java.io.InputStreamReader
@@ -662,16 +662,16 @@ public final class Lua {
     } catch (NumberFormatException e0_) {
       try {
         // Attempt hexadecimal conversion.
-	// :todo: using String.trim is not strictly accurate, because it
-	// trims other ASCII control characters as well as whitespace.
-	s = s.trim().toUpperCase();
-	if (s.startsWith("0X")) {
-	  s = s.substring(2);
-	} else if (s.startsWith("-0X")) {
-	  s = "-" + s.substring(3);
-	}
+        // :todo: using String.trim is not strictly accurate, because it
+        // trims other ASCII control characters as well as whitespace.
+        s = s.trim().toUpperCase();
+        if (s.startsWith("0X")) {
+          s = s.substring(2);
+        } else if (s.startsWith("-0X")) {
+          s = "-" + s.substring(3);
+        }
         out[0] = Integer.parseInt(s, 16);
-	return true;
+        return true;
       } catch (NumberFormatException e1_) {
         return false;
       }
@@ -897,7 +897,7 @@ public final class Lua {
     // This labelled while loop is used to simulate the effect of C's
     // goto.  The end of the while loop is never reached.  The beginning
     // of the while loop is branched to using a "continue reentry;"
-    // statement (when a Lua functions is called or returns).
+    // statement (when a Lua function is called or returns).
 reentry:
     while (true) {
       // assert stack.elementAt[ci.function()] instanceof LuaFunction;
@@ -906,15 +906,6 @@ reentry:
       int[] code = proto.code();
       Object[] k = proto.constant();
       int pc = savedpc;
-
-      // :todo: remove code printing loop
-      /*
-      for (int i=0; i<code.length; ++i) {
-        String s = "0000000" + Integer.toHexString(code[i]);
-        s = s.substring(s.length()-8);
-        System.out.println(s);
-      }
-      */
 
       while (true) {      // main loop of interpreter
         // :todo: implement equivalent of Protect macro throughout
@@ -984,16 +975,16 @@ reentry:
             stack.setElementAt(new LuaTable(), base+a);
             continue;
           }
-	  case OP_SELF: {
-	    int b = ARGB(i);
-	    rb = stack.elementAt(base+b);
-	    stack.setElementAt(rb, base+a+1);
-	    // Protect
-	    // :todo: metamethods
-	    LuaTable t = (LuaTable)rb;
-	    stack.setElementAt(t.get(RK(k, ARGC(i))), base+a);
-	    continue;
-	  }
+          case OP_SELF: {
+            int b = ARGB(i);
+            rb = stack.elementAt(base+b);
+            stack.setElementAt(rb, base+a+1);
+            // Protect
+            // :todo: metamethods
+            LuaTable t = (LuaTable)rb;
+            stack.setElementAt(t.get(RK(k, ARGC(i))), base+a);
+            continue;
+          }
           case OP_ADD:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
@@ -1001,8 +992,8 @@ reentry:
               double sum = ((Double)rb).doubleValue() +
                   ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(sum), base+a);
-	    } else if (toNumberPair(rb, rc, numop)) {
-	      double sum = numop[0] + numop[1];
+            } else if (toNumberPair(rb, rc, numop)) {
+              double sum = numop[0] + numop[1];
               stack.setElementAt(valueOfNumber(sum), base+a);
             } else {
               // :todo: use metamethod
@@ -1016,8 +1007,8 @@ reentry:
               double difference = ((Double)rb).doubleValue() -
                   ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(difference), base+a);
-	    } else if (toNumberPair(rb, rc, numop)) {
-	      double difference = numop[0] - numop[1];
+            } else if (toNumberPair(rb, rc, numop)) {
+              double difference = numop[0] - numop[1];
               stack.setElementAt(valueOfNumber(difference), base+a);
             } else {
               // :todo: use metamethod
@@ -1031,8 +1022,8 @@ reentry:
               double product = ((Double)rb).doubleValue() *
                 ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(product), base+a);
-	    } else if (toNumberPair(rb, rc, numop)) {
-	      double product = numop[0] * numop[1];
+            } else if (toNumberPair(rb, rc, numop)) {
+              double product = numop[0] * numop[1];
               stack.setElementAt(valueOfNumber(product), base+a);
             } else {
               // :todo: use metamethod
@@ -1046,8 +1037,8 @@ reentry:
               double quotient = ((Double)rb).doubleValue() /
                 ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(quotient), base+a);
-	    } else if (toNumberPair(rb, rc, numop)) {
-	      double quotient = numop[0] / numop[1];
+            } else if (toNumberPair(rb, rc, numop)) {
+              double quotient = numop[0] / numop[1];
               stack.setElementAt(valueOfNumber(quotient), base+a);
             } else {
               // :todo: use metamethod
@@ -1062,8 +1053,8 @@ reentry:
               double dc = ((Double)rc).doubleValue();
               double modulus = modulus(db, dc);
               stack.setElementAt(valueOfNumber(modulus), base+a);
-	    } else if (toNumberPair(rb, rc, numop)) {
-	      double modulus = modulus(numop[0], numop[1]);
+            } else if (toNumberPair(rb, rc, numop)) {
+              double modulus = modulus(numop[0], numop[1]);
               stack.setElementAt(valueOfNumber(modulus), base+a);
             } else {
               // :todo: use metamethod
@@ -1078,8 +1069,8 @@ reentry:
             if (rb instanceof Double) {
               double db = ((Double)rb).doubleValue();
               stack.setElementAt(valueOfNumber(-db), base+a);
-	    } else if (tonumber(rb, numop)) {
-	      stack.setElementAt(valueOfNumber(-numop[0]), base+a);
+            } else if (tonumber(rb, numop)) {
+              stack.setElementAt(valueOfNumber(-numop[0]), base+a);
             } else {
               // :todo: metamethod
               throw new IllegalArgumentException();
@@ -1183,40 +1174,40 @@ reentry:
                 return; // yield
             }
           }
-	  case OP_TAILCALL: {
-	    int b = ARGB(i);
-	    if (b != 0) {
-	      stack.setSize(base+a+b);
-	    }
-	    savedpc = pc;
-	    // assert ARGC(i) - 1 == MULTRET
-	    switch (vmPrecall(base+a, MULTRET)) {
-	      case PCRLUA: {
-	        // tail call: put new frame in place of previous one.
-		CallInfo ci = (CallInfo)civ.elementAt(civ.size()-2);
-		int func = ci.function();
-		int pfunc = this.ci.function();
-		fClose(base);
-		base = func + (this.ci.base() - pfunc);
-		int aux;	// loop index is used after loop ends
-		for (aux=0; pfunc+aux < stack.size(); ++aux) {
-		  // move frame down
-		  stack.setElementAt(stack.elementAt(pfunc+aux), func+aux);
-		}
-		stack.setSize(func+aux);	// correct top
-		// assert stack.size() == base + // ((LuaFunction)stack.elementAt(func)).proto().maxstacksize();
-		ci.tailcall(base, stack.size());
-		dec_ci();	// remove new frame.
-		continue reentry;
-	      }
-	      case PCRJ: {	// It was a Java function
-	        continue;
-	      }
-	      default: {
-	        return;	// yield
-	      }
-	    }
-	  }
+          case OP_TAILCALL: {
+            int b = ARGB(i);
+            if (b != 0) {
+              stack.setSize(base+a+b);
+            }
+            savedpc = pc;
+            // assert ARGC(i) - 1 == MULTRET
+            switch (vmPrecall(base+a, MULTRET)) {
+              case PCRLUA: {
+                // tail call: put new frame in place of previous one.
+                CallInfo ci = (CallInfo)civ.elementAt(civ.size()-2);
+                int func = ci.function();
+                int pfunc = this.ci.function();
+                fClose(base);
+                base = func + (this.ci.base() - pfunc);
+                int aux;        // loop index is used after loop ends
+                for (aux=0; pfunc+aux < stack.size(); ++aux) {
+                  // move frame down
+                  stack.setElementAt(stack.elementAt(pfunc+aux), func+aux);
+                }
+                stack.setSize(func+aux);        // correct top
+                // assert stack.size() == base + ((LuaFunction)stack.elementAt(func)).proto().maxstacksize();
+                ci.tailcall(base, stack.size());
+                dec_ci();       // remove new frame.
+                continue reentry;
+              }
+              case PCRJ: {      // It was a Java function
+                continue;
+              }
+              default: {
+                return; // yield
+              }
+            }
+          }
           case OP_RETURN: {
             int b = ARGB(i);
             if (b != 0) {
@@ -1235,61 +1226,61 @@ reentry:
             }
             continue reentry;
           }
-	  case OP_FORLOOP: {
-	    double step =
-	        ((Double)stack.elementAt(base+a+2)).doubleValue();
-	    double idx =
-	        ((Double)stack.elementAt(base+a)).doubleValue() + step;
-	    double limit =
-	        ((Double)stack.elementAt(base+a+1)).doubleValue();
-	    if ( (0 < step && idx <= limit) ||
-	        (step <= 0 && limit <= idx) ) {
-	      // dojump
-	      pc += ARGsBx(i);
-	      Object d = valueOfNumber(idx);
-	      stack.setElementAt(d, base+a);	// internal index
-	      stack.setElementAt(d, base+a+3);	// external index
-	    }
-	    continue;
-	  }
-	  case OP_FORPREP: {
-	    int init = base+a;
-	    int plimit = base+a+1;
-	    int pstep = base+a+2;
-	    savedpc = pc;	// next steps may throw errors
-	    if (!tonumber(init)) {
-	      gRunerror("'for' initial value must be a number");
-	    } else if (!tonumber(plimit)) {
-	      gRunerror("'for' limit must be a number");
-	    } else if (!tonumber(pstep)) {
-	      gRunerror("'for' step must be a number");
-	    }
-	    double step =
-	        ((Double)stack.elementAt(pstep)).doubleValue();
-	    double idx =
-	        ((Double)stack.elementAt(init)).doubleValue() - step;
-	    stack.setElementAt(new Double(idx), init);
-	    // dojump
-	    pc += ARGsBx(i);
-	    continue;
-	  }
-	  case OP_TFORLOOP: {
-	    int cb = base+a+3;	// call base
-	    stack.setElementAt(stack.elementAt(base+a+2), cb+2);
-	    stack.setElementAt(stack.elementAt(base+a+1), cb+1);
-	    stack.setElementAt(stack.elementAt(base+a), cb);
-	    stack.setSize(cb+3);
-	    // Protect
-	    vmCall(cb, ARGC(i));
-	    stack.setSize(ci.top());
-	    if (NIL != stack.elementAt(cb)) {	// continue loop
-	      stack.setElementAt(stack.elementAt(cb), cb-1);
-	      // dojump
-	      pc += ARGsBx(code[pc]);
-	    }
-	    ++pc;
-	    continue;
-	  }
+          case OP_FORLOOP: {
+            double step =
+                ((Double)stack.elementAt(base+a+2)).doubleValue();
+            double idx =
+                ((Double)stack.elementAt(base+a)).doubleValue() + step;
+            double limit =
+                ((Double)stack.elementAt(base+a+1)).doubleValue();
+            if ( (0 < step && idx <= limit) ||
+                (step <= 0 && limit <= idx) ) {
+              // dojump
+              pc += ARGsBx(i);
+              Object d = valueOfNumber(idx);
+              stack.setElementAt(d, base+a);    // internal index
+              stack.setElementAt(d, base+a+3);  // external index
+            }
+            continue;
+          }
+          case OP_FORPREP: {
+            int init = base+a;
+            int plimit = base+a+1;
+            int pstep = base+a+2;
+            savedpc = pc;       // next steps may throw errors
+            if (!tonumber(init)) {
+              gRunerror("'for' initial value must be a number");
+            } else if (!tonumber(plimit)) {
+              gRunerror("'for' limit must be a number");
+            } else if (!tonumber(pstep)) {
+              gRunerror("'for' step must be a number");
+            }
+            double step =
+                ((Double)stack.elementAt(pstep)).doubleValue();
+            double idx =
+                ((Double)stack.elementAt(init)).doubleValue() - step;
+            stack.setElementAt(new Double(idx), init);
+            // dojump
+            pc += ARGsBx(i);
+            continue;
+          }
+          case OP_TFORLOOP: {
+            int cb = base+a+3;  // call base
+            stack.setElementAt(stack.elementAt(base+a+2), cb+2);
+            stack.setElementAt(stack.elementAt(base+a+1), cb+1);
+            stack.setElementAt(stack.elementAt(base+a), cb);
+            stack.setSize(cb+3);
+            // Protect
+            vmCall(cb, ARGC(i));
+            stack.setSize(ci.top());
+            if (NIL != stack.elementAt(cb)) {   // continue loop
+              stack.setElementAt(stack.elementAt(cb), cb-1);
+              // dojump
+              pc += ARGsBx(code[pc]);
+            }
+            ++pc;
+            continue;
+          }
           case OP_SETLIST: {
             int n = ARGB(i);
             int c = ARGC(i);
