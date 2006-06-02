@@ -57,7 +57,9 @@ characters.  Binary chunks are sequences of bytes.
   corresponding conversions in PUC-Rio Lua.  For example, the value
   <code>(1 - 1e-16)</code> is converted to "1" in a stock version of
   PUC-Rio Lua 5.1 running on a reasonable quality C implementation.  In
-  Jili the same value is converted to "0.9999999999999999".
+  Jili the same value is converted to "0.9999999999999999".  Also the
+  number <code>-0</code> is converted to "-0" in Jili, and "0" in
+  PUC-Rio.
   Jili uses Java's underlying conversion mechanisms which are more
   precisely specified than C.</dd>
   <dt>LRM 2.10</dt> <dd>GC provided by JVM</dd>
@@ -375,6 +377,16 @@ standards.
 
 
 </dl>
+
+<h2 id="section-5">5. Standard Libraries</h2>
+
+<dl>
+
+<dt>rawset</dt>
+<dd>In Jili this does not return a value.</dd>
+
+</dl>
+
 
 <h2 id="section-A">A. References</h2>
 

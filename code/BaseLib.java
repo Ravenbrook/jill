@@ -74,6 +74,10 @@ public final class BaseLib extends LuaJavaCallback {
         return print(L);
       case RAWEQUAL:
         return rawequal(L);
+      case RAWGET:
+        return rawget(L);
+      case RAWSET:
+        return rawset(L);
       case SELECT:
         return select(L);
       case TONUMBER:
@@ -214,6 +218,23 @@ public final class BaseLib extends LuaJavaCallback {
     L.checkAny(2);
     L.pushBoolean(L.rawEqual(L.value(1), L.value(2)));
     return 1;
+  }
+
+  /** Implements rawget. */
+  private static int rawget(Lua L) {
+    L.checkType(1, Lua.TTABLE);
+    L.checkAny(2);
+    L.push(L.rawGet(L.value(1), L.value(2)));
+    return 1;
+  }
+
+  /** Implements rawset. */
+  private static int rawset(Lua L) {
+    L.checkType(1, Lua.TTABLE);
+    L.checkAny(2);
+    L.checkAny(3);
+    L.rawSet(L.value(1), L.value(2), L.value(3));
+    return 0;
   }
 
   /** Implements select. */
