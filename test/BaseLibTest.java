@@ -42,6 +42,23 @@ import j2meunit.framework.TestSuite;
 //     a,b,c = unpack{'foo', 'bar', 'baz'}
 //     return a == 'foo', b == 'bar', c == 'baz'
 //   end
+//   function testpairs()
+//     local t = {'alderan', 'deneb', 'vega'}
+//     local u = {}
+//     for k,v in pairs(t) do
+//       u[v] = true
+//     end
+//     return u.alderan, u.deneb, u.vega
+//   end
+//   function testipairs()
+//     local t = {'a', 'b', 'c', foo = 'bar' }
+//     local u = {}
+//     for k,v in ipairs(t) do
+//       u[k] = v
+//     end
+//     return u[1]=='a', u[2]=='b', u[3]=='c', u.foo==nil
+//   end
+
 // :todo: test radix conversion for tonumber.
 // :todo: test unpack with non-default arguments.
 
@@ -89,7 +106,8 @@ public class BaseLibTest extends TestCase {
 
     // Test that each global name is defined as expected.
     String[] name = {
-      "_G", "print", "select", "tonumber", "tostring", "type", "unpack"
+      "_G", "ipairs", "pairs", "print", "select",
+      "tonumber", "tostring", "type", "unpack"
     };
     for (int i=0; i<name.length; ++i) {
       Object o = L.getGlobal(name[i]);
@@ -158,6 +176,14 @@ public class BaseLibTest extends TestCase {
     nTrue("testunpack", 1);
   }
 
+  public void testPairs() {
+    nTrue("testpairs", 3);
+  }
+
+  public void testIpairs() {
+    nTrue("testipairs", 4);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -175,6 +201,10 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testSelect(); } });
     suite.addTest(new BaseLibTest("testUnpack") {
         public void runTest() { testUnpack(); } });
+    suite.addTest(new BaseLibTest("testPairs") {
+        public void runTest() { testPairs(); } });
+    suite.addTest(new BaseLibTest("testIpairs") {
+        public void runTest() { testIpairs(); } });
     return suite;
   }
 }
