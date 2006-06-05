@@ -80,13 +80,25 @@ import j2meunit.framework.TestSuite;
 //   function testgetfenv()
 //     return type(getfenv(type))=='table'
 //   end
-
+//   function testsetfenv()
+//     x='global'
+//     local function f()return function()return x end end
+//     local f1 = f()
+//     local f2 = f()
+//     local f3 = f()
+//     local a,b,c = (f1()=='global'), (f2()=='global'), (f3()=='global')
+//     setfenv(f2, {x='first'})
+//     setfenv(f3, {x='second'})
+//     local d,e,f = (f1()=='global'), (f2()=='first'), (f3()=='second')
+//     return a,b,c,d,e,f
+//   end
 
 // :todo: test radix conversion for tonumber.
 // :todo: test unpack with non-default arguments.
 // :todo: test rawequal for things with metamethods.
 // :todo: test rawget for tables with metamethods.
 // :todo: test rawset for tables with metamethods.
+
 
 /**
  * J2MEUnit tests for Jili's BaseLib (base library).  DO NOT SUBCLASS.
@@ -226,6 +238,10 @@ public class BaseLibTest extends TestCase {
     nTrue("testgetfenv", 1);
   }
 
+  public void testSetfenv() {
+    nTrue("testsetfenv", 1);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -255,6 +271,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testRawset(); } });
     suite.addTest(new BaseLibTest("testGetfenv") {
         public void runTest() { testGetfenv(); } });
+    suite.addTest(new BaseLibTest("testSetfenv") {
+        public void runTest() { testSetfenv(); } });
     return suite;
   }
 }
