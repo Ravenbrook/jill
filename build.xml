@@ -117,7 +117,7 @@
     <javac destdir="compiled" srcdir="code"
         debug="true"
         classpath="${j2me.jar}:${j2meunit}"
-	source="1.2"
+        source="1.2"
         target="1.1"
     />
   </target>
@@ -130,9 +130,9 @@
       depends="test-compiled-dir" >
     <javac destdir="test-compiled" srcdir="test"
         debug="true"
-	classpath="${j2me.jar}:${j2meunit}:compiled"
-	source="1.2"
-	target="1.1"
+        classpath="${j2me.jar}:${j2meunit}:compiled"
+        source="1.2"
+        target="1.1"
     />
   </target>
 
@@ -152,7 +152,7 @@
     </javadoc>
     <javadoc destdir="javadoc-private"
         classpath="${j2meunit};${j2me.jar}"
-	access="private" >
+        access="private" >
       <fileset dir="code" />
     </javadoc>
   </target>
