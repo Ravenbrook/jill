@@ -82,6 +82,8 @@ public final class BaseLib extends LuaJavaCallback {
         return rawset(L);
       case SELECT:
         return select(L);
+      case SETFENV:
+        return setfenv(L);
       case TONUMBER:
         return tonumber(L);
       case TOSTRING:
@@ -135,7 +137,7 @@ public final class BaseLib extends LuaJavaCallback {
     L.setGlobal(name, f);
   }
 
-  /** helper for getfenv. */
+  /** helper for getfenv and setfenv. */
   private static Object getfunc(Lua L) {
     Object o = L.value(1);
     if (L.isFunction(o)) {
@@ -276,6 +278,22 @@ public final class BaseLib extends LuaJavaCallback {
     }
     L.argCheck(1 <= i, 1, "index out of range");
     return n-i;
+  }
+
+  /** Implements setfenv. */
+  private static int setfenv(Lua L) {
+    L.checkType(2, Lua.TTABLE);
+    Object o = getfunc(L);
+    Object first = L.value(1);
+    if (L.isNumber(first) && L.toNumber(first) == 0) {
+      // :todo: change environment of current thread.
+      return 0;
+    } else if (L.isJavaFunction(o) || !L.setFenv(first, L.value(2))) {
+      // :todo: error
+      throw new IllegalArgumentException();
+    }
+    L.setTop(1);
+    return 1;
   }
 
   /** Implements tonumber. */

@@ -398,10 +398,57 @@ public final class Lua {
   }
 
   /**
+   * Set the environment for a function, thread, or userdata.
+   * @param o      Object whose environment will be set.
+   * @param table  Environment table to use.
+   * @return true if the object had its environment set, false otherwise.
+   */
+  public boolean setFenv(Object o, Object table) {
+    // :todo: consider implementing common env interface for
+    // LuaFunction, LuaJavaCallback, LuaUserdata, Lua.  One cast to an
+    // interface and an interface method call may be shorter
+    // than this mess.
+    LuaTable t = (LuaTable)table;
+    
+    if (o instanceof LuaFunction) {
+      LuaFunction f = (LuaFunction)o;
+      f.setEnv(t);
+      return true;
+    }
+    if (o instanceof LuaJavaCallback) {
+      LuaJavaCallback f = (LuaJavaCallback)o;
+      // :todo: implement this case.
+      return false;
+    }
+
+    if (o instanceof LuaUserdata) {
+      LuaUserdata u = (LuaUserdata)o;
+      u.setEnv(t);
+      return true;
+    }
+
+    if (false) {
+      // :todo: implement TTHREAD case;
+      return false;
+    }
+    return false;
+  }
+
+  /**
    * Set a global variable.
    */
   public void setGlobal(String name, Object value) {
     vmSettable(global, name, value);
+  }
+
+  /**
+   * Set the stack top.
+   */
+  public void setTop(int n) {
+    if (n < 0) {
+      throw new IllegalArgumentException();
+    }
+    stack.setSize(base+n);
   }
 
   /**
