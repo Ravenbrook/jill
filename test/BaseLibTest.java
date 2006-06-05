@@ -104,12 +104,16 @@ import j2meunit.framework.TestSuite;
 //     local d,e,f = (f1()=='global'), (f2()=='first'), (f3()=='second')
 //     return a,b,c,d,e,f
 //   end
+//   function testpcall()
+//     return pcall(function()return true end)
+//   end
 
 // :todo: test radix conversion for tonumber.
 // :todo: test unpack with non-default arguments.
 // :todo: test rawequal for things with metamethods.
 // :todo: test rawget for tables with metamethods.
 // :todo: test rawset for tables with metamethods.
+// :todo: test pcall for at least some error cases.
 
 
 /**
@@ -258,6 +262,10 @@ public class BaseLibTest extends TestCase {
     nTrue("testsetfenv", 1);
   }
 
+  public void testPcall() {
+    nTrue("testpcall", 2);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -291,6 +299,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testSetfenv(); } });
     suite.addTest(new BaseLibTest("testNext") {
         public void runTest() { testNext(); } });
+    suite.addTest(new BaseLibTest("testPcall") {
+        public void runTest() { testPcall(); } });
     return suite;
   }
 }
