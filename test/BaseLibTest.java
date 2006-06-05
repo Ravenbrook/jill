@@ -45,18 +45,22 @@ import j2meunit.framework.TestSuite;
 //   function testpairs()
 //     local t = {'alderan', 'deneb', 'vega'}
 //     local u = {}
+//     local x = 0
 //     for k,v in pairs(t) do
 //       u[v] = true
+//       x = x + k
 //     end
-//     return u.alderan, u.deneb, u.vega
+//     return x==6, u.alderan, u.deneb, u.vega
 //   end
 //   function testnext()
 //     local t = {'alderan', 'deneb', 'vega'}
 //     local u = {}
+//     local x = 0
 //     for k,v in next, t, nil do
 //       u[v] = true
+//       x = x + k
 //     end
-//     return u.alderan, u.deneb, u.vega
+//     return x==6, u.alderan, u.deneb, u.vega
 //   end
 //   function testipairs()
 //     local t = {'a', 'b', 'c', foo = 'bar' }
@@ -223,11 +227,11 @@ public class BaseLibTest extends TestCase {
   }
 
   public void testPairs() {
-    nTrue("testpairs", 3);
+    nTrue("testpairs", 4);
   }
 
   public void testNext() {
-    nTrue("testnext", 3);
+    nTrue("testnext", 4);
   }
 
   public void testIpairs() {
