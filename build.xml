@@ -68,7 +68,7 @@
     <jar
       destfile="bin/jilit.jar"
       basedir="preverified"
-      manifest="manifest"
+      manifest="test/metest-manifest"
       />
   </target>
 
