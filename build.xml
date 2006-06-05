@@ -72,21 +72,29 @@
       />
   </target>
 
-  <target name="preverify" depends="include-extra,compile" >
+  <!-- Runs preverifier on compiled/ and test-compiled/ directories -->
+  <target name="preverify" depends="include-extra,compile,compile-test" >
     <exec executable="preverify" >
       <arg value="-classpath" />
       <arg value="${j2me.jar}" />
       <arg value="-d" />
       <arg value="preverified" />
       <arg value="compiled" />
+      <arg value="test-compiled" />
     </exec>
     <copy todir="preverified" >
       <fileset dir="compiled">
         <exclude name="**/*.class" />
       </fileset>
     </copy>
+    <copy todir="preverified" >
+      <fileset dir="test-compiled">
+        <exclude name="**/*.class" />
+      </fileset>
+    </copy>
   </target>
 
+  <!-- places additional materials alongside compiled class files -->
   <target name="include-extra" depends="compiled-dir,test-compiled-dir" >
     <exec executable="jar" dir="compiled" >
       <arg value="xf" />
