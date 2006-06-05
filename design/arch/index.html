@@ -686,6 +686,36 @@ about to call another function, but no stack nor <code>CallInfo</code>
 record has been allocation for the callee.
 </p>
 
+<h2 id="section-5">5. Errors</h2>
+
+<p>
+An error in a Lua program results in a transfer of control to the
+invoking Java code (unless <code>pcall</code>, or similar, from the base
+library has been used within Lua, but it uses the same mechanism).
+</p>
+
+<p>
+The transfer of control is done using an <code>Exception</code> in Java.
+In order to avoid declaring another class, we re-use existing exception
+classes provided by CLDC.  In order to preserve sanity during debugging
+exceptions that are used for Lua errors use a nonce message object as
+the exceptions message (retrieved using
+<code>Exception.getMessage</code>).  This nonce is stored in
+<code>Lua.LUA_ERROR</code> and can be used to tell whether an exception
+is a result of a Lua error (which it should be), or a bug.
+</p>
+
+<p>
+When an error is caught, the following VM state is restored:
+</p>
+<ul>
+<li>top-of-stack</li>
+<li>base (virtual bottom of stack)</li>
+<li>CallInfo stack</li>
+<li>pc</li>
+</ul>
+
+
 <h2 id="section-A">A. References</h2>
 
 <table>

@@ -74,6 +74,8 @@ public final class BaseLib extends LuaJavaCallback {
         return next(L);
       case PAIRS:
         return pairs(L);
+      case PCALL:
+        return pcall(L);
       case PRINT:
         return print(L);
       case RAWEQUAL:
@@ -227,6 +229,15 @@ public final class BaseLib extends LuaJavaCallback {
     L.push(key);
     L.push(t.get(key));
     return 2;
+  }
+
+  /** Implements pcall. */
+  private static int pcall(Lua L) {
+    L.checkAny(1);
+    int status = L.pcall(L.getTop()-1, Lua.MULTRET, null);
+    boolean b = (status == 0);
+    L.insert(L.valueOfBoolean(b), 1);
+    return L.getTop();
   }
 
   /** Implements print. */

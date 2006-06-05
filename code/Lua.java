@@ -76,6 +76,10 @@ public final class Lua {
   /** Number of list items to accumuate before a SETLIST instruction. */
   private static final int LFIELDS_PER_FLUSH = 50;
 
+  /** Nonce object used by pcall and friends (to detect when an
+   * exception is a Lua error). */
+  private static final String LUA_ERROR = "";
+
   //////////////////////////////////////////////////////////////////////
   // Public API
   
@@ -113,6 +117,14 @@ public final class Lua {
    * be silly / redundant.
    */
   public static final int MINSTACK = 20;
+
+  /** Status code from pcall et al. */
+  public static final int YIELD         = 1;
+  public static final int ERRRUN        = 2;
+  public static final int ERRSYNTAX     = 3;
+  public static final int ERRMEM        = 4;
+  public static final int ERRERR        = 5;
+
 
   /**
    * Calls a Lua value.  Normally this is called on functions, but the
@@ -171,6 +183,15 @@ public final class Lua {
    */
   public int getTop() {
     return stack.size() - base;
+  }
+
+  /**
+   * Insert object into stack immediately at specified index.  Objects
+   * in stack at that index and higher get pushed up.
+   */
+  public void insert(Object o, int idx) {
+    idx = absIndex(idx);
+    stack.insertElementAt(o, idx);
   }
 
   /**
@@ -352,6 +373,32 @@ public final class Lua {
     return false;
   }
 
+  /** Protected {@link Lua#call}. */
+  public int pcall(int nargs, int nresults, Object errfunc) {
+    // :todo api check nelems
+    int restoreStack = stack.size() - (nargs + 1);
+    int restoreCi = civ.size();
+    int oldnCcalls = nCcalls;
+    // :todo: save and restore allowhooks and errfunc
+    try  {
+      call(nargs, nresults);
+    } catch (RuntimeException e) {
+      if (e.getMessage() == LUA_ERROR) {
+        fClose(restoreStack);
+        // copy error object (usually a string) down
+        stack.setElementAt(stack.lastElement(), restoreStack);
+        stack.setSize(restoreStack+1);
+        nCcalls = oldnCcalls;
+        civ.setSize(restoreCi);
+        ci = (CallInfo)civ.lastElement();
+        base = ci.base();
+        savedpc = ci.savedpc();
+        return ERRRUN;
+      }
+      throw e;
+    }
+    return 0;
+  }
 
   /**
    * Removes the top-most <var>n</var> elements from the stack.
@@ -535,14 +582,11 @@ public final class Lua {
    * Returns the type of the Lua value at the specified stack index.
    */
   public int type(int idx) {
-    Object o;
-    if (idx == 0) {
+    idx = absIndex(idx);
+    if (idx < 0) {
       return TNONE;
     }
-    if (base + idx > stack.size() || stack.size() + idx < base) {
-      return TNONE;
-    }
-    o = value(idx);
+    Object o = stack.elementAt(idx);
     if (o == NIL) {
       return TNIL;
     } else if (o instanceof Double) {
@@ -578,17 +622,11 @@ public final class Lua {
    * the size of the stack, {@link Lua#NIL} is returned.
    */
   public Object value(int idx) {
-    if (idx > 0) {
-      if (base + idx > stack.size()) {
-        return NIL;
-      }
-      return stack.elementAt(base + idx - 1);
-    }
+    idx = absIndex(idx);
     if (idx < 0) {
-      // :todo: check negative bounds too
-      return stack.elementAt(stack.size() + idx);
+      return NIL;
     }
-    throw new IllegalArgumentException();
+    return stack.elementAt(idx);
   }
 
   /**
@@ -612,6 +650,31 @@ public final class Lua {
     // :todo: consider interning "common" numbers, like 0, 1, -1, etc.
     return new Double(d);
   }
+
+  // Miscellaneous private functions.
+
+  /** Convert from Java API stack index to absolute index.
+   * @return an index into <code>this.stack</code> or -1 if out of range.
+   */
+  int absIndex(int idx) {
+    int s = stack.size();
+
+    if (idx == 0) {
+      return -1;
+    }
+    if (idx > 0) {
+      if (idx + base > s) {
+        return -1;
+      }
+      return base + idx - 1;
+    }
+    // idx < 0
+    if (s + idx < base) {
+      return -1;
+    }
+    return s + idx;
+  }
+
 
   //////////////////////////////////////////////////////////////////////
   // Auxiliary API
