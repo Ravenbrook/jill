@@ -50,6 +50,14 @@ import j2meunit.framework.TestSuite;
 //     end
 //     return u.alderan, u.deneb, u.vega
 //   end
+//   function testnext()
+//     local t = {'alderan', 'deneb', 'vega'}
+//     local u = {}
+//     for k,v in next, t, nil do
+//       u[v] = true
+//     end
+//     return u.alderan, u.deneb, u.vega
+//   end
 //   function testipairs()
 //     local t = {'a', 'b', 'c', foo = 'bar' }
 //     local u = {}
@@ -218,6 +226,10 @@ public class BaseLibTest extends TestCase {
     nTrue("testpairs", 3);
   }
 
+  public void testNext() {
+    nTrue("testnext", 3);
+  }
+
   public void testIpairs() {
     nTrue("testipairs", 4);
   }
@@ -273,6 +285,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testGetfenv(); } });
     suite.addTest(new BaseLibTest("testSetfenv") {
         public void runTest() { testSetfenv(); } });
+    suite.addTest(new BaseLibTest("testNext") {
+        public void runTest() { testNext(); } });
     return suite;
   }
 }
