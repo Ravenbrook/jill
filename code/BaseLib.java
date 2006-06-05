@@ -203,7 +203,7 @@ public final class BaseLib extends LuaJavaCallback {
     L.checkType(1, Lua.TTABLE);
     L.push(pairsauxFunction);                   // return generator,
     LuaTable t = (LuaTable)L.value(1);
-    L.push(new Object[] { t, t.elements() });   // state,
+    L.push(new Object[] { t, t.keys() });   // state,
     L.push(Lua.NIL);                            // and initial value.
     return 3;
   }
@@ -223,8 +223,9 @@ public final class BaseLib extends LuaJavaCallback {
     if (!e.hasMoreElements()) {
       return 0;
     }
-    L.pushValue(1);
-    L.push(e.nextElement());
+    Object key = e.nextElement();
+    L.push(key);
+    L.push(t.get(key));
     return 2;
   }
 
