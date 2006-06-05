@@ -96,7 +96,26 @@ to adapt the build procedure.
 
 4. RELEASE NOTES
 
-Some things don't work, some things do.
+
+RELEASE 0.4.0
+
+This release is intended to meet the planned "Calculator Mode VM".
+
+The following notable improvements have been made since the last
+release:
+
+readme.txt (this file) has been added.
+
+Functions.
+
+Little-endian (Intel) compiled binary chunks.
+
+Tests moved to test/
+
+Various bug fixes, including conversion of strings to numbers and
+numbers to strings.
+
+
 
 ----
 $Header$
