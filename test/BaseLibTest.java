@@ -107,6 +107,10 @@ import j2meunit.framework.TestSuite;
 //   function testpcall()
 //     return pcall(function()return true end)
 //   end
+//   function testerror()
+//     local a,b = pcall(function()error'spong'end)
+//     return a==false, b=='spong'
+//   end
 
 // :todo: test radix conversion for tonumber.
 // :todo: test unpack with non-default arguments.
@@ -266,6 +270,10 @@ public class BaseLibTest extends TestCase {
     nTrue("testpcall", 2);
   }
 
+  public void testError() {
+    nTrue("testerror", 2);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -301,6 +309,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testNext(); } });
     suite.addTest(new BaseLibTest("testPcall") {
         public void runTest() { testPcall(); } });
+    suite.addTest(new BaseLibTest("testError") {
+        public void runTest() { testError(); } });
     return suite;
   }
 }
