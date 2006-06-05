@@ -70,6 +70,8 @@ public final class BaseLib extends LuaJavaCallback {
         return getfenv(L);
       case IPAIRS:
         return ipairs(L);
+      case NEXT:
+        return next(L);
       case PAIRS:
         return pairs(L);
       case PRINT:
@@ -156,6 +158,17 @@ public final class BaseLib extends LuaJavaCallback {
       LuaFunction f = (LuaFunction)o;
       L.push(f.getEnv());
     }
+    return 1;
+  }
+
+  /** Implements next. */
+  private static int next(Lua L) {
+    L.checkType(1, Lua.TTABLE);
+    L.setTop(2);        // Create a 2nd argument is there isn't one
+    if (L.next(1)) {
+      return 2;
+    }
+    L.push(Lua.NIL);
     return 1;
   }
 

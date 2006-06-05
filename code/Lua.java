@@ -3,6 +3,7 @@
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Enumeration;
 import java.util.Stack;
 import java.util.Vector;
 
@@ -309,6 +310,48 @@ public final class Lua {
    * @see java.io.InputStreamReader
    */
   public LuaFunction load(Reader in, String chunkname) { return null; }
+
+  /**
+   * Slowly get the next key from a table.  Unlike most other functions
+   * in the API this one uses the stack.  The top-of-stack is popped and
+   * used to find the next key in the table at the position specified by
+   * index.  If there is a next key then the key and its value are
+   * pushed onto the stack and <code>true</code> is returned.
+   * Otherwise (the end of the table has been reached)
+   * <code>false</code> is returned.
+   */
+  public boolean next(int idx) {
+    Object o = value(idx);
+    // :todo: api check
+    LuaTable t = (LuaTable)o;
+    Object key = value(-1);
+    pop(1);
+    Enumeration e = t.keys();
+    if (key == NIL) {
+      if (e.hasMoreElements()) {
+        key = e.nextElement();
+        push(key);
+        push(t.get(key));
+        return true;
+      }
+      return false;
+    }
+    while (e.hasMoreElements()) {
+      Object k = e.nextElement();
+      if (k == key) {
+        if (e.hasMoreElements()) {
+          key = e.nextElement();
+          push(key);
+          push(t.get(key));
+          return true;
+        }
+        return false;
+      }
+    }
+    // protocol error which we could potentially diagnose.
+    return false;
+  }
+
 
   /**
    * Removes the top-most <var>n</var> elements from the stack.
