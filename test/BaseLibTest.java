@@ -111,6 +111,12 @@ import j2meunit.framework.TestSuite;
 //     local a,b = pcall(function()error('spong',0)end)
 //     return a==false, b=='spong'
 //   end
+//   function testmetatable()
+//     local t,m={},{}
+//     local r1 = getmetatable(t)==nil
+//     setmetatable(t, m)
+//     return r1, getmetatable(t)==m
+//   end
 
 // :todo: test radix conversion for tonumber.
 // :todo: test unpack with non-default arguments.
@@ -274,6 +280,10 @@ public class BaseLibTest extends TestCase {
     nTrue("testerror", 2);
   }
 
+  public void testMetatable() {
+    nTrue("testmetatable", 2);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -311,6 +321,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testPcall(); } });
     suite.addTest(new BaseLibTest("testError") {
         public void runTest() { testError(); } });
+    suite.addTest(new BaseLibTest("testMetatable") {
+        public void runTest() { testMetatable(); } });
     return suite;
   }
 }
