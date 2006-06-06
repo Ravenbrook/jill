@@ -787,6 +787,18 @@ public final class Lua {
     throw new IllegalArgumentException();
   }
 
+  public boolean callMeta(int obj, String event) {
+    Object o = value(obj);
+    Object ev = getMetafield(o, event);
+    if (ev == null) {
+      return false;
+    }
+    push(ev);
+    push(o);
+    call(1, 1);
+    return true;
+  }
+
   public void checkAny(int narg) {
     if (type(narg) == TNONE) {
       argError(narg, "value expected");

@@ -402,7 +402,9 @@ public final class BaseLib extends LuaJavaCallback {
     L.checkAny(1);
     Object o = L.value(1);
 
-    // :todo: metamethod
+    if (L.callMeta(1, "__tostring")) {  // is there a metafield?
+      return 1; // use its value
+    }
     switch (L.type(1)) {
       case Lua.TNUMBER:
         L.push(L.toString(o));
