@@ -190,7 +190,7 @@ public final class BaseLib extends LuaJavaCallback {
       L.pushNil();
       return 1;
     }
-    Object protectedmt = L.getMetafield(mt, "__metatable");
+    Object protectedmt = L.getMetafield(L.value(1), "__metatable");
     if (protectedmt == null) {
       L.push(mt);               // return metatable
     } else {
