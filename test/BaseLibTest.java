@@ -108,7 +108,7 @@ import j2meunit.framework.TestSuite;
 //     return pcall(function()return true end)
 //   end
 //   function testerror()
-//     local a,b = pcall(function()error'spong'end)
+//     local a,b = pcall(function()error('spong',0)end)
 //     return a==false, b=='spong'
 //   end
 
