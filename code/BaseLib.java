@@ -66,6 +66,8 @@ public final class BaseLib extends LuaJavaCallback {
 
   public int luaFunction(Lua L) {
     switch (which) {
+      case COLLECTGARBAGE:
+        return collectgarbage(L);
       case ERROR:
         return error(L);
       case GETFENV:
@@ -145,6 +147,32 @@ public final class BaseLib extends LuaJavaCallback {
   private static void r(Lua L, String name, int which) {
     BaseLib f = new BaseLib(which);
     L.setGlobal(name, f);
+  }
+
+  private static final String[] cgopts = new String[] {
+    "stop", "restart", "collect",
+    "count", "step", "setpause", "setsetpmul"};
+  private static final int[] cgoptsnum = new int[] {
+    Lua.GCSTOP, Lua.GCRESTART, Lua.GCCOLLECT,
+    Lua.GCCOUNT, Lua.GCSTEP, Lua.GCSETPAUSE, Lua.GCSETSTEPMUL};
+  /** Implements collectgarbage. */
+  private static int collectgarbage(Lua L) {
+    int o = L.checkOption(1, "collect", cgopts);
+    int ex = L.optInt(2, 0);
+    int res = L.gc(cgoptsnum[o], ex);
+    switch (cgoptsnum[o]) {
+      case Lua.GCCOUNT: {
+        int b = L.gc(Lua.GCCOUNTB, 0);
+        L.pushNumber(res + ((double)b)/1024);
+        return 1;
+      }
+      case Lua.GCSTEP:
+        L.pushBoolean(res != 0);
+        return 1;
+      default:
+        L.pushNumber(res);
+        return 1;
+    }
   }
 
   /** Implements error. */

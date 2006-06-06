@@ -137,6 +137,15 @@ public final class Lua {
   public static final int ERRMEM        = 4;
   public static final int ERRERR        = 5;
 
+  /** Enums for gc(). */
+  public static final int GCSTOP        = 0;
+  public static final int GCRESTART     = 1;
+  public static final int GCCOLLECT     = 2;
+  public static final int GCCOUNT       = 3;
+  public static final int GCCOUNTB      = 4;
+  public static final int GCSTEP        = 5;
+  public static final int GCSETPAUSE    = 6;
+  public static final int GCSETSTEPMUL  = 7;
 
   /**
    * Calls a Lua value.  Normally this is called on functions, but the
@@ -188,6 +197,34 @@ public final class Lua {
    */
   public void error(Object message) {
     gErrormsg(message);
+  }
+
+  /**
+   * Control garbage collector.  Note that in Jili most of the options
+   * to this function make no sense and they will not do anything.
+   */
+  public int gc(int what, int data) {
+    Runtime rt;
+
+    switch (what) {
+      case GCSTOP:
+        return 0;
+      case GCRESTART:
+      case GCCOLLECT:
+      case GCSTEP:
+        System.gc();
+        return 0;
+      case GCCOUNT:
+        rt = Runtime.getRuntime();
+        return (int)((rt.totalMemory() - rt.freeMemory()) / 1024);
+      case GCCOUNTB:
+        rt = Runtime.getRuntime();
+        return (int)((rt.totalMemory() - rt.freeMemory()) % 1024);
+      case GCSETPAUSE:
+      case GCSETSTEPMUL:
+        return 0;
+    }
+    return 0;
   }
 
   /**
@@ -782,7 +819,7 @@ public final class Lua {
   /**
    * Equivalent to luaL_argerror.
    */
-  public void argError(int narg, String extramsg) {
+  public int argError(int narg, String extramsg) {
     // :todo: generate error
     throw new IllegalArgumentException();
   }
@@ -815,11 +852,26 @@ public final class Lua {
     return d;
   }
 
+  public int checkOption(int narg, String def, String[] lst) {
+    String name;
+
+    if (def == null) {
+      name = checkString(narg);
+    } else {
+      name = optString(narg, def);
+    }
+    for (int i=0; i<lst.length; ++i) {
+      if (lst[i].equals(name)) {
+        return i;
+      }
+    }
+    return argError(narg, "invalid option '" + name + "'");
+  }
+
   public String checkString(int narg) {
     String s = toString(value(narg));
     if (s == null) {
-      // :todo: error
-      throw new IllegalArgumentException();
+      tagError(narg, TSTRING);
     }
     return s;
   }
@@ -852,9 +904,15 @@ public final class Lua {
     return checkInt(narg);
   }
 
+  public String optString(int narg, String def) {
+    if (isnoneornil(narg)) {
+      return def;
+    }
+    return checkString(narg);
+  }
+
   private void tagError(int narg, int tag) {
-    // :todo: implement me
-    throw new IllegalArgumentException();
+    typerror(narg, typeName(tag));
   }
 
   /** Name of type of value at <var>idx</var>. */
@@ -862,11 +920,15 @@ public final class Lua {
     return typename[type(idx)];
   }
 
+  public void typerror(int narg, String tname) {
+    argError(narg, tname + " expected, got " + typeNameOfIndex(narg));
+  }
+
   /**
    * Return string identifying current position of the control at level
-   * <var>lvl</var>.
+   * <var>level</var>.
    */
-  public String where(int lvl) {
+  public String where(int level) {
     // :todo: implement me.
     return "unknown:??:";
   }
