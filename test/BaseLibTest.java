@@ -130,6 +130,10 @@ import j2meunit.framework.TestSuite;
 //     setmetatable(t, m)
 //     return tostring(t)=='spong'
 //   end
+//   function testcollectgarbage() -- very weak test
+//     collectgarbage'collect'
+//     return type(collectgarbage'count') == 'number'
+//   end
 
 
 // :todo: test radix conversion for tonumber.
@@ -306,6 +310,10 @@ public class BaseLibTest extends TestCase {
     nTrue("test__tostring", 1);
   }
 
+  public void testCollectgarbage() {
+    nTrue("testcollectgarbage", 1);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -349,6 +357,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { test__metatable(); } });
     suite.addTest(new BaseLibTest("test__tostring") {
         public void runTest() { test__tostring(); } });
+    suite.addTest(new BaseLibTest("testCollectgarbage") {
+        public void runTest() { testCollectgarbage(); } });
     return suite;
   }
 }
