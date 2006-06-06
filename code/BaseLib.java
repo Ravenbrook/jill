@@ -66,6 +66,8 @@ public final class BaseLib extends LuaJavaCallback {
 
   public int luaFunction(Lua L) {
     switch (which) {
+      case ERROR:
+        return error(L);
       case GETFENV:
         return getfenv(L);
       case IPAIRS:
@@ -139,6 +141,19 @@ public final class BaseLib extends LuaJavaCallback {
   private static void r(Lua L, String name, int which) {
     BaseLib f = new BaseLib(which);
     L.setGlobal(name, f);
+  }
+
+  /** Implements error. */
+  private static int error(Lua L) {
+    int level = L.optInt(2, 1);
+    L.setTop(1);
+    if (L.isString(L.value(1)) && level > 0) {
+      L.insert(L.where(level), 1);
+      L.concat(2);
+    }
+    L.error(L.value(1));
+    // NOTREACHED
+    return 0;
   }
 
   /** helper for getfenv and setfenv. */

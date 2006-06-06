@@ -76,6 +76,11 @@ public final class Lua {
   /** Number of list items to accumuate before a SETLIST instruction. */
   private static final int LFIELDS_PER_FLUSH = 50;
 
+  /** Used to communicate error status (ERRRUN, etc) from point where
+   * error is raised to the code that catches it.
+   */
+  private int errorStatus;
+
   /** Nonce object used by pcall and friends (to detect when an
    * exception is a Lua error). */
   private static final String LUA_ERROR = "";
@@ -155,6 +160,27 @@ public final class Lua {
     }
     int func = stack.size() - (n + 1);
     this.vmCall(func, r);
+  }
+
+  /**
+   * Concatenate strings on the stack.  <var>n</var> strings from the
+   * top of the stack are concatenated and replaced with the result.
+   */
+  public void concat(int n) {
+    apiChecknelems(n);
+    if (n >= 2) {
+      vmConcat(n, (stack.size() - base) - 1);
+      pop(n-1);
+    } else if (n == 0) {        // push empty string
+      push("");
+    } // else n == 1; nothing to do
+  }
+
+  /**
+   * Generates a Lua error using the error message.
+   */
+  public void error(Object message) {
+    gErrormsg(message);
   }
 
   /**
@@ -375,7 +401,7 @@ public final class Lua {
 
   /** Protected {@link Lua#call}. */
   public int pcall(int nargs, int nresults, Object errfunc) {
-    // :todo api check nelems
+    apiChecknelems(nargs+1);
     int restoreStack = stack.size() - (nargs + 1);
     int restoreCi = civ.size();
     int oldnCcalls = nCcalls;
@@ -393,7 +419,7 @@ public final class Lua {
         ci = (CallInfo)civ.lastElement();
         base = ci.base();
         savedpc = ci.savedpc();
-        return ERRRUN;
+        return errorStatus;
       }
       throw e;
     }
@@ -643,6 +669,7 @@ public final class Lua {
       return Boolean.FALSE;
     }
   }
+
   /**
    * Converts primitive number into a Lua value.
    */
@@ -678,6 +705,18 @@ public final class Lua {
 
   //////////////////////////////////////////////////////////////////////
   // Auxiliary API
+
+  // :todo: consider placing in separate class (or macroised) so that we
+  // can change its definition (to remove the check for example).
+  private void apiCheck(boolean cond) {
+    if (!cond) {
+      throw new IllegalArgumentException();
+    }
+  }
+
+  private void apiChecknelems(int n) {
+    apiCheck(n <= stack.size() - base);
+  }
 
   public void argCheck(boolean cond, int numarg, String extramsg) {
     if (cond) {
@@ -747,6 +786,15 @@ public final class Lua {
   }
 
   /**
+   * Return string identifying current position of the control at level
+   * <var>lvl</var>.
+   */
+  public String where(int lvl) {
+    // :todo: implement me.
+    return "unknown:??:";
+  }
+
+  /**
    * Provide <code>Reader</code> interface over a <code>String</code>.
    * Equivalent of {@link java.io.StringReader#StringReader} from J2SE.
    * The ability to convert a <code>String</code> to a
@@ -805,6 +853,13 @@ public final class Lua {
   // Debug
 
   // Methods equivalent to the file ldebug.c.  Prefixed with g.
+
+  private void gErrormsg(Object message) {
+    // :todo: check for errfunc
+    push(message);
+    errorStatus = ERRRUN;
+    throw new RuntimeException(LUA_ERROR);
+  }
 
   private void gRunerror(String s) {
     // :todo: raise error properly.
