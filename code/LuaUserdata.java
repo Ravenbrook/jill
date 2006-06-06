@@ -38,7 +38,7 @@ public final class LuaUserdata {
    * Getter for metatable.
    * @return the metatable.
    */
-  Object getMetatable() {
+  LuaTable getMetatable() {
     return metatable;
   }
   /**

@@ -5,7 +5,7 @@
  * this class.
  */
 public final class LuaTable extends java.util.Hashtable {
-  private Object metatable;
+  private LuaTable metatable;
 
   LuaTable() {
     super();
@@ -32,7 +32,7 @@ public final class LuaTable extends java.util.Hashtable {
    * Getter for metatable member.
    * @return  The metatable.
    */
-  Object getMetatable() {
+  LuaTable getMetatable() {
     return metatable;
   }
   /**
@@ -43,7 +43,7 @@ public final class LuaTable extends java.util.Hashtable {
   //        This involves detecting when those keys are present in the
   //        metatable, and changing all the entries in the Hashtable
   //        to be instance of java.lang.Ref as appropriate.
-  void setMetatable(Object metatable) {
+  void setMetatable(LuaTable metatable) {
     this.metatable = metatable;
     return;
   }

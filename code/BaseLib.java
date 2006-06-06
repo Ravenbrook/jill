@@ -70,6 +70,8 @@ public final class BaseLib extends LuaJavaCallback {
         return error(L);
       case GETFENV:
         return getfenv(L);
+      case GETMETATABLE:
+        return getmetatable(L);
       case IPAIRS:
         return ipairs(L);
       case NEXT:
@@ -90,6 +92,8 @@ public final class BaseLib extends LuaJavaCallback {
         return select(L);
       case SETFENV:
         return setfenv(L);
+      case SETMETATABLE:
+        return setmetatable(L);
       case TONUMBER:
         return tonumber(L);
       case TOSTRING:
@@ -174,6 +178,23 @@ public final class BaseLib extends LuaJavaCallback {
     } else {
       LuaFunction f = (LuaFunction)o;
       L.push(f.getEnv());
+    }
+    return 1;
+  }
+
+  /** Implements getmetatable. */
+  private static int getmetatable(Lua L) {
+    L.checkAny(1);
+    Object mt = L.getMetatable(L.value(1));
+    if (mt == null) {
+      L.pushNil();
+      return 1;
+    }
+    Object protectedmt = L.getMetafield(mt, "__metatable");
+    if (protectedmt == null) {
+      L.push(mt);               // return metatable
+    } else {
+      L.push(protectedmt);      // return __metatable field
     }
     return 1;
   }
@@ -332,6 +353,20 @@ public final class BaseLib extends LuaJavaCallback {
       // :todo: error
       throw new IllegalArgumentException();
     }
+    L.setTop(1);
+    return 1;
+  }
+
+  /** Implements setmetatable. */
+  private static int setmetatable(Lua L) {
+    L.checkType(1, Lua.TTABLE);
+    int t = L.type(2);
+    L.argCheck(t == Lua.TNIL || t == Lua.TTABLE, 2,
+        "nil or table expected");
+    if (L.getMetafield(L.value(1), "__metatable") != null) {
+      L.error("cannot change a protected metatable");
+    }
+    L.setMetatable(L.value(1), L.value(2));
     L.setTop(1);
     return 1;
   }

@@ -85,6 +85,9 @@ public final class Lua {
    * exception is a Lua error). */
   private static final String LUA_ERROR = "";
 
+  /** Metatable for primitive types.  Shared between all coroutines. */
+  private LuaTable[] mt = new LuaTable[NUM_TAGS];
+
   //////////////////////////////////////////////////////////////////////
   // Public API
   
@@ -110,6 +113,10 @@ public final class Lua {
   public static final int TFUNCTION     = 6;
   public static final int TUSERDATA     = 7;
   public static final int TTHREAD       = 8;
+  /** Number of type tags.  Should correspond to last entry in the list
+   * of tags.
+   */
+  private static final int NUM_TAGS     = 8;
   // Names for above type tags, starting from TNIL.
   // Equivalent to luaT_typenames
   private static final String[] typename = {
@@ -201,6 +208,24 @@ public final class Lua {
    */
   public LuaTable getGlobals() {
     return global;
+  }
+
+  /** Get metatable.
+   * @return The metatable, or null if there is no metatable.
+   */
+  public LuaTable getMetatable(Object o) {
+    LuaTable mt;
+    
+    if (o instanceof LuaTable) {
+      LuaTable t = (LuaTable)o;
+      mt = t.getMetatable();
+    } else if (o instanceof LuaUserdata) {
+      LuaUserdata u = (LuaUserdata)o;
+      mt = u.getMetatable();
+    } else {
+      mt = this.mt[type(o)];
+    }
+    return mt;
   }
 
   /**
@@ -457,6 +482,11 @@ public final class Lua {
     push(s);
   }
 
+  /** Push nil onto the stack. */
+  public void pushNil() {
+    push(NIL);
+  }
+
   /**
    * Pushes a number onto the stack.  See also {@link Lua#push}.
    */
@@ -550,6 +580,25 @@ public final class Lua {
     return false;
   }
 
+  /** Sets the metatable for a Lua value. */
+  public void setMetatable(Object o, Object mt) {
+    if (isNil(mt)) {
+      mt = null;
+    } else {
+      apiCheck(o instanceof LuaTable);
+    }
+    LuaTable mtt = (LuaTable)mt;
+    if (o instanceof LuaTable) {
+      LuaTable t = (LuaTable)o;
+      t.setMetatable(mtt);
+    } else if (o instanceof LuaUserdata) {
+      LuaUserdata u = (LuaUserdata)o;
+      u.setMetatable(mtt);
+    } else {
+      this.mt[type(o)] = mtt;
+    }
+  }
+
   /**
    * Set a global variable.
    */
@@ -613,6 +662,11 @@ public final class Lua {
       return TNONE;
     }
     Object o = stack.elementAt(idx);
+    return type(o);
+  }
+
+  /** Return the type of the Lua value. */
+  public int type(Object o) {
     if (o == NIL) {
       return TNIL;
     } else if (o instanceof Double) {
@@ -762,6 +816,17 @@ public final class Lua {
     if (type(narg) != t) {
       tagError(narg, t);
     }
+  }
+
+  /** Get a field (event) from an Lua value's metatable.  Returns null
+   * if there is no metatable nor field.
+   */
+  public Object getMetafield(Object o, String event) {
+    LuaTable mt = getMetatable(o);
+    if (mt == null) {
+      return null;
+    }
+    return mt.get(event);
   }
 
   private boolean isnoneornil(int narg) {
