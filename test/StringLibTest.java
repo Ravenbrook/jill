@@ -31,6 +31,14 @@ function testsub()
     string.sub('foobar', 4, 4)=='b',
     string.sub('foobar', -5, -2)=='ooba'
 end
+function testmeta()
+  local s='foobar'
+  return s:len()==6, s:upper()=='FOOBAR'
+end
+function testreverse()
+  return string.reverse'foo'=='oof',
+    string.reverse''==''
+end
 
 */
 
@@ -139,6 +147,14 @@ public class StringLibTest extends TestCase {
     nTrue("testsub", 3);
   }
 
+  public void testmeta() {
+    nTrue("testmeta", 2);
+  }
+
+  public void testreverse() {
+    nTrue("testreverse", 2);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -154,6 +170,10 @@ public class StringLibTest extends TestCase {
         public void runTest() { testupper(); } });
     suite.addTest(new StringLibTest("testsub") {
         public void runTest() { testsub(); } });
+    suite.addTest(new StringLibTest("testmeta") {
+        public void runTest() { testmeta(); } });
+    suite.addTest(new StringLibTest("testreverse") {
+        public void runTest() { testreverse(); } });
     return suite;
   }
 }
