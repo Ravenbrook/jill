@@ -23,6 +23,8 @@ public class METest extends TestCase {
     suite.addTest(t.suite());
     t = new BaseLibTest();
     suite.addTest(t.suite());
+    t = new StringLibTest();
+    suite.addTest(t.suite());
 
     return suite;
   }

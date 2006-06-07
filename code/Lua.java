@@ -228,6 +228,15 @@ public final class Lua {
   }
 
   /**
+   * Get a field from a table (or other object).
+   * @param t      The object whose field to retrieve.
+   * @param field  The name of the field.
+   */
+  public Object getField(Object t, String field) {
+    return vmGettable(t, field);
+  }
+
+  /**
    * Get a global variable.
    * @param name  The name of the global variable.
    * @return  The value of the global variable.
@@ -615,6 +624,11 @@ public final class Lua {
       return false;
     }
     return false;
+  }
+
+  /** Set a field in an object. */
+  public void setField(Object t, String name, Object v) {
+    vmSettable(t, name, v);
   }
 
   /** Sets the metatable for a Lua value. */
