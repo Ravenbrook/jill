@@ -134,6 +134,11 @@ import j2meunit.framework.TestSuite;
 //     collectgarbage'collect'
 //     return type(collectgarbage'count') == 'number'
 //   end
+//   function testassert()
+//     local a,b = pcall(function()assert(false)end)
+//     local c,d = pcall(function()return assert(1)end)
+//     return a==false, type(b)=='string', c==true, d==1
+//   end
 
 
 // :todo: test radix conversion for tonumber.
@@ -141,7 +146,8 @@ import j2meunit.framework.TestSuite;
 // :todo: test rawequal for things with metamethods.
 // :todo: test rawget for tables with metamethods.
 // :todo: test rawset for tables with metamethods.
-// :todo: test pcall for at least some error cases.
+// :todo: (when string library is available) test the strings returned
+//     by error and assert.
 
 
 /**
@@ -314,6 +320,10 @@ public class BaseLibTest extends TestCase {
     nTrue("testcollectgarbage", 1);
   }
 
+  public void testAssert() {
+    nTrue("testassert", 1);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -359,6 +369,8 @@ public class BaseLibTest extends TestCase {
         public void runTest() { test__tostring(); } });
     suite.addTest(new BaseLibTest("testCollectgarbage") {
         public void runTest() { testCollectgarbage(); } });
+    suite.addTest(new BaseLibTest("testAssert") {
+        public void runTest() { testAssert(); } });
     return suite;
   }
 }
