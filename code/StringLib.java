@@ -44,6 +44,8 @@ public final class StringLib extends LuaJavaCallback {
         return lower(L);
       case REP:
         return rep(L);
+      case SUB:
+        return sub(L);
       case UPPER:
         return upper(L);
     }
@@ -101,6 +103,34 @@ public final class StringLib extends LuaJavaCallback {
       b.append(s);
     }
     L.push(b.toString());
+    return 1;
+  }
+
+  /* Helper for sub(). */
+  private static int posrelat(int pos, String s) {
+    if (pos >= 0) {
+      return pos;
+    }
+    int len = s.length();
+    return len+pos+1;
+  }
+
+  /** Implements string.sub */
+  private static int sub(Lua L) {
+    String s = L.checkString(1);
+    int start = posrelat(L.checkInt(2), s);
+    int end = posrelat(L.optInt(3, -1), s);
+    if (start < 1) {
+      start = 1;
+    }
+    if (end > s.length()) {
+      end = s.length();
+    }
+    if (start <= end) {
+      L.push(s.substring(start-1, end));
+    } else {
+      L.pushLiteral("");
+    }
     return 1;
   }
 
