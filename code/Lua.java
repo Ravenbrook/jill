@@ -636,7 +636,7 @@ public final class Lua {
     if (isNil(mt)) {
       mt = null;
     } else {
-      apiCheck(o instanceof LuaTable);
+      apiCheck(mt instanceof LuaTable);
     }
     LuaTable mtt = (LuaTable)mt;
     if (o instanceof LuaTable) {
