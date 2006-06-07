@@ -26,6 +26,11 @@ function testupper()
   return string.upper'Foo'=='FOO', string.upper'FOO'=='FOO',
     string.upper' !801"'==' !801"'
 end
+function testsub()
+  return string.sub('foobar', 4)=='bar',
+    string.sub('foobar', 4, 4)=='b',
+    string.sub('foobar', -5, -2)=='ooba'
+end
 
 */
 
@@ -130,6 +135,9 @@ public class StringLibTest extends TestCase {
     nTrue("testupper", 3);
   }
 
+  public void testsub() {
+    nTrue("testsub", 3);
+  }
 
   public Test suite() {
     TestSuite suite = new TestSuite();
@@ -144,6 +152,8 @@ public class StringLibTest extends TestCase {
         public void runTest() { testrep(); } });
     suite.addTest(new StringLibTest("testupper") {
         public void runTest() { testupper(); } });
+    suite.addTest(new StringLibTest("testsub") {
+        public void runTest() { testsub(); } });
     return suite;
   }
 }
