@@ -71,6 +71,10 @@ public final class StringLib extends LuaJavaCallback {
     r(L, "reverse", REVERSE);
     r(L, "sub", SUB);
     r(L, "upper", UPPER);
+
+    LuaTable mt = new LuaTable();
+    L.setMetatable("", mt);     // set string metatable
+    L.setField(mt, "__index", lib);
   }
 
   /** Register a function. */
