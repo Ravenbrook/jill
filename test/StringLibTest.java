@@ -8,6 +8,26 @@ import j2meunit.framework.TestSuite;
 // Auxiliary files
 // StringLibTest.luc - contains functions that test each of the
 // string library functions:
+/*
+
+function testlen()
+  return string.len''==0, string.len'foo'==3
+end
+function testlower()
+  return string.lower'Foo'=='foo', string.lower'foo'=='foo',
+    string.lower' !801"'==' !801"'
+end
+function testrep()
+  return string.rep('foo', 3)=='foofoofoo',
+    string.rep('foo', 1)=='foo',
+    string.rep('foo', 0)==''
+end
+function testupper()
+  return string.upper'Foo'=='FOO', string.upper'FOO'=='FOO',
+    string.upper' !801"'==' !801"'
+end
+
+*/
 
 /**
  * J2MEUnit tests for Jili's StringLib (string library).  DO NOT SUBCLASS.
@@ -94,12 +114,36 @@ public class StringLibTest extends TestCase {
     }
   }
 
+  public void testlen() {
+    nTrue("testlen", 2);
+  }
+
+  public void testlower() {
+    nTrue("testlower", 3);
+  }
+
+  public void testrep() {
+    nTrue("testrep", 3);
+  }
+
+  public void testupper() {
+    nTrue("testupper", 3);
+  }
+
 
   public Test suite() {
     TestSuite suite = new TestSuite();
 
     suite.addTest(new StringLibTest("testStringLib") {
         public void runTest() { testStringLib(); } });
+    suite.addTest(new StringLibTest("testlen") {
+        public void runTest() { testlen(); } });
+    suite.addTest(new StringLibTest("testlower") {
+        public void runTest() { testlower(); } });
+    suite.addTest(new StringLibTest("testrep") {
+        public void runTest() { testrep(); } });
+    suite.addTest(new StringLibTest("testupper") {
+        public void runTest() { testupper(); } });
     return suite;
   }
 }
