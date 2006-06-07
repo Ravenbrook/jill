@@ -38,6 +38,14 @@ public final class StringLib extends LuaJavaCallback {
 
   public int luaFunction(Lua L) {
     switch (which) {
+      case LEN:
+        return len(L);
+      case LOWER:
+        return lower(L);
+      case REP:
+        return rep(L);
+      case UPPER:
+        return upper(L);
     }
     return 0;
   }
@@ -68,5 +76,38 @@ public final class StringLib extends LuaJavaCallback {
     StringLib f = new StringLib(which);
     Object lib = L.getGlobal("string");
     L.setField(lib, name, f);
+  }
+
+  /** Implements string.len */
+  private static int len(Lua L) {
+    String s = L.checkString(1);
+    L.pushNumber(s.length());
+    return 1;
+  }
+
+  /** Implements string.lower */
+  private static int lower(Lua L) {
+    String s = L.checkString(1);
+    L.push(s.toLowerCase());
+    return 1;
+  }
+
+  /** Implements string.rep */
+  private static int rep(Lua L) {
+    String s = L.checkString(1);
+    int n = L.checkInt(2);
+    StringBuffer b = new StringBuffer();
+    for (int i=0; i<n; ++i) {
+      b.append(s);
+    }
+    L.push(b.toString());
+    return 1;
+  }
+
+  /** Implements string.upper */
+  private static int upper(Lua L) {
+    String s = L.checkString(1);
+    L.push(s.toUpperCase());
+    return 1;
   }
 }
