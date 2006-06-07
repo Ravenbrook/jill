@@ -66,6 +66,8 @@ public final class BaseLib extends LuaJavaCallback {
 
   public int luaFunction(Lua L) {
     switch (which) {
+      case ASSERT:
+        return assertFunction(L);
       case COLLECTGARBAGE:
         return collectgarbage(L);
       case ERROR:
@@ -147,6 +149,17 @@ public final class BaseLib extends LuaJavaCallback {
   private static void r(Lua L, String name, int which) {
     BaseLib f = new BaseLib(which);
     L.setGlobal(name, f);
+  }
+
+  /** Implements assert.  assert is a keyword in some versions of Java,
+   * so this function has a mangled name.
+   */
+  private static int assertFunction(Lua L) {
+    L.checkAny(1);
+    if (!L.toBoolean(L.value(1))) {
+      L.error(L.optString(2, "assertion failed!"));
+    }
+    return L.getTop();
   }
 
   private static final String[] cgopts = new String[] {
