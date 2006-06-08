@@ -39,6 +39,14 @@ function testreverse()
   return string.reverse'foo'=='oof',
     string.reverse''==''
 end
+function testbyte()
+  local a,b,c = string.byte('ebcdic', 2, 4)
+  return string.byte'foo'==102, string.byte('bar', 2)==97,
+    a==98, b==99, c==100
+end
+function testchar()
+  return string.char()=='',  string.char(102, 111, 111)=='foo'
+end
 
 */
 
@@ -153,6 +161,14 @@ public class StringLibTest extends TestCase {
 
   public void testreverse() {
     nTrue("testreverse", 2);
+  }
+
+  public void testbyte() {
+    nTrue("testbyte", 5);
+  }
+
+  public void testchar() {
+    nTrue("testchar", 2);
   }
 
   public Test suite() {
