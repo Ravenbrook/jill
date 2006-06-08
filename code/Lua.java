@@ -1289,6 +1289,7 @@ public final class Lua {
    */
   private static final double[] numop = new double[2];
 
+  /** The core VM execution engine. */
   private void vmExecute(int nexeccalls) {
     // This labelled while loop is used to simulate the effect of C's
     // goto.  The end of the while loop is never reached.  The beginning
@@ -1304,7 +1305,14 @@ reentry:
       int pc = savedpc;
 
       while (true) {      // main loop of interpreter
-        // :todo: implement equivalent of Protect macro throughout
+
+        // Where the PUC-Rio code used the Protect macro, this has been
+        // replaced with "savedpc = pc" and a "// Protect" comment.
+
+        // Where the PUC-Rio code used the dojump macro, this has been
+        // replaced with the equivalent increment of the pc and a
+        // "//dojump" comment.
+
         int i = code[pc++];       // VM instruction.
         // :todo: count and line hook
         int a = ARGA(i);          // its A field.
@@ -1337,14 +1345,14 @@ reentry:
           }
           case OP_GETGLOBAL:
             rb = k[ARGBx(i)];
-            // :todo: metamethods
-            stack.setElementAt(function.getEnv().get(rb), base+a);
+            // assert rb instance of String;
+            savedpc = pc; // Protect
+            stack.setElementAt(vmGettable(function.getEnv(), rb), base+a);
             continue;
           case OP_GETTABLE: {
-            // Protect
-            // :todo: metamethods
-            LuaTable t = (LuaTable)stack.elementAt(base+ARGB(i));
-            stack.setElementAt(t.get(RK(k, ARGC(i))), base+a);
+            savedpc = pc; // Protect
+            Object t = stack.elementAt(base+ARGB(i));
+            stack.setElementAt(vmGettable(t, RK(k, ARGC(i))), base+a);
             continue;
           }
           case OP_SETUPVAL: {
@@ -1353,15 +1361,14 @@ reentry:
             continue;
           }
           case OP_SETGLOBAL:
-            // Protect
-            // :todo: metamethods
-            function.getEnv().put(k[ARGBx(i)], stack.elementAt(base+a));
+            savedpc = pc; // Protect
+            vmSettable(function.getEnv(), k[ARGBx(i)],
+                stack.elementAt(base+a));
             continue;
           case OP_SETTABLE: {
-            // Protect
-            // :todo: metamethods
-            LuaTable t = (LuaTable)stack.elementAt(base+a);
-            t.put(RK(k, ARGB(i)), RK(k, ARGC(i)));
+            savedpc = pc; // Protect
+            Object t = stack.elementAt(base+a);
+            vmSettable(t, RK(k, ARGB(i)), RK(k, ARGC(i)));
             continue;
           }
           case OP_NEWTABLE: {
@@ -1375,7 +1382,7 @@ reentry:
             int b = ARGB(i);
             rb = stack.elementAt(base+b);
             stack.setElementAt(rb, base+a+1);
-            // Protect
+            savedpc = pc; // Protect
             stack.setElementAt(vmGettable(rb, RK(k, ARGC(i))), base+a);
             continue;
           }
@@ -1492,7 +1499,7 @@ reentry:
           case OP_CONCAT: {
             int b = ARGB(i);
             int c = ARGC(i);
-            // Protect
+            savedpc = pc; // Protect
             // :todo: It's possible that the compiler assumes that all
             // stack locations _above_ b end up with junk in them.  In
             // which case we can improve the speed of vmConcat (by not
@@ -1516,7 +1523,7 @@ reentry:
             ++pc;
             continue;
           case OP_LT:
-            // Protect
+            savedpc = pc; // Protect
             if (vmLessthan(RK(k, ARGB(i)), RK(k, ARGC(i))) == (a != 0)) {
               // dojump
               pc += ARGsBx(code[pc]);
@@ -1524,7 +1531,7 @@ reentry:
             ++pc;
             continue;
           case OP_LE:
-            // Protect
+            savedpc = pc; // Protect
             if (vmLessequal(RK(k, ARGB(i)), RK(k, ARGC(i))) == (a != 0)) {
               // dojump
               pc += ARGsBx(code[pc]);
@@ -1664,7 +1671,7 @@ reentry:
             stack.setElementAt(stack.elementAt(base+a+1), cb+1);
             stack.setElementAt(stack.elementAt(base+a), cb);
             stack.setSize(cb+3);
-            // Protect
+            savedpc = pc; // Protect
             vmCall(cb, ARGC(i));
             stack.setSize(ci.top());
             if (NIL != stack.elementAt(cb)) {   // continue loop
@@ -1722,7 +1729,7 @@ reentry:
             int n = (base - ci.function()) -
                 function.proto().numparams() - 1;
             if (b == MULTRET) {
-              // Protect
+              // :todo: Protect
               // :todo: check stack
               b = n;
               stack.setSize(base+a+n);
