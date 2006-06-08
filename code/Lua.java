@@ -198,8 +198,8 @@ public final class Lua {
   /**
    * Generates a Lua error using the error message.
    */
-  public void error(Object message) {
-    gErrormsg(message);
+  public int error(Object message) {
+    return gErrormsg(message);
   }
 
   /**
@@ -838,8 +838,11 @@ public final class Lua {
    * Equivalent to luaL_argerror.
    */
   public int argError(int narg, String extramsg) {
-    // :todo: generate error
-    throw new IllegalArgumentException();
+    // :todo: use debug API as per PUC-Rio
+    if (true) {
+      return error("bad argument " + narg + " (" + extramsg + ")");
+    }
+    return 0;
   }
 
   public boolean callMeta(int obj, String event) {
@@ -864,8 +867,7 @@ public final class Lua {
     Object o = value(narg);
     int d = toInteger(o);
     if (d == 0 && !isNumber(o)) {
-      // :todo: error
-      throw new IllegalArgumentException();
+      tagError(narg, TNUMBER);
     }
     return d;
   }
@@ -1011,7 +1013,7 @@ public final class Lua {
 
   // Methods equivalent to the file ldebug.c.  Prefixed with g.
 
-  private void gErrormsg(Object message) {
+  private int gErrormsg(Object message) {
     // :todo: check for errfunc
     push(message);
     errorStatus = ERRRUN;
@@ -1244,8 +1246,7 @@ public final class Lua {
         for (n = 1; n < total && tostring(top-n-1); ++n) {
           tl += ((String)stack.elementAt(top-n-1)).length();
           if (tl < 0) {
-            // :todo: strength length overflow error
-            throw new IllegalArgumentException();
+            gRunerror("string length overflow");
           }
         }
         StringBuffer buffer = new StringBuffer(tl);
