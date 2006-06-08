@@ -190,6 +190,10 @@ public class StringLibTest extends TestCase {
         public void runTest() { testmeta(); } });
     suite.addTest(new StringLibTest("testreverse") {
         public void runTest() { testreverse(); } });
+    suite.addTest(new StringLibTest("testbyte") {
+        public void runTest() { testbyte(); } });
+    suite.addTest(new StringLibTest("testchar") {
+        public void runTest() { testchar(); } });
     return suite;
   }
 }
