@@ -134,10 +134,10 @@ standards.
   <dd>Same.</dd>
 
   <dt>lua_error</dt>
-  <dd>Use throw.</dd>
+  <dd>Same.</dd>
 
   <dt>lua_gc</dt>
-  <dd>No equivalent.</dd>
+  <dd>Same interface but mostly dummy functionality.</dd>
 
   <dt>lua_getallocf</dt>
   <dd>No equivalent.</dd>
@@ -248,7 +248,7 @@ standards.
   <dd>To Be Decided.</dd>
 
   <dt>lua_pushinteger</dt>
-  <dd>Use generic push.</dd>
+  <dd>Lua.pushNumber.</dd>
 
   <dt>lua_pushlightuserdata</dt>
   <dd>To Be Decided</dd>
@@ -259,10 +259,10 @@ standards.
   additional APIs to take account of them are not necessary.</dd>
 
   <dt>lua_pushnil</dd>
-  <dd>Use generic push.</dd>
+  <dd>same.</dd>
 
   <dt>lua_pushnumber</dd>
-  <dd>Use generic push.</dd>
+  <dd>same.</dd>
 
   <dt>lua_pushstring</dt>
   <dd>Use generic push.</dd>
@@ -271,7 +271,7 @@ standards.
   <dd>Use generic push.</dd>
 
   <dt>lua_pushvalue</dt>
-  <dd>Use <code>Lua.push</code> and <code>Lua.getStack</code>.</dd>
+  <dd>same.</dd>
 
   <dt>lua_pushvfstring</dt>
   <dd>No.</dd>
@@ -295,7 +295,7 @@ standards.
   <dd>To Be Decided (possibly use <code>java.util.Reader</code>).</dd>
 
   <dt>lua_register</dt>
-  <dd>Same.</dd>
+  <dd>To be decided.</dd>
 
   <dt>lua_remove</dt>
   <dd>No equivalent.</dd>
@@ -384,6 +384,18 @@ standards.
 
 <dt>rawset</dt>
 <dd>In Jili this does not return a value.</dd>
+
+<dt>string.byte</dt>
+<dd>Internal numerical codes are Unicode code positions -
+values from the Java type
+<code>char</code>.  The name is unfortunate, think of it as a 16-bit
+byte if you like.
+</dd>
+
+<dt>string.char</dt>
+<dd>As for <code>string.byte</code> the internal numerical codes are
+Unicode code positions.
+</dd>
 
 </dl>
 

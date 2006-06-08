@@ -38,6 +38,10 @@ public final class StringLib extends LuaJavaCallback {
 
   public int luaFunction(Lua L) {
     switch (which) {
+      case BYTE:
+        return byteFunction(L);
+      case CHAR:
+        return charFunction(L);
       case LEN:
         return len(L);
       case LOWER:
@@ -86,21 +90,55 @@ public final class StringLib extends LuaJavaCallback {
     L.setField(lib, name, f);
   }
 
-  /** Implements string.len */
+  /** Implements string.byte.  Name mangled to avoid keyword. */
+  private static int byteFunction(Lua L) {
+    String s = L.checkString(1);
+    int posi = posrelat(L.optInt(2, 1), s);
+    int pose = posrelat(L.optInt(3, posi), s);
+    if (posi <= 0) {
+      posi = 1;
+    }
+    if (pose > s.length()) {
+      pose = s.length();
+    }
+    if (posi > pose) {
+      return 0; // empty interval; return no values
+    }
+    int n = pose - posi + 1;
+    for (int i=0; i<n; ++i) {
+      L.pushNumber(s.charAt(posi+i-1));
+    }
+    return n;
+  }
+
+  /** Implements string.char.  Name mangled to avoid keyword. */
+  private static int charFunction(Lua L) {
+    int n = L.getTop(); // number of arguments
+    StringBuffer b = new StringBuffer();
+    for (int i=1; i<=n; ++i) {
+      int c = L.checkInt(i);
+      L.argCheck((char)c == c, i, "invalid value");
+      b.append((char)c);
+    }
+    L.push(b.toString());
+    return 1;
+  }
+
+  /** Implements string.len. */
   private static int len(Lua L) {
     String s = L.checkString(1);
     L.pushNumber(s.length());
     return 1;
   }
 
-  /** Implements string.lower */
+  /** Implements string.lower. */
   private static int lower(Lua L) {
     String s = L.checkString(1);
     L.push(s.toLowerCase());
     return 1;
   }
 
-  /** Implements string.rep */
+  /** Implements string.rep. */
   private static int rep(Lua L) {
     String s = L.checkString(1);
     int n = L.checkInt(2);
@@ -112,7 +150,7 @@ public final class StringLib extends LuaJavaCallback {
     return 1;
   }
 
-  /** Implements string.reverse */
+  /** Implements string.reverse. */
   private static int reverse(Lua L) {
     String s = L.checkString(1);
     StringBuffer b = new StringBuffer();
@@ -124,7 +162,7 @@ public final class StringLib extends LuaJavaCallback {
     return 1;
   }
 
-  /* Helper for sub(). */
+  /** Helper for {@link StringLib#sub} and friends. */
   private static int posrelat(int pos, String s) {
     if (pos >= 0) {
       return pos;
@@ -133,7 +171,7 @@ public final class StringLib extends LuaJavaCallback {
     return len+pos+1;
   }
 
-  /** Implements string.sub */
+  /** Implements string.sub. */
   private static int sub(Lua L) {
     String s = L.checkString(1);
     int start = posrelat(L.checkInt(2), s);
@@ -152,7 +190,7 @@ public final class StringLib extends LuaJavaCallback {
     return 1;
   }
 
-  /** Implements string.upper */
+  /** Implements string.upper. */
   private static int upper(Lua L) {
     String s = L.checkString(1);
     L.push(s.toUpperCase());
