@@ -44,6 +44,8 @@ public final class StringLib extends LuaJavaCallback {
         return lower(L);
       case REP:
         return rep(L);
+      case REVERSE:
+        return reverse(L);
       case SUB:
         return sub(L);
       case UPPER:
@@ -105,6 +107,18 @@ public final class StringLib extends LuaJavaCallback {
     StringBuffer b = new StringBuffer();
     for (int i=0; i<n; ++i) {
       b.append(s);
+    }
+    L.push(b.toString());
+    return 1;
+  }
+
+  /** Implements string.reverse */
+  private static int reverse(Lua L) {
+    String s = L.checkString(1);
+    StringBuffer b = new StringBuffer();
+    int l = s.length();
+    while (--l >= 0) {
+      b.append(s.charAt(l));
     }
     L.push(b.toString());
     return 1;
