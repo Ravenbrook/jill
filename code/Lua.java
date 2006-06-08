@@ -76,6 +76,9 @@ public final class Lua {
   /** Number of list items to accumuate before a SETLIST instruction. */
   private static final int LFIELDS_PER_FLUSH = 50;
 
+  /** Limit for table tag-method chains (to avoid loops) */
+  private static final int MAXTAGLOOP = 100;
+
   /** Used to communicate error status (ERRRUN, etc) from point where
    * error is raised to the code that catches it.
    */
@@ -1015,8 +1018,15 @@ public final class Lua {
   }
 
   private void gRunerror(String s) {
-    // :todo: raise error properly.
-    throw new IllegalArgumentException();
+    gErrormsg(s);
+  }
+
+  private void gTypeerror(Object o, String op) {
+    // :todo: PUC-Rio searches the stack to see if the value (which may
+    // be a reference to stack cell) is a local variable.  Jili can't do
+    // that so easily.  Consider changing interface.
+    String t = typeName(type(o));
+    gRunerror("attempt to " + op + " a " + t + " value");
   }
 
 
@@ -1366,9 +1376,7 @@ reentry:
             rb = stack.elementAt(base+b);
             stack.setElementAt(rb, base+a+1);
             // Protect
-            // :todo: metamethods
-            LuaTable t = (LuaTable)rb;
-            stack.setElementAt(t.get(RK(k, ARGC(i))), base+a);
+            stack.setElementAt(vmGettable(rb, RK(k, ARGC(i))), base+a);
             continue;
           }
           case OP_ADD:
@@ -1737,8 +1745,25 @@ reentry:
   /** Equivalent of luaV_gettable. */
   private Object vmGettable(Object t, Object key) {
     // :todo: metamethods
-    LuaTable h = (LuaTable)t;
-    return h.get(key);
+    Object tm;
+    for (int loop = 0; loop < MAXTAGLOOP; ++loop) {
+      if (t instanceof LuaTable) {      // 't' is a table?
+        LuaTable h = (LuaTable)t;
+        Object res = h.get(key);
+        if (!isNil(res) || ((tm = tagmethod(h, "__index")) == null)) {
+          return res;
+        } // else will try the tag method
+      } else if ((tm = tagmethod(t, "__index")) == null) {
+        gTypeerror(t, "index");
+      }
+      if (isFunction(tm)) {
+        return callTMres(tm, t, key);
+      }
+      t = tm;     // else repeat with 'tm'
+    }
+    gRunerror("loop in gettable");
+    // NOTREACHED
+    return null;
   }
 
   /** Equivalent of luaV_lessthan. */
@@ -1907,6 +1932,30 @@ reentry:
       stack.setElementAt(NIL, fixed+i);
     }
     return base;
+  }
+
+  private Object callTMres(Object f, Object p1, Object p2) {
+    push(f);
+    push(p1);
+    push(p2);
+    vmCall(stack.size()-3, 1);
+
+    Object res = stack.lastElement();
+    pop(1);
+    return res;
+  }
+
+  /**
+   * Gets tagmethod for object.
+   */
+  private Object tagmethod(Object o, String event) {
+    LuaTable mt;
+
+    mt = getMetatable(o);
+    if (mt == null) {
+      return null;
+    }
+    return mt.get(event);
   }
 
   /**
