@@ -264,6 +264,18 @@ final class Loader {
 
   private static final int HEADERSIZE = 12;
 
+  /** A chunk header that is correct.  Except for the endian byte, at
+   * index 6, which is always overwritten with the one from the file,
+   * before comparison.  We cope with either endianness.
+   * Default access so that {@link Lua#load} can read the first entry.
+   * On no account should anyone except {@link Loader#header} modify
+   * this array.
+   */
+  static final byte[] goldenHeader = new byte[] {
+      033, (byte)'L', (byte)'u', (byte)'a',
+      0x51, 0, 99, 4,
+      4, 4, 8, 0};
+
   /**
    * Loads and checks the binary chunk header.  Sets
    * <code>this.bigendian</code> accordingly.
@@ -292,22 +304,16 @@ final class Loader {
    *
    * @throws IOException  when header is malformed or not suitable.
    */
-
   private void header() throws IOException {
     byte[] buf = new byte[HEADERSIZE];
     int n;
 
     block(buf);
 
-    // A chunk header that is correct.  For comparison with the header
-    // that we read.  The endian byte, at index 6, is copied so that it
-    // always compares correctly; we cope with either endianness.
-    byte[] golden = new byte[] {
-        033, (byte)'L', (byte)'u', (byte)'a',
-        0x51, 0, buf[6], 4,
-        4, 4, 8, 0};
+    // poke the goldenHeader's endianness byte and compare.
+    goldenHeader[6] = buf[6];
 
-    if (buf[6] < 0 || buf[6] > 1 || !arrayEquals(golden, buf)) {
+    if (buf[6] < 0 || buf[6] > 1 || !arrayEquals(goldenHeader, buf)) {
       throw new IOException();
     }
     bigendian = (buf[6] == 0);

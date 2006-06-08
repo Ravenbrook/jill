@@ -412,12 +412,18 @@ public final class Lua {
    */
   public LuaFunction load(InputStream in, String chunkname)
       throws IOException {
-    // Currently always assumes binary.  :todo: implement source loading.
-    Loader l = new Loader(in, chunkname);
+    LuaFunction f = null;
+    // :todo: consider using markSupported
+    in.mark(1);
+    if (in.read() == Loader.goldenHeader[0]) {
+      in.reset();
+      // Currently always assumes binary.  :todo: implement source loading.
+      Loader l = new Loader(in, chunkname);
 
-    LuaFunction f = new LuaFunction(l.undump(),
-        new UpVal[0],
-        this.getGlobals());
+      f = new LuaFunction(l.undump(),
+          new UpVal[0],
+          this.getGlobals());
+    }
     return f;
   }
 
