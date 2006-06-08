@@ -402,7 +402,8 @@ public final class Lua {
    * binary then it is loaded directly.  Otherwise the chunk is assumed
    * to be a Lua source chunk and compilation is required first.  The
    * <code>InputStream</code> is used to create a <code>Reader</code>
-   * (using the {@link InputStreamReader#InputStreamReader(InputStream)}
+   * (using the
+   * {@link java.io.InputStreamReader#InputStreamReader(InputStream)}
    * constructor) and the Lua source is compiled.
    * @param in         The binary chunk as an InputStream, for example from
    *                   {@link Class#getResourceAsStream}.
@@ -514,7 +515,7 @@ public final class Lua {
    * Pushes a value onto the stack in preparation for calling a
    * function (or returning from one).  See {@link Lua#call} for
    * the protocol to be used for calling functions.  See {@link
-   * Lua#pushNumber} for pushing numbers, and {@link Lua#pushvalue} for
+   * Lua#pushNumber} for pushing numbers, and {@link Lua#pushValue} for
    * pushing a value that is already on the stack.
    */
   public void push(Object o) {

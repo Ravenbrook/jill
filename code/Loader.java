@@ -200,7 +200,7 @@ final class Loader {
   /**
    * Undumps a Proto object.  This is named 'function' after
    * <code>LoadFunction</code> in PUC-Rio's <code>lundump.c</code>.
-   * @param parentSource_  Reserved for future expansion.
+   * @param parentSource  Name of parent source "file".
    * @throws IOException  when binary is malformed.
    */
   private Proto function(String parentSource) throws IOException {
