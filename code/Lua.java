@@ -420,23 +420,22 @@ public final class Lua {
    */
   public LuaFunction load(InputStream in, String chunkname)
       throws IOException {
-    LuaFunction f = null;
+    Proto p = null;
     // :todo: consider using markSupported
     in.mark(1);
     if (in.read() == Loader.goldenHeader[0]) {
       in.reset();
       // Currently always assumes binary.  :todo: implement source loading.
       Loader l = new Loader(in, chunkname);
-
-      f = new LuaFunction(l.undump(),
-          new UpVal[0],
-          this.getGlobals());
+      p = l.undump();
     } else {
       in.reset();
       InputStreamReader reader = new InputStreamReader(in);
-      f = Syntax.parser(this, reader, chunkname);
+      p = Syntax.parser(this, reader, chunkname);
     }
-    return f;
+    return new LuaFunction(p,
+        new UpVal[0],
+        this.getGlobals());
   }
 
   /**
@@ -981,6 +980,19 @@ public final class Lua {
    */
   public Reader StringReader(String s) { return null; }
 
+
+  //////////////////////////////////////////////////////////////////////
+  // Do
+
+  // Methods equivalent to the file ldo.c.  Prefixed with d.
+  // Some of these are in vm* instead.
+
+  void dThrow(int status) {
+    errorStatus = ERRRUN;
+    throw new RuntimeException(LUA_ERROR);
+  }
+
+
   //////////////////////////////////////////////////////////////////////
   // Func
 
@@ -1031,11 +1043,16 @@ public final class Lua {
 
   // Methods equivalent to the file ldebug.c.  Prefixed with g.
 
+  static void gCheckcode(Proto p) {
+    // :todo: implement me.
+  }
+
   private int gErrormsg(Object message) {
     // :todo: check for errfunc
     push(message);
-    errorStatus = ERRRUN;
-    throw new RuntimeException(LUA_ERROR);
+    dThrow(ERRRUN);
+    // NOTREACHED
+    return 0;
   }
 
   private void gRunerror(String s) {

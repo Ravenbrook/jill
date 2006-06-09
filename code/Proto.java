@@ -16,11 +16,11 @@
 final class Proto {
   // Generally the fields are named following the PUC-Rio implementation
   // and so are unusually terse.
-  /** Array of constants.  Do not modify the array. */
+  /** Array of constants. */
   private Object[] k;
-  /** Array of VM instructions.  Do not modify the array. */
+  /** Array of VM instructions. */
   private int[] code;
-  /** Array of Proto objects.  Do not modify the array. */
+  /** Array of Proto objects. */
   private Proto[] p;
   /**
    * Number of upvalues used by this prototype (and so by all the
@@ -46,12 +46,16 @@ final class Proto {
   private int[] lineinfo;
   private LocVar[] locvar;
   private String[] upvalue;
+  private String source;
 
   /**
-   * Fresh Proto.  All the arrays that are passed to the constructor are
+   * Proto synthesized by {@link Loader}.
+   * All the arrays that are passed to the constructor are
    * referenced by the instance.  Avoid unintentional sharing.  All
    * arrays must be non-null and all int parameters must not be
-   * negative.
+   * negative.  Generally, this constructor is used by {@link Loader}
+   * since that has all the relevant arrays already constructed (as
+   * opposed to the compiler).
    * @param constant   array of constants.
    * @param code       array of VM instructions.
    * @param nups       number of upvalues (used by this function).
@@ -84,6 +88,14 @@ final class Proto {
   }
 
   /**
+   * Blank Proto in preparation for compilation.
+   */
+  Proto(String source) {
+    maxstacksize = 2;   // register 0/1 are always valid.
+    this.source = source;
+  }
+
+  /**
    * Augment with debug info.  All the arguments are referenced by the
    * instance after the method has returned, so try not to share them.
    */
@@ -108,17 +120,17 @@ final class Proto {
     return maxstacksize;
   }
 
-  /** Instruction block. */
+  /** Instruction block (do not modify). */
   int[] code() {
     return code;
   }
 
-  /** Array of inner protos. */
+  /** Array of inner protos (do not modify). */
   Proto[] proto() {
     return p;
   }
 
-  /** Constant array. */
+  /** Constant array (do not modify). */
   Object[] constant() {
     return k;
   }
@@ -126,6 +138,58 @@ final class Proto {
   /** Predicate for whether function uses ... in its parameter list. */
   boolean vararg() {
     return vararg;
+  }
+
+  private static final int[] intArrayZero = new int[0];
+  /**
+   * Trim an int array to specified size.
+   * @return the trimmed array.
+   */
+  private int[] trimInt(int[] old, int n) {
+    if (n == 0) {
+      return intArrayZero;
+    }
+    int[] newArray = new int[n];
+    System.arraycopy(old, 0, newArray, 0, n);
+    return newArray;
+  }
+
+  /** Trim code array to specified size. */
+  void closeCode(int n) {
+    code = trimInt(code, n);
+  }
+
+  /** Trim lineinfo array to specified size. */
+  void closeLineinfo(int n) {
+    lineinfo = trimInt(lineinfo, n);
+  }
+
+  /** Trim k (constant) array to specified size. */
+  void closeK(int n) {
+    Object[] newArray = new Object[n];
+    System.arraycopy(k, 0, newArray, 0, n);
+    k = newArray;
+  }
+
+  /** Trim p (proto) array to specified size. */
+  void closeP(int n) {
+    Proto[] newArray = new Proto[n];
+    System.arraycopy(p, 0, newArray, 0, n);
+    p = newArray;
+  }
+
+  /** Trim locvar array to specified size. */
+  void closeLocvar(int n) {
+    LocVar[] newArray = new LocVar[n];
+    System.arraycopy(locvar, 0, newArray, 0, n);
+    locvar = newArray;
+  }
+
+  /** Trim upvalue array to size <var>nups</var>. */
+  void closeUpvalue() {
+    String[] newArray = new String[nups];
+    System.arraycopy(upvalue, 0, newArray, 0, nups);
+    upvalue = newArray;
   }
 }
 
