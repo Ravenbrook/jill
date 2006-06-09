@@ -697,9 +697,9 @@ library has been used within Lua, but it uses the same mechanism).
 <p>
 The transfer of control is done using an <code>Exception</code> in Java.
 In order to avoid declaring another class, we re-use existing exception
-classes provided by CLDC.  In order to preserve sanity during debugging
+classes provided by CLDC.  In order to preserve sanity during debugging,
 exceptions that are used for Lua errors use a nonce message object as
-the exceptions message (retrieved using
+the exception's message (retrieved using
 <code>Exception.getMessage</code>).  This nonce is stored in
 <code>Lua.LUA_ERROR</code> and can be used to tell whether an exception
 is a result of a Lua error (which it should be), or a bug.
@@ -714,6 +714,21 @@ When an error is caught, the following VM state is restored:
 <li>CallInfo stack</li>
 <li>pc</li>
 </ul>
+
+<h2>6. Compilation</h2>
+
+<p>
+The Jili compiler will closely follow the PUC-Rio compiler.  This is
+organised as a hand-coded lexer (not table-driven), and a hand-coded
+recursive descent parser with table-driven operator-precedence parsing
+for binary and unary expressions.  Code generation happens as the
+program is parsed, thus there are very few explicit structures to
+represent the syntax or the parse.  For example, as an expression is
+parsed, code to evaluate that expression is generated (and emitted into
+the code stream) and the compilation result is a register
+(that is, the index of a VM runtime
+register) which is available for enclosing expressions to make use of.
+</p>
 
 
 <h2 id="section-A">A. References</h2>

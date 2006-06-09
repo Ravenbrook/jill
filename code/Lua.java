@@ -1,6 +1,7 @@
 // $Header$
 
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Enumeration;
@@ -78,6 +79,13 @@ public final class Lua {
 
   /** Limit for table tag-method chains (to avoid loops) */
   private static final int MAXTAGLOOP = 100;
+
+  /**
+   * Maximum number of local variables per function.  As per
+   * LUAI_MAXVARS from "luaconf.h".  Default access so that {@link
+   * FuncState} can see it.
+   */
+  static final int MAXVARS = 200;
 
   /** Used to communicate error status (ERRRUN, etc) from point where
    * error is raised to the code that catches it.
@@ -423,6 +431,10 @@ public final class Lua {
       f = new LuaFunction(l.undump(),
           new UpVal[0],
           this.getGlobals());
+    } else {
+      in.reset();
+      InputStreamReader reader = new InputStreamReader(in);
+      f = Syntax.parser(this, reader, chunkname);
     }
     return f;
   }
