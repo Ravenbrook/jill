@@ -55,6 +55,7 @@ public class SyntaxTest extends TestCase {
     assertTrue("script 1 okay", 0 == dostring(L, ""));
     assertTrue("script 2 okay", 0 == dostring(L, " \t"));
     assertTrue("script 3 okay", 0 == dostring(L, "\n\n"));
+    assertTrue("script 4 okay", 0 == dostring(L, "return 99"));
   }
 
   public Test suite() {

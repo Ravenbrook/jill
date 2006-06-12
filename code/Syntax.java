@@ -2,6 +2,7 @@
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Hashtable;
 
 /**
  * Syntax analyser.  Lexing, parsing, code generation.
@@ -49,7 +50,7 @@ final class Syntax {
   private static final int NUM_RESERVED = TK_WHILE - FIRST_RESERVED + 1;
 
   /** Equivalent to luaX_tokens.  ORDER RESERVED */
-  String[] tokens = new String[] {
+  static String[] tokens = new String[] {
     "and", "break", "do", "else", "elseif",
     "end", "false", "for", "function", "if",
     "in", "local", "nil", "not", "or", "repeat",
@@ -58,6 +59,12 @@ final class Syntax {
     "<number>", "<name>", "<string>", "<eof>"
   };
 
+  static Hashtable reserved = new Hashtable();
+  static {
+    for (int i=0; i < NUM_RESERVED; ++i) {
+      reserved.put(tokens[i], new Integer(FIRST_RESERVED+i));
+    }
+  }
 
   // From struct LexState
 
@@ -119,11 +126,26 @@ final class Syntax {
   // Implementations of functions from <ctype.h> are only correct copies
   // to the extent that Lua requires them.
 
+  private static boolean isalnum(int c) {
+    return (c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z') ||
+        (c >= '0' && c <='9');
+  }
+
+  private static boolean isalpha(int c) {
+    return (c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z');
+  }
+
   /** True if and only if the char (when converted from the int) is a
    * control character.
    */
   private static boolean iscntrl(int c) {
     return (char)c < 0x20 || c == 0x7f;
+  }
+
+  private static boolean isdigit(int c) {
+    return c >= '0' && c <= '9';
   }
 
   private static boolean isspace(int c) {
@@ -132,6 +154,14 @@ final class Syntax {
 
 
   // From llex.c
+
+  private boolean check_next(String set) throws IOException {
+    if (set.indexOf(current) < 0) {
+      return false;
+    }
+    save_and_next();
+    return true;
+  }
 
   private boolean currIsNewline() {
     return current == '\n' || current == '\r';
@@ -176,8 +206,27 @@ final class Syntax {
             // assert !currIsNewline();
             next();
             continue;
+          } else if (isdigit(current)) {
+            read_numeral();
+            return TK_NUMBER;
+          } else if (isalpha(current) || current == '_') {
+            // identifier or reserved word
+            do {
+              save_and_next();
+            } while (isalnum(current) || current == '_');
+            String s = buff.toString();
+            Object t = reserved.get(s);
+            if (t == null) {
+              semS = s;
+              return TK_NAME;
+            } else {
+              return ((Integer)t).intValue() + FIRST_RESERVED;
+            }
+          } else {
+            int c = current;
+            next();
+            return c; // single-char tokens
           }
-          // :todo: more default cases
         //:todo: more cases
       }
     }
@@ -185,6 +234,36 @@ final class Syntax {
 
   private void next() throws IOException {
     current = z.read();
+  }
+
+  private void read_numeral() throws IOException {
+    // assert isdigit(current);
+    do {
+      save_and_next();
+    } while (isdigit(current) || current == '.');
+    if (check_next("Ee")) {     // 'E' ?
+      check_next("+-"); // optional exponent sign
+    }
+    while (isalnum(current) || current == '_') {
+      save_and_next();
+    }
+    // :todo: consider doing PUC-Rio's decimal point tricks.
+    String s = buff.toString();
+    try {
+      semR = Double.parseDouble(s);
+      return;
+    } catch (NumberFormatException e) {
+      xLexerror("malformed number", TK_NUMBER);
+    }
+  }
+
+  private void save() {
+    buff.append(current);
+  }
+
+  private void save_and_next() throws IOException {
+    save();
+    next();
   }
 
   /** Getter for source. */
