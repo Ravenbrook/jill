@@ -20,6 +20,11 @@ public class SyntaxTest extends TestCase {
     super(name);
   }
 
+  private int dostring(Lua L, String s) {
+    System.out.println("[[" + s + "]]");
+    return L.dostring(s);
+  }
+
   public void testSyntax0() {
     System.out.println("Syntax0");
     Lua L = new Lua();
@@ -34,7 +39,7 @@ public class SyntaxTest extends TestCase {
   public void testSyntax1() {
     System.out.println("Syntax1");
     Lua L = new Lua();
-    LuaFunction f= null;
+    LuaFunction f = null;
     try {
       f = L.load(Lua.stringReader(""), "Syntax1");
     } catch (Exception e) {
@@ -44,6 +49,14 @@ public class SyntaxTest extends TestCase {
     L.call(0, 0);
   }
 
+  public void testSyntax2() {
+    System.out.println("Syntax2");
+    Lua L = new Lua();
+    assertTrue("script 1 okay", 0 == dostring(L, ""));
+    assertTrue("script 2 okay", 0 == dostring(L, " \t"));
+    assertTrue("script 3 okay", 0 == dostring(L, "\n\n"));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -51,6 +64,8 @@ public class SyntaxTest extends TestCase {
         public void runTest() { testSyntax0(); } });
     suite.addTest(new SyntaxTest("testSyntax1") {
         public void runTest() { testSyntax1(); } });
+    suite.addTest(new SyntaxTest("testSyntax2") {
+        public void runTest() { testSyntax2(); } });
     return suite;
   }
 }

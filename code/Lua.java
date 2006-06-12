@@ -922,6 +922,18 @@ public final class Lua {
       tagError(narg, t);
     }
   }
+  
+  public int dostring(String s) {
+    int res = 0;
+
+    try {
+      push(load(Lua.stringReader(s), s));
+      res = pcall(0, MULTRET, null);
+    } catch (Exception e_) {
+      return 1;
+    }
+    return res;
+  }
 
   /** Get a field (event) from an Lua value's metatable.  Returns null
    * if there is no metatable nor field.

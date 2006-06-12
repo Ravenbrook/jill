@@ -127,7 +127,7 @@ final class Syntax {
   }
 
   private static boolean isspace(int c) {
-    return c == 0x20 || c == 0x08;
+    return c == ' ' || c == '\t';
   }
 
 
