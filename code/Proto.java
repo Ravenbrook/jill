@@ -14,6 +14,13 @@
  * array datatype)
  */
 final class Proto {
+  /** Interned 0-element array. */
+  private static final int[] intArrayZero = new int[0];
+  private static final LocVar[] locvarArrayZero = new LocVar[0];
+  private static final Object[] objectArrayZero = new Object[0];
+  private static final Proto[] protoArrayZero = new Proto[0];
+  private static final String[] stringArrayZero = new String[0];
+
   // Generally the fields are named following the PUC-Rio implementation
   // and so are unusually terse.
   /** Array of constants. */
@@ -93,6 +100,12 @@ final class Proto {
   Proto(String source) {
     maxstacksize = 2;   // register 0/1 are always valid.
     this.source = source;
+    this.k = objectArrayZero;
+    this.code = intArrayZero;
+    this.p = protoArrayZero;
+    this.lineinfo = intArrayZero;
+    this.locvar = locvarArrayZero;
+    this.upvalue = stringArrayZero;
   }
 
   /**
@@ -140,14 +153,23 @@ final class Proto {
     return vararg;
   }
 
-  private static final int[] intArrayZero = new int[0];
+  /** "Setter" for vararg.  Sets it to true. */
+  void setVararg() {
+    vararg = true;
+  }
+
+  // All the trim functions, below, check for the redundant case of
+  // trimming to the length that they already are.  Because they are
+  // initially allocated as interned zero-length arrays this also means
+  // that no unnecesary zero-length array objects are allocated.
+
   /**
    * Trim an int array to specified size.
    * @return the trimmed array.
    */
   private int[] trimInt(int[] old, int n) {
-    if (n == 0) {
-      return intArrayZero;
+    if (n == old.length) {
+      return old;
     }
     int[] newArray = new int[n];
     System.arraycopy(old, 0, newArray, 0, n);
@@ -166,6 +188,9 @@ final class Proto {
 
   /** Trim k (constant) array to specified size. */
   void closeK(int n) {
+    if (n == k.length) {
+      return;
+    }
     Object[] newArray = new Object[n];
     System.arraycopy(k, 0, newArray, 0, n);
     k = newArray;
@@ -173,6 +198,9 @@ final class Proto {
 
   /** Trim p (proto) array to specified size. */
   void closeP(int n) {
+    if (n == p.length) {
+      return;
+    }
     Proto[] newArray = new Proto[n];
     System.arraycopy(p, 0, newArray, 0, n);
     p = newArray;
@@ -180,6 +208,9 @@ final class Proto {
 
   /** Trim locvar array to specified size. */
   void closeLocvar(int n) {
+    if (n == locvar.length) {
+      return;
+    }
     LocVar[] newArray = new LocVar[n];
     System.arraycopy(locvar, 0, newArray, 0, n);
     locvar = newArray;
@@ -187,6 +218,9 @@ final class Proto {
 
   /** Trim upvalue array to size <var>nups</var>. */
   void closeUpvalue() {
+    if (nups == upvalue.length) {
+      return;
+    }
     String[] newArray = new String[nups];
     System.arraycopy(upvalue, 0, newArray, 0, nups);
     upvalue = newArray;

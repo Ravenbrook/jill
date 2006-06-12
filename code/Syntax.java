@@ -7,6 +7,9 @@ import java.io.Reader;
  * Syntax analyser.  Lexing, parsing, code generation.
  */
 final class Syntax {
+  /** End of File, must be -1 as that is what read() returns. */
+  private static final int EOZ = -1;
+
   private static final int FIRST_RESERVED = 257;
 
   // WARNING: if you change the order of this enumeration,
@@ -69,18 +72,23 @@ final class Syntax {
    * for the character for the token; for other tokens a member of the
    * enum (all of which are > 255).
    */
-  char token;
+  int token;
   /** Semantic info for token; a number. */
   double tokenR;
   /** Semantic info for token; a string. */
   String tokenS;
 
   /** Lookahead token value. */
-  char lookahead = TK_EOS;
+  int lookahead = TK_EOS;
   /** Semantic info for lookahead; a number. */
   double lookaheadR;
   /** Semantic info for lookahead; a string. */
   String lookaheadS;
+
+  /** Semantic info for return value from {@link Syntax#llex}; a number. */
+  double semR;
+  /** As <code>semR</code>, for string. */
+  String semS;
 
   /** FuncState for current (innermost) function being parsed. */
   FuncState fs;
@@ -101,20 +109,74 @@ final class Syntax {
     next();
   }
 
+
+  // From <ctype.h>
+
+  // Implementations of functions from <ctype.h> are only correct copies
+  // to the extent that Lua requires them.
+
+  /** True if and only if the char (when converted from the int) is a
+   * control character.
+   */
+  private static boolean iscntrl(int c) {
+    return (char)c < 0x20 || c == 0x7f;
+  }
+
+  private static boolean isspace(int c) {
+    return c == 0x20 || c == 0x08;
+  }
+
+
   // From llex.c
 
-  /** Links new FuncState into this, and returns the old FuncState. */
+  private boolean currIsNewline() {
+    return current == '\n' || current == '\r';
+  }
+
+  private void inclinenumber() throws IOException {
+    int old = current;
+    // assert currIsNewline();
+    next();     // skip '\n' or '\r'
+    if (currIsNewline() && current != old) {
+      next();   // skip '\n\r' or '\r\n'
+    }
+    if (++linenumber < 0) {     // overflow
+      xSyntaxerror("chunk has too many lines");
+    }
+  }
+
+  /** Links new FuncState into this, and returns the old FuncState.
+   * Not really from llex.c. */
   FuncState linkfs(FuncState newfs) {
     FuncState oldfs = fs;
     fs = newfs;
     return oldfs;
   }
 
-  /** True if and only if the char (when converted from the int) is a
-   * control character.
+  /** Lex a token and return it.  The semantic info for the token is
+   * stored in <code>this.semR</code> or <code>this.semS</code> as
+   * appropriate.
    */
-  private boolean iscntrl(int c) {
-    return (char)c < 0x20 || c == 0x7f;
+  private int llex() throws IOException {
+    buff.setLength(0);
+    while (true) {
+      switch (current) {
+        case '\n':
+        case '\r':
+          inclinenumber();
+          continue;
+        case EOZ:
+          return TK_EOS;
+        default:
+          if (isspace(current)) {
+            // assert !currIsNewline();
+            next();
+            continue;
+          }
+          // :todo: more default cases
+        //:todo: more cases
+      }
+    }
   }
 
   private void next() throws IOException {
@@ -147,8 +209,18 @@ final class Syntax {
   }
 
   /** Equivalent to <code>luaX_next</code>. */
-  private void xNext() {
-    // :todo: implement me
+  private void xNext() throws IOException {
+    lastline = linenumber;
+    if (lookahead != TK_EOS) {  // is there a look-ahead token?
+      token = lookahead;        // Use this one,
+      tokenR = lookaheadR;
+      tokenS = lookaheadS;
+      lookahead = TK_EOS;       // and discharge it.
+    }  else {
+      token = llex();
+      tokenR = semR;
+      tokenS = semS;
+    }
   }
 
   /** Equivalent to <code>luaX_syntaxerror</code>. */
@@ -191,6 +263,7 @@ final class Syntax {
       throws IOException {
     Syntax lexstate = new Syntax(L, in, name);
     FuncState funcstate = new FuncState(lexstate);
+    funcstate.f.setVararg();
     lexstate.xNext();
     lexstate.chunk();
     lexstate.check(TK_EOS);

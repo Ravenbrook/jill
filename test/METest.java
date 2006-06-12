@@ -25,6 +25,8 @@ public class METest extends TestCase {
     suite.addTest(t.suite());
     t = new StringLibTest();
     suite.addTest(t.suite());
+    t = new SyntaxTest();
+    suite.addTest(t.suite());
 
     return suite;
   }
