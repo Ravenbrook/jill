@@ -448,7 +448,11 @@ public final class Lua {
    * @return           The chunk as a function (after having been compiled).
    * @see java.io.InputStreamReader
    */
-  public LuaFunction load(Reader in, String chunkname) { return null; }
+  public LuaFunction load(Reader in, String chunkname)
+      throws IOException {
+    Proto p = Syntax.parser(this, in, chunkname);
+    return new LuaFunction(p, new UpVal[0], this.getGlobals());
+  }
 
   /**
    * Slowly get the next key from a table.  Unlike most other functions

@@ -31,11 +31,26 @@ public class SyntaxTest extends TestCase {
     assertNotNull("Parse result", o);
   }
 
+  public void testSyntax1() {
+    System.out.println("Syntax1");
+    Lua L = new Lua();
+    LuaFunction f= null;
+    try {
+      f = L.load(Lua.stringReader(""), "Syntax1");
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    L.push(f);
+    L.call(0, 0);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
     suite.addTest(new SyntaxTest("testSyntax0") {
         public void runTest() { testSyntax0(); } });
+    suite.addTest(new SyntaxTest("testSyntax1") {
+        public void runTest() { testSyntax1(); } });
     return suite;
   }
 }
