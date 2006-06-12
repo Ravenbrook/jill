@@ -109,6 +109,10 @@ final class Syntax {
     next();
   }
 
+  int lastline() {
+    return lastline;
+  }
+
 
   // From <ctype.h>
 
@@ -241,20 +245,22 @@ final class Syntax {
 
   // From lparser.c
 
-  void check(int c) {
+  private void check(int c) {
     if (token != c) {
       error_expected(c);
     }
   }
 
-  void chunk() { }
+  private void chunk() { }
 
-  void close_func() {
+  private void close_func() {
+    removevars(0);
+    fs.kRet(0, 0);
     fs.close();
     fs = fs.prev;
   }
 
-  void error_expected(int token) {
+  private void error_expected(int token) {
     xSyntaxerror("'" + xToken2str(token) + "' expected");
   }
 
@@ -272,6 +278,13 @@ final class Syntax {
     // assert funcstate.f.nups() == 0;
     // assert fs == NULL;
     return funcstate.f;
+  }
+
+  private void removevars(int tolevel) {
+    // :todo: consider making a method in FuncState.
+    while (fs.nactvar > tolevel) {
+      fs.getlocvar(--fs.nactvar).setEndpc(fs.pc);
+    }
   }
 }
 

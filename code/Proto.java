@@ -138,6 +138,23 @@ final class Proto {
     return code;
   }
 
+  /** Append instruction. */
+  void codeAppend(int pc, int instruction, int line) {
+    if (pc >= code.length) {
+      int[] newCode = new int[code.length*2+1];
+      System.arraycopy(code, 0, newCode, 0, code.length);
+      code = newCode;
+    }
+    code[pc] = instruction;
+
+    if (pc >= lineinfo.length) {
+      int[] newLineinfo = new int[lineinfo.length*2+1];
+      System.arraycopy(lineinfo, 0, newLineinfo, 0, lineinfo.length);
+      lineinfo = newLineinfo;
+    }
+    lineinfo[pc] = line;
+  }
+
   /** Array of inner protos (do not modify). */
   Proto[] proto() {
     return p;
@@ -156,6 +173,11 @@ final class Proto {
   /** "Setter" for vararg.  Sets it to true. */
   void setVararg() {
     vararg = true;
+  }
+
+  /** LocVar array (do not modify). */
+  LocVar[] locvar() { 
+    return locvar;
   }
 
   // All the trim functions, below, check for the redundant case of

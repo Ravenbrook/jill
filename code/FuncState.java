@@ -69,5 +69,41 @@ final class FuncState {
     Lua.gCheckcode(f);
     // assert bl == null;
   }
+
+  /** Equivalent to getlocvar from lparser.c.
+   * Accesses <code>LocVar</code>s of the {@link Proto}.
+   */
+  LocVar getlocvar(int idx) {
+    return f.locvar()[actvar[idx]];
+  }
+
+
+  // Functions from lcode.c
+
+  /** Equivalent to luaK_code. */
+  int kCode(int i, int line) {
+    dischargejpc();
+    // Put new instruction in code array.
+    f.codeAppend(pc, i, line);
+    return pc++;
+  }
+
+  /** Equivalent to luaK_codeABC. */
+  int kCodeABC(int o, int a, int b, int c) {
+    // assert getOpMode(o) == iABC;
+    // assert getBMode(o) != OpArgN || b == 0;
+    // assert getCMode(o) != OpArgN || c == 0;
+    return kCode(Lua.CREATE_ABC(o, a, b, c), ls.lastline());
+  }
+
+  /** Equivalent to luaK_ret. */
+  void kRet(int first, int nret) {
+    kCodeABC(Lua.OP_RETURN, first, nret+1, 0);
+  }
+
+  void dischargejpc() {
+    // :todo: implement me
+    jpc = NO_JUMP;
+  }
 }
 
