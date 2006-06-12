@@ -978,7 +978,9 @@ public final class Lua {
    * to provide the Lua function <code>loadstring</code>; exposed
    * externally as a convenience.
    */
-  public Reader StringReader(String s) { return null; }
+  public Reader stringReader(String s) {
+    return new StringReader(s);
+  }
 
 
   //////////////////////////////////////////////////////////////////////
