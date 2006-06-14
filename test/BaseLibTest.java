@@ -6,6 +6,8 @@ import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
 // Auxiliary files
+// BaseLibTestLoadfile.luc
+//   return 99
 // BaseLibTest.luc - contains functions that test each of base library
 // functions:
 //   function testprint()
@@ -138,6 +140,25 @@ import j2meunit.framework.TestSuite;
 //     local a,b = pcall(function()assert(false)end)
 //     local c,d = pcall(function()return assert(1)end)
 //     return a==false, type(b)=='string', c==true, d==1
+//   end
+//   function testloadstring()
+//     local f = loadstring'return 99'
+//     return f()==99
+//   end
+//   testloadfilename='BaseLibTestLoadfile.luc'
+//   function testloadfile()
+//     local f = loadfile(testloadfilename)
+//     return f()==99
+//   end
+//   function loader(s) -- helper for testload
+//     return function()local x=s s=nil return x end
+//   end
+//   function testload()
+//     local f = load(loader'return 99')
+//     return f()==99
+//   end
+//   function testdofile()
+//     return dofile(testloadfilename)==99
 //   end
 
 
@@ -324,6 +345,22 @@ public class BaseLibTest extends TestCase {
     nTrue("testassert", 1);
   }
 
+  public void testLoadstring() {
+    nTrue("testloadstring", 1);
+  }
+
+  public void testLoadfile() {
+    nTrue("testloadfile", 1);
+  }
+
+  public void testLoad() {
+    nTrue("testload", 1);
+  }
+
+  public void testDofile() {
+    nTrue("testdofile", 1);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -371,6 +408,14 @@ public class BaseLibTest extends TestCase {
         public void runTest() { testCollectgarbage(); } });
     suite.addTest(new BaseLibTest("testAssert") {
         public void runTest() { testAssert(); } });
+    suite.addTest(new BaseLibTest("testLoadstring") {
+        public void runTest() { testLoadstring(); } });
+    suite.addTest(new BaseLibTest("testLoadfile") {
+        public void runTest() { testLoadfile(); } });
+    suite.addTest(new BaseLibTest("testLoad") {
+        public void runTest() { testLoad(); } });
+    suite.addTest(new BaseLibTest("testDofile") {
+        public void runTest() { testDofile(); } });
     return suite;
   }
 }
