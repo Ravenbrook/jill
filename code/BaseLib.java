@@ -259,19 +259,12 @@ public final class BaseLib extends LuaJavaCallback {
     return 1;
   }
 
-  /** :todo: implement load. */
+  /** Implements load. */
   private static int load(Lua L) {
-    return 0;
-  }
-
-  private static int load_aux(Lua L, int status) {
-    if (status == 0) {  // OK?
-      return 1;
-    } else {
-      L.pushNil();
-      L.insert(L, -2);  // put before error message
-      return 2;         // return nil plus error message
-    }
+    String cname = L.optString(2, "=(load)");
+    L.checkType(1, Lua.TFUNCTION);
+    int status = L.load(new BaseLibReader(L, L.value(1)), cname);
+    return load_aux(L, status);
   }
 
   /** Implements loadfile. */
@@ -285,6 +278,16 @@ public final class BaseLib extends LuaJavaCallback {
     String s = L.checkString(1);
     String chunkname = L.optString(2, s);
     return load_aux(L, L.loadString(s, chunkname));
+  }
+
+  private static int load_aux(Lua L, int status) {
+    if (status == 0) {  // OK?
+      return 1;
+    } else {
+      L.pushNil();
+      L.insert(L, -2);  // put before error message
+      return 2;         // return nil plus error message
+    }
   }
 
   /** Implements next. */
