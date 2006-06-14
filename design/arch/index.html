@@ -723,12 +723,52 @@ organised as a hand-coded lexer (not table-driven), and a hand-coded
 recursive descent parser with table-driven operator-precedence parsing
 for binary and unary expressions.  Code generation happens as the
 program is parsed, thus there are very few explicit structures to
-represent the syntax or the parse.  For example, as an expression is
+represent the syntax or the parse (the representation of the parse is
+implicit in the call-stack).  For example, as an expression is
 parsed, code to evaluate that expression is generated (and emitted into
 the code stream) and the compilation result is a register
 (that is, the index of a VM runtime
 register) which is available for enclosing expressions to make use of.
 </p>
+
+<p>
+<code>BinOpr</code> and <code>UnOpr</code> in PUC-Rio are an enumeration
+of binary and unary operators.  They are used for two purposes.  The
+first is that they are used to communicate between the parser and the
+code generator, as to which code needs to be generated.  The second is
+that they are used in the operator precedence parser to index into a
+table of precedence values.  In Jili these two enum types become
+<code>int</code>.</p>
+
+<p>
+The operator priority table (for operator precedence
+parsing) uses an anonymous two-element struct in PUC-Rio (for left- and
+right- priority).  In Jili this is replaced with a 2-element array,
+where <code>[0]</code> is the left-priority and <code>[1]</code> is the
+right-priority.  Thus the table of priorities is an <code>int[][]</code>
+(if Java were able to express such a thing it would be
+<code>int[][2]</code>).
+</p>
+
+<p>
+Code generation routines, in <code>lcode.c</code> in PUC-Rio, are
+methods on the <code>FuncState</code> object.
+</p>
+
+<p>
+Most of the lexical analysis and parsing routines are in the
+<code>Syntax</code> class.  This class effectively replaces
+<code>LexState</code> from the PUC-Rio implementation.
+</p>
+
+<p>
+<code>expdesc</code> becomes the <code>Expdesc</code> class and is used
+in quite an unconventional way (for a Java class).  Its use follows the
+way the <code>expdesc</code> struct is used.  A blank instance is
+created at the beginning of an expression parse, and filled in as the
+parse goes along (and sometimes modifed as well).
+</p>
+
 
 
 <h2 id="section-A">A. References</h2>
