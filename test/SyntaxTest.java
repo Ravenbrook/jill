@@ -22,7 +22,7 @@ public class SyntaxTest extends TestCase {
 
   private int dostring(Lua L, String s) {
     System.out.println("[[" + s + "]]");
-    return L.dostring(s);
+    return L.doString(s);
   }
 
   public void testSyntax0() {
@@ -39,13 +39,7 @@ public class SyntaxTest extends TestCase {
   public void testSyntax1() {
     System.out.println("Syntax1");
     Lua L = new Lua();
-    LuaFunction f = null;
-    try {
-      f = L.load(Lua.stringReader(""), "Syntax1");
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    L.push(f);
+    L.load(Lua.stringReader(""), "Syntax1");
     L.call(0, 0);
   }
 

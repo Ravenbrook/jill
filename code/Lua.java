@@ -408,53 +408,48 @@ public final class Lua {
   }
 
   /**
+   * <p>
    * Loads a Lua chunk in binary or source form.
    * Comparable to C's lua_load.  If the chunk is determined to be
    * binary then it is loaded directly.  Otherwise the chunk is assumed
-   * to be a Lua source chunk and compilation is required first.  The
+   * to be a Lua source chunk and compilation is required first; the
    * <code>InputStream</code> is used to create a <code>Reader</code>
    * (using the
    * {@link java.io.InputStreamReader#InputStreamReader(InputStream)}
    * constructor) and the Lua source is compiled.
+   * </p>
+   * <p>
+   * If successful, The compiled chunk, a Lua function, is pushed onto
+   * the stack and a zero status code is returned.  Otherwise a non-zero
+   * status code is returned to indicate an error and the error message
+   * is pushed onto the stack.
+   * </p>
    * @param in         The binary chunk as an InputStream, for example from
    *                   {@link Class#getResourceAsStream}.
    * @param chunkname  The name of the chunk.
-   * @return           The chunk as a function.
+   * @return           A status code.
    */
-  public LuaFunction load(InputStream in, String chunkname)
-      throws IOException {
-    Proto p = null;
-    // :todo: consider using markSupported
-    in.mark(1);
-    if (in.read() == Loader.goldenHeader[0]) {
-      in.reset();
-      // Currently always assumes binary.  :todo: implement source loading.
-      Loader l = new Loader(in, chunkname);
-      p = l.undump();
-    } else {
-      in.reset();
-      InputStreamReader reader = new InputStreamReader(in);
-      p = Syntax.parser(this, reader, chunkname);
-    }
-    return new LuaFunction(p,
-        new UpVal[0],
-        this.getGlobals());
+  public int load(InputStream in, String chunkname) {
+    push(new LuaInternal(in, chunkname));
+    return pcall(0, 1, null);
   }
 
   /**
    * Loads a Lua chunk in source form.
-   * Comparable to C's lua_load.  Since this takes a Reader parameter,
+   * Comparable to C's lua_load.  Since this takes a {@link
+   * java.io.Reader} parameter,
    * this method is restricted to loading Lua chunks in source form.
+   * In every other respect this method is just like {@link
+   * Lua#load(InputStream, String)}.
    * @param in         The source chunk as a Reader, for example from
    *                   <code>java.io.InputStreamReader(Class.getResourceAsStream())</code>.
    * @param chunkname  The name of the chunk.
-   * @return           The chunk as a function (after having been compiled).
+   * @return           A status code.
    * @see java.io.InputStreamReader
    */
-  public LuaFunction load(Reader in, String chunkname)
-      throws IOException {
-    Proto p = Syntax.parser(this, in, chunkname);
-    return new LuaFunction(p, new UpVal[0], this.getGlobals());
+  public int load(Reader in, String chunkname) {
+    push(new LuaInternal(in, chunkname));
+    return pcall(0, 1, null);
   }
 
   /**
@@ -926,16 +921,12 @@ public final class Lua {
     }
   }
   
-  public int dostring(String s) {
-    int res = 0;
-
-    try {
-      push(load(Lua.stringReader(s), s));
-      res = pcall(0, MULTRET, null);
-    } catch (Exception e_) {
-      return 1;
+  public int doString(String s) {
+    int status = load(Lua.stringReader(s), s);
+    if (status == 0) {
+      status = pcall(0, MULTRET, null);
     }
-    return res;
+    return status;
   }
 
   private int errfile(String what, String fname, Exception e) {
@@ -973,7 +964,7 @@ public final class Lua {
     if (in == null) {
       return errfile("open", filename, new IOException());
     }
-    LuaFunction f = null;
+    int status = 0;
     try {
       in.mark(1);
       int c = in.read();
@@ -981,28 +972,16 @@ public final class Lua {
         // :todo: handle this case
       }
       in.reset();
-      f = load(in, "@" + filename);
+      status = load(in, "@" + filename);
     } catch (IOException e) {
       return errfile("read", filename, e);
-    } finally {
-      try {
-        in.close();
-      } catch (IOException e_) { }
     }
-    push(f);
-    return 0;
+    return status;
   }
 
   /** Loads a Lua chunk from a string. */
   public int loadString(String s, String chunkname) {
-    LuaFunction f = null;
-    try {
-      f = load(stringReader(s), chunkname);
-    } catch (IOException e) {
-      return 1;
-    }
-    push(f);
-    return 0;
+    return load(stringReader(s), chunkname);
   }
 
   public int optInt(int narg, int def) {
@@ -1061,7 +1040,7 @@ public final class Lua {
   // Some of these are in vm* instead.
 
   void dThrow(int status) {
-    errorStatus = ERRRUN;
+    errorStatus = status;
     throw new RuntimeException(LUA_ERROR);
   }
 

@@ -2,7 +2,6 @@
 
 // For j2meunit see http://j2meunit.sourceforge.net/
 import j2meunit.framework.Test;
-import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
 // Uses some of the same ancillary files as LoaderTest.
@@ -16,7 +15,7 @@ import j2meunit.framework.TestSuite;
  * J2MEUnit tests for Jili's public API.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
  */
-public class LuaTest extends TestCase {
+public class LuaTest extends JiliTestCase {
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner LuaTest</code>
    */
@@ -32,30 +31,16 @@ public class LuaTest extends TestCase {
     Lua L = new Lua();
   }
 
-  private LuaFunction loadFile(Lua L, String filename) {
-    LuaFunction f = null;
-    System.out.println(filename);
-    try {
-      f = L.load(this.getClass().getResourceAsStream(filename),
-          filename);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return f;
-  }
-
   /** Helper used by testLua1. */
   private void simpleScript(String filename) {
     Lua L = new Lua();
-    LuaFunction f = loadFile(L, filename);
-    assertNotNull("Loaded script", f);
-    L.push(f);
+    loadFile(L, filename);
     int top = L.getTop();
     assertTrue("TOS == 1", 1 == top);
     L.call(0, 0);
     top = L.getTop();
     assertTrue("TOS == 0", 0 == top);
-    L.push(f);
+    loadFile(L, filename);
     L.call(0, 1);
     top = L.getTop();
     assertTrue("1 result", 1 == top);
@@ -69,8 +54,8 @@ public class LuaTest extends TestCase {
    * little-endian architecture.
    */
   public void testLua1() {
-    simpleScript("LoaderTest0.luc");
-    simpleScript("LoaderTest3.luc");
+    simpleScript("LoaderTest0");
+    simpleScript("LoaderTest3");
   }
 
   /** Tests that a Lua Java function can be called. */
@@ -92,8 +77,7 @@ public class LuaTest extends TestCase {
   /** Tests that the Lua script in the plan can be executed. */
   public void testLua3() {
     Lua L = new Lua();
-    LuaFunction f = loadFile(L, "LuaTest0.luc");
-    L.push(f);
+    loadFile(L, "LuaTest0");
     L.call(0, 1);
     System.out.println(L.value(1));
     assertTrue("Result is 7foo", "7foo".equals(L.value(1)));

@@ -54,7 +54,7 @@ end
  * J2MEUnit tests for Jili's StringLib (string library).  DO NOT SUBCLASS.
  * public access granted only because j2meunit makes it necessary.
  */
-public class StringLibTest extends TestCase {
+public class StringLibTest extends JiliTestCase {
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner StringLibTest</code>
    */
@@ -63,24 +63,6 @@ public class StringLibTest extends TestCase {
   /** Clones constructor from superclass.  */
   private StringLibTest(String name) {
     super(name);
-  }
-
-  // :todo: consider pushing loadFile into common superclass for all
-  // test classes.
-  /**
-   * @param L         Lua state in which to load file.
-   * @param filename  filename without '.luc' extension.
-   */
-  private LuaFunction loadFile(Lua L, String filename) {
-    filename += ".luc";
-    System.out.println(filename);
-    LuaFunction f = null;
-    try {
-      f = L.load(this.getClass().getResourceAsStream(filename), filename);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return f;
   }
 
   /**
@@ -114,8 +96,7 @@ public class StringLibTest extends TestCase {
     Lua L = new Lua();
     BaseLib.open(L);
     StringLib.open(L);
-    LuaFunction f = loadFile(L, "StringLibTest");
-    L.push(f);
+    loadFile(L, "StringLibTest");
     L.call(0, 0);
     System.out.println(name);
     L.push(L.getGlobal(name));

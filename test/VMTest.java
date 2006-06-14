@@ -2,7 +2,6 @@
 
 // For j2meunit see http://j2meunit.sourceforge.net/
 import j2meunit.framework.Test;
-import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
 // The VMTest uses ancillary files:
@@ -113,7 +112,7 @@ import j2meunit.framework.TestSuite;
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
  */
-public class VMTest extends TestCase {
+public class VMTest extends JiliTestCase {
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner VMTest</code>
    */
@@ -125,22 +124,6 @@ public class VMTest extends TestCase {
   }
 
   /**
-   * @param L         Lua state in which to load file.
-   * @param filename  filename without '.luc' extension.
-   */
-  private LuaFunction loadFile(Lua L, String filename) {
-    filename += ".luc";
-    System.out.println(filename);
-    LuaFunction f = null;
-    try {
-      f = L.load(this.getClass().getResourceAsStream(filename), filename);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return f;
-  }
-
-  /**
    * Tests execution of the OP_LOADBOOL opcode.  This opcode is
    * generated when the results of a boolean expression are used for its
    * value (as opposed to inside an "if").  Our test is "return x==nil".
@@ -148,15 +131,13 @@ public class VMTest extends TestCase {
    */
   public void testVMLoadbool() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestLoadbool");
-    L.push(f);
+    loadFile(L, "VMTestLoadbool");
     L.call(0, 1);
     Object res = L.value(1);
     Boolean b = (Boolean)res;
     assertTrue("Result is true", b.booleanValue());
     L.rawSet(L.getGlobals(), "x", "foo");
-    L.push(f);
+    loadFile(L, "VMTestLoadbool");
     L.call(0, 1);
     res = L.value(-1);
     b = (Boolean)res;
@@ -169,9 +150,7 @@ public class VMTest extends TestCase {
    */
   public void testVMLoadnil() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestLoadnil");
-    L.push(f);
+    loadFile(L, "VMTestLoadnil");
     L.call(0, 3);
     Object first = L.value(1);
     Double d = (Double)first;
@@ -183,9 +162,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_ADD opcode. */
   public void testVMAdd() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestAdd");
-    L.push(f);
+    loadFile(L, "VMTestAdd");
     L.call(0, 1);
     Object res = L.value(1);
     Double d = (Double)res;
@@ -195,9 +172,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_SUB opcode. */
   public void testVMSub() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestSub");
-    L.push(f);
+    loadFile(L, "VMTestSub");
     L.call(0, 1);
     Object res = L.value(1);
     Double d = (Double)res;
@@ -207,9 +182,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_CONCAT opcode. */
   public void testVMConcat() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestConcat");
-    L.push(f);
+    loadFile(L, "VMTestConcat");
     L.call(0, 1);
     Object res = L.value(1);
     String s = (String)res;
@@ -219,9 +192,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_SETTABLE opcode. */
   public void testVMSettable() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestSettable");
-    L.push(f);
+    loadFile(L, "VMTestSettable");
     L.call(0, 1);
     Object t = L.value(1);
     Double d;
@@ -237,9 +208,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_GETTABLE opcode. */
   public void testVMGettable() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestGettable");
-    L.push(f);
+    loadFile(L, "VMTestGettable");
     L.call(0, 1);
     Double d = (Double)L.value(1);
     assertTrue("Result is 28", d.doubleValue() == 28);
@@ -256,9 +225,7 @@ public class VMTest extends TestCase {
    */
   public void testVMSetlist() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestSetlist");
-    L.push(f);
+    loadFile(L, "VMTestSetlist");
     L.call(0, 1);
     Double d = (Double)L.value(1);
     assertTrue("Result is 32", d.doubleValue() == 32);
@@ -276,9 +243,7 @@ public class VMTest extends TestCase {
       }
     }
     L.rawSet(L.getGlobals(), "f", new Mine());
-    LuaFunction f;
-    f = loadFile(L, "VMTestCall");
-    L.push(f);
+    loadFile(L, "VMTestCall");
     L.call(0, 1);
     assertTrue("Result is 22", L.toNumber(L.value(1)) == 22);
   }
@@ -287,9 +252,7 @@ public class VMTest extends TestCase {
    * are defined. */
   public void testVMClosure() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestClosure");
-    L.push(f);
+    loadFile(L, "VMTestClosure");
     L.call(0, 1);
     Object o = L.value(1);
     L.push("bar");
@@ -300,9 +263,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_CALL for calling Lua. */
   public void testVMCall1() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestCall1");
-    L.push(f);
+    loadFile(L, "VMTestCall1");
     L.call(0, 1);
     Object o = L.value(1);
     assertTrue("Result is fxfy", "fxfy".equals(L.value(-1)));
@@ -311,9 +272,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_JMP opcode. */
   public void testVMJmp() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestJmp");
-    L.push(f);
+    loadFile(L, "VMTestJmp");
     L.call(0, 1);
     Object o = L.value(1);
     assertTrue("Result is 15", o.equals(new Double(15)));
@@ -327,9 +286,7 @@ public class VMTest extends TestCase {
    */
   public void testVMJmp1() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestJmp1");
-    L.push(f);
+    loadFile(L, "VMTestJmp1");
     L.call(0, 1);
     Object o = L.value(1);
     assertTrue("Result is 111", o.equals(new Double(111)));
@@ -341,9 +298,7 @@ public class VMTest extends TestCase {
    */
   public void testVMUpval() {
     Lua L = new Lua();
-    LuaFunction script;
-    script = loadFile(L, "VMTestUpval");
-    L.push(script);
+    loadFile(L, "VMTestUpval");
     L.call(0, 1);
     LuaFunction f = (LuaFunction)L.value(1);
     L.push(f);
@@ -359,9 +314,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_LE opcode.  */
   public void testVMLe() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestLe");
-    L.push(f);
+    loadFile(L, "VMTestLe");
     L.call(0, 1);
     Object o = L.value(1);
     assertTrue("Result is 11", o.equals(new Double(11)));
@@ -370,19 +323,17 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_TEST opcode.  */
   public void testVMTest() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestTest");
-    L.push(f);
+    loadFile(L, "VMTestTest");
     L.call(0, 1);
     Object o = L.value(-1);
     assertTrue("Result is 2", o.equals(new Double(2)));
     L.rawSet(L.getGlobals(), "x", L.valueOfBoolean(false));
-    L.push(f);
+    loadFile(L, "VMTestTest");
     L.call(0, 1);
     o = L.value(-1);
     assertTrue("Result is 2", o.equals(new Double(2)));
     L.rawSet(L.getGlobals(), "x", L.valueOfBoolean(true));
-    L.push(f);
+    loadFile(L, "VMTestTest");
     L.call(0, 1);
     o = L.value(-1);
     assertTrue("Result is 1", o.equals(new Double(1)));
@@ -391,17 +342,15 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_TESTSET opcode.  */
   public void testVMTestset() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestTestset");
+    loadFile(L, "VMTestTestset");
     L.rawSet(L.getGlobals(), "y", L.valueOfNumber(7));
-    L.push(f);
     L.call(0, 2);
     Object o = L.value(-2);
     Object p = L.value(-1);
     assertTrue("x or y is 7", o.equals(new Double(7)));
     assertTrue("x and y is nil", L.isNil(p));
     L.rawSet(L.getGlobals(), "x", L.valueOfBoolean(true));
-    L.push(f);
+    loadFile(L, "VMTestTestset");
     L.call(0, 2);
     o = L.value(-2);
     p = L.value(-1);
@@ -412,9 +361,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_UNM opcode.  */
   public void testVMUnm() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestUnm");
-    L.push(f);
+    loadFile(L, "VMTestUnm");
     L.call(0, 2);
     Object o = L.value(1);
     Object p = L.value(2);
@@ -425,9 +372,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_NOT opcode.  */
   public void testVMNot() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestNot");
-    L.push(f);
+    loadFile(L, "VMTestNot");
     L.call(0, 4);
     Object[] o = new Object[] { L.value(1),
         L.value(2),
@@ -442,9 +387,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_LEN opcode.  */
   public void testVMLen() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestLen");
-    L.push(f);
+    loadFile(L, "VMTestLen");
     L.call(0, 4);
     Object[] o = new Object[] { L.value(1),
         L.value(2),
@@ -459,9 +402,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_CLOSE opcode.  */
   public void testVMClose() {
     Lua L = new Lua();
-    LuaFunction script;
-    script = loadFile(L, "VMTestClose");
-    L.push(script);
+    loadFile(L, "VMTestClose");
     L.call(0, 2);
     Object f = L.value(1);
     Object g = L.value(2);
@@ -482,9 +423,7 @@ public class VMTest extends TestCase {
   /** Tests execution of OP_VARARG opcode.  */
   public void testVMVararg() {
     Lua L = new Lua();
-    LuaFunction script;
-    script = loadFile(L, "VMTestVararg");
-    L.push(script);
+    loadFile(L, "VMTestVararg");
     L.call(0, 0);  // side-effect, defines global 'f'
     L.push(L.rawGet(L.getGlobals(), "f"));
     int narg = 7;
@@ -497,8 +436,7 @@ public class VMTest extends TestCase {
     assertTrue("Third result is '3'", "3".equals(L.value(-1)));
 
     // Same, but call f from Lua this time.
-    script = loadFile(L, "VMTestVararg1");
-    L.push(script);
+    loadFile(L, "VMTestVararg1");
     L.call(0, 3);
     assertTrue("First result is one", "one".equals(L.value(-3)));
     assertTrue("Second result is three", "three".equals(L.value(-2)));
@@ -509,9 +447,7 @@ public class VMTest extends TestCase {
    * are called using the colon syntax (t:f()). */
   public void testVMSelf() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestSelf");
-    L.push(f);
+    loadFile(L, "VMTestSelf");
     L.call(0, 1);
     assertTrue("Result is bar", "bar".equals(L.value(-1)));
   }
@@ -520,9 +456,7 @@ public class VMTest extends TestCase {
    * > 0. */
   public void testVMTailcall() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestTailcall");
-    L.push(f);
+    loadFile(L, "VMTestTailcall");
     L.call(0, 1);
     assertTrue("Result is 3", L.valueOfNumber(3).equals(L.value(-1)));
   }
@@ -532,9 +466,7 @@ public class VMTest extends TestCase {
    */
   public void testVMConvert() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestConvert");
-    L.push(f);
+    loadFile(L, "VMTestConvert");
     L.call(0, 2);
     assertTrue("First result is false",
       L.valueOfBoolean(false).equals(L.value(-2)));
@@ -544,9 +476,7 @@ public class VMTest extends TestCase {
   /** Tests conversion of strings to numbers.  */
   public void testVMConvert1() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestConvert1");
-    L.push(f);
+    loadFile(L, "VMTestConvert1");
     L.call(0, 1);
     assertTrue("Result is 0.375", L.valueOfNumber(0.375).equals(L.value(-1)));
   }
@@ -554,9 +484,7 @@ public class VMTest extends TestCase {
   /** Tests conversion of a hexadecimal string to number.  */
   public void testVMConvert2() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestConvert2");
-    L.push(f);
+    loadFile(L, "VMTestConvert2");
     L.call(0, 1);
     assertTrue("Result is 255", L.valueOfNumber(255).equals(L.value(-1)));
   }
@@ -564,9 +492,7 @@ public class VMTest extends TestCase {
   /** Tests for loop. */
   public void testVMFor() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestFor");
-    L.push(f);
+    loadFile(L, "VMTestFor");
     L.call(0, 1);
     assertTrue("Result is 55", L.valueOfNumber(55).equals(L.value(-1)));
   }
@@ -574,9 +500,7 @@ public class VMTest extends TestCase {
   /** Tests generator based for loop. */
   public void testVMFor1() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestFor1");
-    L.push(f);
+    loadFile(L, "VMTestFor1");
     L.call(0, 1);
     assertTrue("Result is 55", L.valueOfNumber(55).equals(L.value(-1)));
   }
@@ -584,9 +508,7 @@ public class VMTest extends TestCase {
   /** Tests that OP_RET pads out correctly with nils. */
   public void testVMRet() {
     Lua L = new Lua();
-    LuaFunction f;
-    f = loadFile(L, "VMTestRet");
-    L.push(f);
+    loadFile(L, "VMTestRet");
     L.call(0, 3);
     for (int i=1; i<=3; ++i) {
       assertTrue("Result " + i + " is nil",

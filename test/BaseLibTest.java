@@ -2,7 +2,6 @@
 
 // For j2meunit see http://j2meunit.sourceforge.net/
 import j2meunit.framework.Test;
-import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
 // Auxiliary files
@@ -175,7 +174,7 @@ import j2meunit.framework.TestSuite;
  * J2MEUnit tests for Jili's BaseLib (base library).  DO NOT SUBCLASS.
  * public access granted only because j2meunit makes it necessary.
  */
-public class BaseLibTest extends TestCase {
+public class BaseLibTest extends JiliTestCase {
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner BaseLibTest</code>
    */
@@ -184,24 +183,6 @@ public class BaseLibTest extends TestCase {
   /** Clones constructor from superclass.  */
   private BaseLibTest(String name) {
     super(name);
-  }
-
-  // :todo: consider pushing loadFile into common superclass for all
-  // test classes.
-  /**
-   * @param L         Lua state in which to load file.
-   * @param filename  filename without '.luc' extension.
-   */
-  private LuaFunction loadFile(Lua L, String filename) {
-    filename += ".luc";
-    System.out.println(filename);
-    LuaFunction f = null;
-    try {
-      f = L.load(this.getClass().getResourceAsStream(filename), filename);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return f;
   }
 
   /**
@@ -233,8 +214,7 @@ public class BaseLibTest extends TestCase {
   private Lua luaGlobal(String name, int n) {
     Lua L = new Lua();
     BaseLib.open(L);
-    LuaFunction f = loadFile(L, "BaseLibTest");
-    L.push(f);
+    loadFile(L, "BaseLibTest");
     L.call(0, 0);
     System.out.println(name);
     L.push(L.getGlobal(name));
