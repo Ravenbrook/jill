@@ -70,6 +70,8 @@ public final class BaseLib extends LuaJavaCallback {
         return assertFunction(L);
       case COLLECTGARBAGE:
         return collectgarbage(L);
+      case DOFILE:
+        return dofile(L);
       case ERROR:
         return error(L);
       case GETFENV:
@@ -78,6 +80,12 @@ public final class BaseLib extends LuaJavaCallback {
         return getmetatable(L);
       case IPAIRS:
         return ipairs(L);
+      case LOAD:
+        return load(L);
+      case LOADFILE:
+        return loadfile(L);
+      case LOADSTRING:
+        return loadstring(L);
       case NEXT:
         return next(L);
       case PAIRS:
@@ -188,6 +196,17 @@ public final class BaseLib extends LuaJavaCallback {
     }
   }
 
+  /** Implements dofile. */
+  private static int dofile(Lua L) {
+    String fname = L.optString(1, null);
+    int n = L.getTop();
+    if (L.loadFile(fname) != 0) {
+      L.error(L.value(-1));
+    }
+    L.call(0, Lua.MULTRET);
+    return L.getTop() - n;
+  }
+
   /** Implements error. */
   private static int error(Lua L) {
     int level = L.optInt(2, 1);
@@ -238,6 +257,34 @@ public final class BaseLib extends LuaJavaCallback {
       L.push(protectedmt);      // return __metatable field
     }
     return 1;
+  }
+
+  /** :todo: implement load. */
+  private static int load(Lua L) {
+    return 0;
+  }
+
+  private static int load_aux(Lua L, int status) {
+    if (status == 0) {  // OK?
+      return 1;
+    } else {
+      L.pushNil();
+      L.insert(L, -2);  // put before error message
+      return 2;         // return nil plus error message
+    }
+  }
+
+  /** Implements loadfile. */
+  private static int loadfile(Lua L) {
+    String fname = L.optString(1, null);
+    return load_aux(L, L.loadFile(fname));
+  }
+
+  /** Implements loadstring. */
+  private static int loadstring(Lua L) {
+    String s = L.checkString(1);
+    String chunkname = L.optString(2, s);
+    return load_aux(L, L.loadString(s, chunkname));
   }
 
   /** Implements next. */

@@ -148,6 +148,8 @@ public final class Lua {
   public static final int ERRSYNTAX     = 3;
   public static final int ERRMEM        = 4;
   public static final int ERRERR        = 5;
+  /** Statuc code for loadFile. */
+  public static final int ERRFILE       = 6;
 
   /** Enums for gc(). */
   public static final int GCSTOP        = 0;
@@ -936,6 +938,11 @@ public final class Lua {
     return res;
   }
 
+  private int errfile(String what, String fname, Exception e) {
+    push("cannot " + what + " " + fname + ": " + e.toString());
+    return ERRFILE;
+  }
+
   /** Get a field (event) from an Lua value's metatable.  Returns null
    * if there is no metatable nor field.
    */
@@ -949,6 +956,53 @@ public final class Lua {
 
   private boolean isnoneornil(int narg) {
     return type(narg) <= TNIL;
+  }
+
+  /**
+   * Loads a Lua chunk from a file.  The <var>filename</var> argument is
+   * used in a call to {@link Class#getResourceAsStream} where
+   * <code>this</code> is the @{link Lua} instance, thus relative
+   * pathnames will be relative to the location of the
+   * <code>Lua.class</code> file.
+   */
+  public int loadFile(String filename) {
+    if (filename == null) {
+      throw new NullPointerException();
+    }
+    InputStream in = getClass().getResourceAsStream(filename);
+    if (in == null) {
+      return errfile("open", filename, new IOException());
+    }
+    LuaFunction f = null;
+    try {
+      in.mark(1);
+      int c = in.read();
+      if (c == '#') {     // Unix exec. file?
+        // :todo: handle this case
+      }
+      in.reset();
+      f = load(in, "@" + filename);
+    } catch (IOException e) {
+      return errfile("read", filename, e);
+    } finally {
+      try {
+        in.close();
+      } catch (IOException e_) { }
+    }
+    push(f);
+    return 0;
+  }
+
+  /** Loads a Lua chunk from a string. */
+  public int loadString(String s, String chunkname) {
+    LuaFunction f = null;
+    try {
+      f = load(stringReader(s), chunkname);
+    } catch (IOException e) {
+      return 1;
+    }
+    push(f);
+    return 0;
   }
 
   public int optInt(int narg, int def) {
