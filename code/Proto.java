@@ -133,6 +133,11 @@ final class Proto {
     return maxstacksize;
   }
 
+  /** Setter for maximum stack size. */
+  void setMaxstacksize(int m) {
+    maxstacksize = m;
+  }
+
   /** Instruction block (do not modify). */
   int[] code() {
     return code;
@@ -163,6 +168,16 @@ final class Proto {
   /** Constant array (do not modify). */
   Object[] constant() {
     return k;
+  }
+
+  /** Append constant. */
+  void constantAppend(int idx, Object o) {
+    if (idx >= k.length) {
+      Object[] newK = new Object[k.length*2+1];
+      System.arraycopy(k, 0, newK, 0, k.length);
+      k = newK;
+    }
+    k[idx] = o;
   }
 
   /** Predicate for whether function uses ... in its parameter list. */

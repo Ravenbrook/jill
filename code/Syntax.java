@@ -220,7 +220,7 @@ final class Syntax {
               semS = s;
               return TK_NAME;
             } else {
-              return ((Integer)t).intValue() + FIRST_RESERVED;
+              return ((Integer)t).intValue();
             }
           } else {
             int c = current;
@@ -258,7 +258,7 @@ final class Syntax {
   }
 
   private void save() {
-    buff.append(current);
+    buff.append((char)current);
   }
 
   private void save_and_next() throws IOException {
@@ -307,7 +307,7 @@ final class Syntax {
   }
 
   /** Equivalent to <code>luaX_syntaxerror</code>. */
-  private void xSyntaxerror(String msg) {
+  void xSyntaxerror(String msg) {
     xLexerror(msg, token);
   }
 
@@ -324,13 +324,21 @@ final class Syntax {
 
   // From lparser.c
 
+  private static boolean block_follow (int token) {
+    switch (token) {
+      case TK_ELSE: case TK_ELSEIF: case TK_END:
+      case TK_UNTIL: case TK_EOS:
+        return true;
+      default:
+        return false;
+    }
+  }
+
   private void check(int c) {
     if (token != c) {
       error_expected(c);
     }
   }
-
-  private void chunk() { }
 
   private void close_func() {
     removevars(0);
@@ -339,8 +347,16 @@ final class Syntax {
     fs = fs.prev;
   }
 
+  private void enterlevel() {
+    // :todo: implement me;
+  }
+
   private void error_expected(int token) {
     xSyntaxerror("'" + xToken2str(token) + "' expected");
+  }
+
+  private void leavelevel() {
+    // :todo: implement me;
   }
 
   /** Equivalent to luaY_parser. */
@@ -364,6 +380,214 @@ final class Syntax {
     while (fs.nactvar > tolevel) {
       fs.getlocvar(--fs.nactvar).setEndpc(fs.pc);
     }
+  }
+
+  private boolean testnext(int c) throws IOException {
+    if (token == c) {
+      xNext();
+      return true;
+    }
+    return false;
+  }
+
+
+  // GRAMMAR RULES
+
+  private void chunk() throws IOException {
+    // chunk -> { stat [';'] }
+    boolean islast = false;
+    enterlevel();
+    while (!islast && !block_follow(token)) {
+      islast = statement();
+      testnext(';');
+      // assert :todo: fill in assert
+      fs.freereg = fs.nactvar;
+    }
+    leavelevel();
+  }
+
+  private void expr(Expdesc v) throws IOException {
+    subexpr(v, 0);
+  }
+
+  /** @return number of expressions in expression list. */
+  private int explist1(Expdesc v) throws IOException {
+    // explist1 -> expr { ',' expr }
+    int n = 1;  // at least one expression
+    expr(v);
+    while (testnext(',')) {
+      fs.kExp2nextreg(v);
+      expr(v);
+      ++n;
+    }
+    return n;
+  }
+
+  private void exprstat() {
+    // stat -> func | assignment
+    // :todo: implement me
+    xSyntaxerror("unimplemented exprstat");
+  }
+
+  private void primaryexp (Expdesc v) {
+    // primaryexp ->
+    //    prefixexp { '.' NAME | '[' exp ']' | ':' NAME funcargs | funcargs }
+    // :todo: implement me
+    xSyntaxerror("unimplemented primaryexp");
+  }
+
+  private void retstat() throws IOException {
+    // stat -> RETURN explist
+    xNext();    // skip RETURN
+    int first = 0, nret;    // registers with returned values
+    if (block_follow(token) || token == ';') {
+      first = nret = 0; // return no values
+    } else {
+      Expdesc e = new Expdesc();
+      nret = explist1(e);
+      // :todo: if hasmultret
+      {
+        if (nret == 1) {        // only one single value?
+          first = fs.kExp2anyreg(e);
+        } else {
+          // :todo: returning more than one value
+        }
+      }
+    }
+    fs.kRet(first, nret);
+  }
+
+  private void simpleexp (Expdesc v) throws IOException {
+    // simpleexp -> NUMBER | STRING | NIL | true | false | ... |
+    //              constructor | FUNCTION body | primaryexp
+    switch (token) {
+      case TK_NUMBER:
+        v.init(Expdesc.VKNUM, 0);
+        v.setNval(tokenR);
+        break;
+      // :todo: more cases
+      default:
+        primaryexp(v);
+        return;
+    }
+    xNext();
+  }
+
+  private boolean statement() throws IOException {
+    int line = linenumber;
+    switch (token) {
+      // :todo: missing cases
+      case TK_RETURN:
+        retstat();
+        return true;
+      default:
+        exprstat();
+        return false;
+    }
+  }
+
+  // grep "ORDER OPR" if you change these enums.
+  // default access so that FuncState can access them.
+  static final int OPR_ADD = 0;
+  static final int OPR_SUB = 1;
+  static final int OPR_MUL = 2;
+  static final int OPR_DIV = 3;
+  static final int OPR_MOD = 4;
+  static final int OPR_POW = 5;
+  static final int OPR_CONCAT = 6;
+  static final int OPR_NE = 7;
+  static final int OPR_EQ = 8;
+  static final int OPR_LT = 9;
+  static final int OPR_LE = 10;
+  static final int OPR_GT = 11;
+  static final int OPR_GE = 12;
+  static final int OPR_AND = 13;
+  static final int OPR_OR = 14;
+  static final int OPR_NOBINOPR = 15;
+
+  static final int OPR_MINUS = 0;
+  static final int OPR_NOT = 1;
+  static final int OPR_LEN = 2;
+  static final int OPR_NOUNOPR = 3;
+
+  /** Converts token into binary operator.  */
+  private static int getbinopr(int op) {
+    switch (op) {
+      case '+': return OPR_ADD;
+      case '-': return OPR_SUB;
+      case '*': return OPR_MUL;
+      case '/': return OPR_DIV;
+      case '%': return OPR_MOD;
+      case '^': return OPR_POW;
+      case TK_CONCAT: return OPR_CONCAT;
+      case TK_NE: return OPR_NE;
+      case TK_EQ: return OPR_EQ;
+      case '<': return OPR_LT;
+      case TK_LE: return OPR_LE;
+      case '>': return OPR_GT;
+      case TK_GE: return OPR_GE;
+      case TK_AND: return OPR_AND;
+      case TK_OR: return OPR_OR;
+      default: return OPR_NOBINOPR;
+    }
+  }
+
+  private static int getunopr(int op) {
+    switch (op) {
+      case TK_NOT: return OPR_NOT;
+      case '-': return OPR_MINUS;
+      case '#': return OPR_LEN;
+      default: return OPR_NOUNOPR;
+    }
+  }
+
+
+  // ORDER OPR
+  /**
+   * Priority table.  left-priority of an operator is
+   * <code>priority[op][0]</code>, its right priority is
+   * <code>priority[op][1]</code>.
+   */
+  private static final int[][] priority = new int[][] {
+    {6, 6}, {6, 6}, {7, 7}, {7, 7}, {7, 7},     // + - * / %
+    {10, 9}, {5, 4},                // power and concat (right associative)
+    {3, 3}, {3, 3},                 // equality and inequality
+    {3, 3}, {3, 3}, {3, 3}, {3, 3}, // order
+    {2, 2}, {1, 1}                  // logical (and/or)
+  };
+
+  /** Priority for unary operators. */
+  private static final int UNARY_PRIORITY = 8;
+
+  /**
+   * Operator precedence parser.
+   * <code>subexpr -> (simpleexp) | unop subexpr) { binop subexpr }</code>
+   * where <var>binop</var> is any binary operator with a priority
+   * higher than <var>limit</var>.
+   */
+  private int subexpr(Expdesc v, int limit) throws IOException {
+    enterlevel();
+    int uop = getunopr(token);
+    if (uop != OPR_NOUNOPR) {
+      xNext();
+      subexpr(v, UNARY_PRIORITY);
+      fs.kPrefix(uop, v);
+    } else {
+      simpleexp(v);
+    }
+    // expand while operators have priorities higher than 'limit'
+    int op = getbinopr(token);
+    while (op != OPR_NOBINOPR && priority[op][0] > limit) {
+      Expdesc v2 = new Expdesc();
+      xNext();
+      fs.kInfix(op, v);
+      // read sub-expression with higher priority
+      int nextop = subexpr(v2, priority[op][1]);
+      fs.kPosfix(op, v, v2);
+      op = nextop;
+    }
+    leavelevel();
+    return op;
   }
 }
 

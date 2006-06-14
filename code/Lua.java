@@ -86,6 +86,7 @@ public final class Lua {
    * FuncState} can see it.
    */
   static final int MAXVARS = 200;
+  static final int MAXSTACK = 250;
 
   /** Used to communicate error status (ERRRUN, etc) from point where
    * error is raised to the code that catches it.
@@ -1215,6 +1216,13 @@ public final class Lua {
     return (instruction >>> 14) - ((1<<17)-1);
   }
 
+  static boolean ISK(int field) {
+    // The "is constant" bit position depends on the size of the B and C
+    // fields (required to be the same width).
+    // SIZE_B == 9
+    return field >= 0x100;
+  }
+
   /**
    * Near equivalent of macros RKB and RKC.  Note: non-static as it
    * requires stack and base instance members.  Stands for "Register or
@@ -1222,10 +1230,7 @@ public final class Lua {
    * (stack) or the constant array (k).
    */
   private Object RK(Object[] k, int field) {
-    // The "is constant" bit position depends on the size of the B and C
-    // fields (required to be the same width).
-    // SIZE_B == 9
-    if (field >= 0x100) {
+    if (ISK(field)) {
       return k[field & 0xff];
     }
     return stack.elementAt(base + field);
@@ -1238,6 +1243,13 @@ public final class Lua {
     // POS_B == 23
     // POS_C == 14
     return o | (a << 6) | (b << 23) | (c << 14);
+  }
+
+  static int CREATE_ABx(int o, int a, int bc) {
+    // POS_OP == 0
+    // POS_A == 6
+    // POS_Bx == POS_C == 14
+    return o | (a << 6) | (bc << 14);
   }
 
   // opcode enumeration.
