@@ -50,7 +50,7 @@ Edit the readme:
   vi version\0.X\readme.txt
   p4 submit version\0.X\readme.txt
 
-Note change-level for version branch:
+Note change-level for version branch (RELEASE):
 
   p4 changes -m 1 version/0.X/...
 
@@ -68,6 +68,10 @@ Adding the zip file to perforce:
   p4 add release\0.X.Y\jili-0.X.Y.zip
   p4 submit release\0.X.Y\jili-0.X.Y.zip
 
-Send it to Simon Wood
+Edit the release index:
 
-158981
+  p4 edit release\index.txt
+  vi release\index.txt
+  p4 submit release\index.txt
+
+Send the release (the zip file) to Simon Wood at Intuwave.
