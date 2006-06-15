@@ -45,8 +45,16 @@ final class Expdesc {
     return k;
   }
 
+  void setKind(int kind) {
+    this.k = kind;
+  }
+
   int info() {
     return info;
+  }
+
+  void setInfo(int i) {
+    this.info = i;
   }
 
   double nval() {
@@ -64,6 +72,11 @@ final class Expdesc {
 
   void nonreloc(int i) {
     k = VNONRELOC;
+    info = i;
+  }
+
+  void upval(int i) {
+    k = VUPVAL;
     info = i;
   }
 }

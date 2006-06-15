@@ -11,6 +11,10 @@ final class LocVar {
     this.endpc = endpc;
   }
 
+  String name() {
+    return name;
+  }
+
   void setEndpc(int endpc) {
     this.endpc = endpc;
   }

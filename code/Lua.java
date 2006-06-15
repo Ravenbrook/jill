@@ -1204,6 +1204,8 @@ public final class Lua {
   // | sBx                         | A          | OPCODE |
   // +--------------+--------------+------------+--------+
 
+  final static int NO_REG = 0xff;       // SIZE_A == 8, (1 << 8)-1
+
   // Hardwired values for speed.
   /** Equivalent of macro GET_OPCODE */
   private static int OPCODE(int instruction) {
@@ -1218,6 +1220,10 @@ public final class Lua {
     return (instruction >>> 6) & 0xff;
   }
 
+  static int SETARG_A(int i, int u) {
+    return (i & (0xff << 6)) | ((u & 0xff) << 6);
+  }
+
   /** Equivalent of macro GETARG_B */
   private static int ARGB(int instruction) {
     // POS_B == POS_OP + SIZE_OP + SIZE_A + SIZE_C == 23 (shift amount)
@@ -1227,11 +1233,19 @@ public final class Lua {
     return (instruction >>> 23);
   }
 
+  static int SETARG_B(int i, int b) {
+    return (i & (0x1ff << 23)) | ((b & 0x1ff) << 23);
+  }
+
   /** Equivalent of macro GETARG_C */
   private static int ARGC(int instruction) {
     // POS_C == POS_OP + SIZE_OP + SIZE_A == 14 (shift amount)
     // SIZE_C == 9 (operand width)
     return (instruction >>> 14) & 0x1ff;
+  }
+
+  static int SETARG_C(int i, int c) {
+    return (i & (0x1ff << 14)) | ((c & 0x1ff) << 14);
   }
 
   /** Equivalent of macro GETARG_Bx */

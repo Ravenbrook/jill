@@ -2,7 +2,12 @@
 
 import java.util.Hashtable;
 
-/** Used to model a function during compilation. */
+/**
+ * Used to model a function during compilation.  Code generation uses
+ * this structure extensively.  Most of the PUC-Rio functions from
+ * lcode.c have moved into this class, alongwith a few functions from
+ * lparser.c
+ */
 final class FuncState {
   /** See NO_JUMP in lcode.h. */
   static final int NO_JUMP = -1;
@@ -196,6 +201,27 @@ final class FuncState {
     kCodeABC(Lua.OP_RETURN, first, nret+1, 0);
   }
 
+  /** Equivalent to luaK_setmultret (in lcode.h). */
+  void kSetmultret(Expdesc e) {
+    kSetreturns(e, Lua.MULTRET);
+  }
+
+  /** Equivalent to luaK_setreturns. */
+  void kSetreturns(Expdesc e, int nresults) {
+    if (e.kind() == Expdesc.VCALL) {    // expression is an open function call?
+      setargc(e, nresults+1);
+    } else if (e.kind() == Expdesc.VVARARG) {
+      setargb(e, nresults+1);
+      setarga(e, freereg);
+      kReserveregs(1);
+    }
+  }
+
+  /** Equivalent to luaK_stringK. */
+  int kStringK(String s) {
+    return addk(s);
+  }
+
   private int addk(Object o) {
     Object v;
     v = h.get(o);
@@ -260,5 +286,44 @@ final class FuncState {
       // assert reg == freereg;
     }
   }
-}
 
+  /** Equivalent to indexupvalue from lparser.c */
+  int indexupval(String name, Expdesc v) {
+    // :todo: implement me
+    return 99;
+  }
+
+  /** Equivalent to markupval from lparser.c */
+  void markupval(int level) {
+    // :todo: implement me
+  }
+
+  /** Equivalent to searchvar from lparser.c */
+  int searchvar(String n) {
+    // caution: descending loop (in emulation of PUC-Rio).
+    for (int i=nactvar-1; i >= 0; i--) {
+      if (n == getlocvar(i).name()) {
+        return i;
+      }
+    }
+    return -1;  // not found
+  }
+
+  void setarga(Expdesc e, int a) {
+   int pc = e.info();
+   int[] code = f.code();
+   code[pc] = Lua.SETARG_A(code[pc], a);
+  }
+
+  void setargb(Expdesc e, int b) {
+    int pc = e.info();
+    int[] code = f.code();
+    code[pc] = Lua.SETARG_B(code[pc], b);
+  }
+
+  void setargc(Expdesc e, int c) {
+    int pc = e.info();
+    int[] code = f.code();
+    code[pc] = Lua.SETARG_C(code[pc], c);
+  }
+}

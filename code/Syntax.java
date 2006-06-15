@@ -340,11 +340,32 @@ final class Syntax {
     }
   }
 
+  /**
+   * @param what   the token that is intended to end the match.
+   * @param who    the token that begins the match.
+   * @param where  the line number of <var>what</var>.
+   */
+  private void check_match(int what, int who, int where)
+      throws IOException {
+    if (!testnext(what)) {
+      if (where == linenumber) {
+        error_expected(what);
+      } else {
+        xSyntaxerror("'" + xToken2str(what) + "' expected (to close '" +
+            xToken2str(who) + "' at line " + where + ")");
+      }
+    }
+  }
+
   private void close_func() {
     removevars(0);
     fs.kRet(0, 0);
     fs.close();
     fs = fs.prev;
+  }
+
+  private void codestring(Expdesc e, String s) {
+    e.init(Expdesc.VK, fs.kStringK(s));
   }
 
   private void enterlevel() {
@@ -382,6 +403,45 @@ final class Syntax {
     }
   }
 
+  private void singlevar(Expdesc var) throws IOException {
+    String varname = str_checkname();
+    if (singlevaraux(fs, varname, var, true) == Expdesc.VGLOBAL) {
+      var.setInfo(fs.kStringK(varname));
+    }
+  }
+
+  private static int singlevaraux(FuncState fs,
+      String n,
+      Expdesc var,
+      boolean base) {
+    if (fs == null) {   // no more levels?
+      var.init(Expdesc.VGLOBAL, Lua.NO_REG);    // default is global variable
+      return Expdesc.VGLOBAL;
+    } else {
+      int v = fs.searchvar(n);
+      if (v >= 0) {
+        var.init(Expdesc.VLOCAL, v);
+        if (!base) {
+          fs.markupval(v);      // local will be used as an upval
+        }
+        return Expdesc.VLOCAL;
+      } else {  // not found at current level; try upper one
+        if (singlevaraux(fs.prev, n, var, false) == Expdesc.VGLOBAL) {
+          return Expdesc.VGLOBAL;
+        }
+        var.upval(fs.indexupval(n, var));       // else was LOCAL or UPVAL
+        return Expdesc.VUPVAL;
+      }
+    }
+  }
+
+  private String str_checkname() throws IOException {
+    check(TK_NAME);
+    String s = tokenS;
+    xNext();
+    return s;
+  }
+
   private boolean testnext(int c) throws IOException {
     if (token == c) {
       xNext();
@@ -406,6 +466,11 @@ final class Syntax {
     leavelevel();
   }
 
+  private void constructor (Expdesc t) {
+    // constructor -> ??
+    // :todo: implement me
+  }
+
   private void expr(Expdesc v) throws IOException {
     subexpr(v, 0);
   }
@@ -423,17 +488,87 @@ final class Syntax {
     return n;
   }
 
-  private void exprstat() {
+  private void exprstat() throws IOException {
     // stat -> func | assignment
-    // :todo: implement me
-    xSyntaxerror("unimplemented exprstat");
+    Expdesc e = new Expdesc();
+    primaryexp(e);
+    if (e.kind() == Expdesc.VCALL) {    // stat -> func
+      fs.setargc(e, 1); // call statement uses no results
+    } else {    // stat -> assignment
+      // :todo: implement me
+      xSyntaxerror("unimplemented assignment");
+    }
   }
 
-  private void primaryexp (Expdesc v) {
+  private void funcargs(Expdesc f) throws IOException {
+    Expdesc args = new Expdesc();
+    int line = linenumber;
+    switch (token) {
+      case '(':         // funcargs -> '(' [ explist1 ] ')'
+        if (line != lastline) {
+          xSyntaxerror("ambiguous syntax (function call x new statement)");
+        }
+        xNext();
+        if (token == ')') {     // arg list is empty?
+          args.setKind(Expdesc.VVOID);
+        } else {
+          explist1(args);
+          fs.kSetmultret(args);
+        }
+        check_match(')', '(', line);
+        break;
+
+      case '{':         // funcargs -> constructor
+        constructor(args);
+        break;
+
+      case TK_STRING:   // funcargs -> STRING
+        codestring(args, tokenS);
+        xNext();        // must use tokenS before 'next'
+        break;
+
+      default:
+        xSyntaxerror("function arguments expected");
+        return;
+    }
+  }
+
+  private void prefixexp(Expdesc v) throws IOException {
+    // prefixexp -> NAME | '(' expr ')'
+    switch (token) {
+      case '(': {
+        int line = linenumber;
+        xNext();
+        expr(v);
+        check_match(')', '(', line);
+        fs.kDischargevars(v);
+        return;
+      }
+      case TK_NAME:
+        singlevar(v);
+        return;
+      default:
+        xSyntaxerror("unexpected symbol");
+        return;
+    }
+  }
+
+  private void primaryexp(Expdesc v) throws IOException {
     // primaryexp ->
     //    prefixexp { '.' NAME | '[' exp ']' | ':' NAME funcargs | funcargs }
     // :todo: implement me
-    xSyntaxerror("unimplemented primaryexp");
+    prefixexp(v);
+    while (true) {
+      switch (token) {
+        // :todo: missing cases
+        case '(': case TK_STRING: case '{':     // funcargs
+          fs.kExp2nextreg(v);
+          funcargs(v);
+          break;
+        default:
+          return;
+      }
+    }
   }
 
   private void retstat() throws IOException {
