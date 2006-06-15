@@ -52,6 +52,14 @@ public class SyntaxTest extends TestCase {
     assertTrue("script 4 okay", 0 == dostring(L, "return 99"));
   }
 
+  /** Test that function calls are compiled. */
+  public void testSyntax3() {
+    System.out.println("Syntax3");
+    Lua L = new Lua();
+    BaseLib.open(L);
+    assertTrue("script 1 okay", 0 == dostring(L, "print'hello'"));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -61,6 +69,8 @@ public class SyntaxTest extends TestCase {
         public void runTest() { testSyntax1(); } });
     suite.addTest(new SyntaxTest("testSyntax2") {
         public void runTest() { testSyntax2(); } });
+    suite.addTest(new SyntaxTest("testSyntax3") {
+        public void runTest() { testSyntax3(); } });
     return suite;
   }
 }
