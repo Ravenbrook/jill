@@ -125,7 +125,24 @@ final class FuncState {
   /** Equivalent to luaK_dischargevars. */
   void kDischargevars(Expdesc e) {
     switch (e.kind()) {
-      // :todo: more cases
+      case Expdesc.VLOCAL:
+        e.setKind(Expdesc.VNONRELOC);
+        break;
+      case Expdesc.VUPVAL:
+        e.reloc(kCodeABC(Lua.OP_GETUPVAL, 0, e.info(), 0));
+        break;
+      case Expdesc.VGLOBAL:
+        e.reloc(kCodeABx(Lua.OP_GETGLOBAL, 0, e.info()));
+        break;
+      case Expdesc.VINDEXED:
+        freereg(e.aux());
+        freereg(e.info());
+        e.reloc(kCodeABC(Lua.OP_GETTABLE, 0, e.info(), e.aux()));
+        break;
+      case Expdesc.VVARARG:
+      case Expdesc.VCALL:
+        kSetoneret(e);
+        break;
       default:
         break;  // there is one value available (somewhere)
     }
@@ -155,9 +172,20 @@ final class FuncState {
     exp2reg(e, freereg - 1);
   }
 
+  /** Equivalent to luaK_fixline. */
+  void kFixline(int line) {
+    f.setLineinfo(pc-1, line);
+  }
+
   /** Equivalent to luaK_infix. */
   void kInfix (int op, Expdesc e) {
     // :todo: implement me
+  }
+
+  /** Equivalent to luaK_nil. */
+  void kNil(int from, int n) {
+    // :todo: optimisation case
+    kCodeABC(Lua.OP_LOADNIL, from, from+n-1, 0);
   }
 
   /** Equivalent to luaK_numberK. */
@@ -204,6 +232,16 @@ final class FuncState {
   /** Equivalent to luaK_setmultret (in lcode.h). */
   void kSetmultret(Expdesc e) {
     kSetreturns(e, Lua.MULTRET);
+  }
+
+  /** Equivalent to luaK_setoneret. */
+  void kSetoneret(Expdesc e) {
+    if (e.kind() == Expdesc.VCALL) {    // expression is an open function call?
+      e.nonreloc(Lua.ARGA(getcode(e)));
+    } else if (e.kind() == Expdesc.VVARARG) {
+      setargb(e, 2);
+      e.setKind(Expdesc.VRELOCABLE);
+    }
   }
 
   /** Equivalent to luaK_setreturns. */
@@ -253,10 +291,27 @@ final class FuncState {
   private void discharge2reg(Expdesc e, int reg) {
     kDischargevars(e);
     switch (e.kind()) {
+      case Expdesc.VNIL:
+        kNil(reg, 1);
+        break;
+      case Expdesc.VFALSE: case Expdesc.VTRUE:
+        kCodeABC(Lua.OP_LOADBOOL, reg,
+            e.kind() == Expdesc.VTRUE ? 1 : 0, 0);
+        break;
+      case Expdesc.VK:
+        kCodeABx(Lua.OP_LOADK, reg, e.info());
+        break;
       case Expdesc.VKNUM:
         kCodeABx(Lua.OP_LOADK, reg, kNumberK(e.nval()));
         break;
-      // :todo: more cases
+      case Expdesc.VRELOCABLE:
+        setarga(e, reg);
+        break;
+      case Expdesc.VNONRELOC:
+        if (reg != e.info()) {
+          kCodeABC(Lua.OP_MOVE, reg, e.info(), 0);
+        }
+        break;
       default:
         throw new IllegalArgumentException();
     }
@@ -285,6 +340,10 @@ final class FuncState {
       --freereg;
       // assert reg == freereg;
     }
+  }
+
+  private int getcode(Expdesc e) {
+    return f.code()[e.info()];
   }
 
   /** Equivalent to indexupvalue from lparser.c */

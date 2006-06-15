@@ -1214,14 +1214,14 @@ public final class Lua {
     return instruction & 0x3f;
   }
   /** Equivalent of macro GETARG_A */
-  private static int ARGA(int instruction) {
+  static int ARGA(int instruction) {
     // POS_A == POS_OP + SIZE_OP == 6 (shift amount)
     // SIZE_A == 8 (operand width)
     return (instruction >>> 6) & 0xff;
   }
 
   static int SETARG_A(int i, int u) {
-    return (i & (0xff << 6)) | ((u & 0xff) << 6);
+    return (i & ~(0xff << 6)) | ((u & 0xff) << 6);
   }
 
   /** Equivalent of macro GETARG_B */
@@ -1234,7 +1234,7 @@ public final class Lua {
   }
 
   static int SETARG_B(int i, int b) {
-    return (i & (0x1ff << 23)) | ((b & 0x1ff) << 23);
+    return (i & ~(0x1ff << 23)) | ((b & 0x1ff) << 23);
   }
 
   /** Equivalent of macro GETARG_C */
@@ -1245,7 +1245,7 @@ public final class Lua {
   }
 
   static int SETARG_C(int i, int c) {
-    return (i & (0x1ff << 14)) | ((c & 0x1ff) << 14);
+    return (i & ~(0x1ff << 14)) | ((c & 0x1ff) << 14);
   }
 
   /** Equivalent of macro GETARG_Bx */

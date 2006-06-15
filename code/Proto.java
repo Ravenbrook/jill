@@ -160,6 +160,11 @@ final class Proto {
     lineinfo[pc] = line;
   }
 
+  /** Set lineinfo record. */
+  void setLineinfo(int pc, int line) {
+    lineinfo[pc] = line;
+  }
+
   /** Array of inner protos (do not modify). */
   Proto[] proto() {
     return p;

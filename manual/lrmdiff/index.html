@@ -51,6 +51,13 @@ Unicode characters.  Similarly, in Jili strings are sequences of Unicode
 characters.  Binary chunks are sequences of bytes.
 </p>
 
+<p>
+Lua supports strings escapes for <code>\a</code> and <code>\v</code>
+which are not present in Java.  They map to <code>char</code>s with
+value 7 and 11 respectively.  Which is what most C implementations using
+ASCII would map them to.
+</p>
+
 <dl>
   <dt>LRM 2.2.1</dt> <dd>The conversion of strings to numbers and
   numbers to strings in Jili may be slightly different from the

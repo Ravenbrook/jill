@@ -57,12 +57,21 @@ final class Expdesc {
     this.info = i;
   }
 
+  int aux() {
+    return aux;
+  }
+
   double nval() {
     return nval;
   }
 
   void setNval(double d) {
     this.nval = d;
+  }
+
+  /** Equivalent to hasmultret from lparser.c */
+  boolean hasmultret() {
+    return k == VCALL || k == VVARARG;
   }
 
   /** Equivalent to hasjumps from lcode.c. */
@@ -72,6 +81,11 @@ final class Expdesc {
 
   void nonreloc(int i) {
     k = VNONRELOC;
+    info = i;
+  }
+
+  void reloc(int i) {
+    k = VRELOCABLE;
     info = i;
   }
 

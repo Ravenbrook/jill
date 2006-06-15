@@ -199,6 +199,10 @@ final class Syntax {
         case '\r':
           inclinenumber();
           continue;
+        case '"':
+        case '\'':
+          read_string(current);
+          return TK_STRING;
         case EOZ:
           return TK_EOS;
         default:
@@ -236,6 +240,7 @@ final class Syntax {
     current = z.read();
   }
 
+  /** Reads number.  Writes to semR. */
   private void read_numeral() throws IOException {
     // assert isdigit(current);
     do {
@@ -257,8 +262,72 @@ final class Syntax {
     }
   }
 
+  /** Reads string.  Writes to semS. */
+  private void read_string(int del) throws IOException {
+    save_and_next();
+    while (current != del) {
+      switch (current) {
+        case EOZ:
+          xLexerror("unfinished string", TK_EOS);
+          continue;     // avoid compiler warning
+        case '\n':
+        case '\r':
+          xLexerror("unfinished string", TK_STRING);
+          continue;     // avoid compiler warning
+        case '\\': {
+          int c;
+          next();       // do not save the '\'
+          switch (current) {
+            case 'a': c = 7; break;     // no '\a' in Java.
+            case 'b': c = '\b'; break;
+            case 'f': c = '\f'; break;
+            case 'n': c = '\n'; break;
+            case 'r': c = '\r'; break;
+            case 't': c = '\t'; break;
+            case 'v': c = 11; break;    // no '\v' in Java.
+            case '\n': case '\r':
+              save('\n');
+              inclinenumber();
+              continue;
+            case EOZ:
+              continue; // will raise an error next loop
+            default:
+              if (!isdigit(current)) {
+                save_and_next();        // handles \\, \", \', \?
+              } else {  // \xxx
+                int i = 0;
+                c = 0;
+                do {
+                  c = 10*c + (current - '0');
+                  next();
+                } while (++i<3 && isdigit(current));
+                // In unicode, there are no bounds on a 3-digit decimal.
+                save(c);
+              }
+              continue;
+          }
+          save(c);
+          next();
+          continue;
+        }
+        default:
+          save_and_next();
+      }
+    }
+    save_and_next();    // skip delimiter
+    // consider optimising this StringBuffer.delete by not doing a save
+    // at the beginning and end of the string literal.
+    buff.deleteCharAt(0);
+    buff.deleteCharAt(buff.length()-1);
+    semS = buff.toString();
+  }
+
   private void save() {
     buff.append((char)current);
+  }
+
+  private void save(int c) {
+    buff.append((char)c);
   }
 
   private void save_and_next() throws IOException {
@@ -531,6 +600,21 @@ final class Syntax {
         xSyntaxerror("function arguments expected");
         return;
     }
+    // assert (f.kind() == VNONRELOC);
+    int nparams;
+    int base = f.info();        // base register for call
+    if (args.hasmultret()) {
+      nparams = Lua.MULTRET;     // open call
+    } else {
+      if (args.kind() != Expdesc.VVOID) {
+        fs.kExp2nextreg(args);  // close last argument
+      }
+      nparams = fs.freereg - (base+1);
+    }
+    f.init(Expdesc.VCALL, fs.kCodeABC(Lua.OP_CALL, base, nparams+1, 2));
+    fs.kFixline(line);
+    fs.freereg = base+1;        // call removes functions and arguments
+                // and leaves (unless changed) one result.
   }
 
   private void prefixexp(Expdesc v) throws IOException {
