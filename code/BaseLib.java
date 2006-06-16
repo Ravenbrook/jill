@@ -60,12 +60,12 @@ public final class BaseLib extends LuaJavaCallback {
    * Lua value that represents the generator function for ipairs.  In
    * PUC-Rio this is implemented as an upvalue of ipairs.
    */
-  private static final Object ipairsauxFunction = new BaseLib(IPAIRS_AUX);
+  private static final Object IPAIRS_AUX_FUN = new BaseLib(IPAIRS_AUX);
   /**
    * Lua value that represents the generator function for pairs.  In
    * PUC-Rio this is implemented as an upvalue of pairs.
    */
-  private static final Object pairsauxFunction = new BaseLib(PAIRS_AUX);
+  private static final Object PAIRS_AUX_FUN = new BaseLib(PAIRS_AUX);
 
   /**
    * Which library function this object represents.  This value should
@@ -184,18 +184,18 @@ public final class BaseLib extends LuaJavaCallback {
     return L.getTop();
   }
 
-  private static final String[] cgopts = new String[] {
+  private static final String[] CGOPTS = new String[] {
     "stop", "restart", "collect",
     "count", "step", "setpause", "setsetpmul"};
-  private static final int[] cgoptsnum = new int[] {
+  private static final int[] CGOPTSNUM = new int[] {
     Lua.GCSTOP, Lua.GCRESTART, Lua.GCCOLLECT,
     Lua.GCCOUNT, Lua.GCSTEP, Lua.GCSETPAUSE, Lua.GCSETSTEPMUL};
   /** Implements collectgarbage. */
   private static int collectgarbage(Lua L) {
-    int o = L.checkOption(1, "collect", cgopts);
+    int o = L.checkOption(1, "collect", CGOPTS);
     int ex = L.optInt(2, 0);
-    int res = L.gc(cgoptsnum[o], ex);
-    switch (cgoptsnum[o]) {
+    int res = L.gc(CGOPTSNUM[o], ex);
+    switch (CGOPTSNUM[o]) {
       case Lua.GCCOUNT: {
         int b = L.gc(Lua.GCCOUNTB, 0);
         L.pushNumber(res + ((double)b)/1024);
@@ -318,7 +318,7 @@ public final class BaseLib extends LuaJavaCallback {
   /** Implements ipairs. */
   private static int ipairs(Lua L) {
     L.checkType(1, Lua.TTABLE);
-    L.push(ipairsauxFunction);
+    L.push(IPAIRS_AUX_FUN);
     L.pushValue(1);
     L.pushNumber(0);
     return 3;
@@ -344,7 +344,7 @@ public final class BaseLib extends LuaJavaCallback {
    */
   private static int pairs(Lua L) {
     L.checkType(1, Lua.TTABLE);
-    L.push(pairsauxFunction);                   // return generator,
+    L.push(PAIRS_AUX_FUN);                   // return generator,
     LuaTable t = (LuaTable)L.value(1);
     L.push(new Object[] { t, t.keys() });   // state,
     L.push(Lua.NIL);                            // and initial value.
