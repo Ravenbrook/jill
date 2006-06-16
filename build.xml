@@ -42,6 +42,8 @@
   <target name="style">
     <checkstyle config="code/codingstyle.xml">
       <fileset dir="code" includes="**/*.java" />
+      <formatter type="plain" />
+      <formatter type="plain" toFile="style.txt" />
     </checkstyle>
   </target>
 
