@@ -25,7 +25,7 @@ final class Expdesc {
   static final int VKNUM = 5;           // nval = numerical value
   static final int VLOCAL = 6;          // info = local register
   static final int VUPVAL = 7;          // info = index into 'upvalues'
-  static final int VGLOBAL = 8;         // info = index of table; 
+  static final int VGLOBAL = 8;         // info = index of table;
                                         // aux = index of global name in 'k'
   static final int VINDEXED = 9;        // info = table register
                                         // aux = index register (or 'k')
@@ -41,7 +41,7 @@ final class Expdesc {
   private double nval;
   private int t;
   private int f;
-  
+
   Expdesc() { }
 
   Expdesc(int k, int i) {
@@ -49,9 +49,9 @@ final class Expdesc {
   }
 
   /** Equivalent to init_exp from lparser.c */
-  void init(int k, int i) {
+  void init(int kind, int i) {
     this.f = this.t = FuncState.NO_JUMP;
-    this.k = k;
+    this.k = kind;
     this.info = i;
   }
 
