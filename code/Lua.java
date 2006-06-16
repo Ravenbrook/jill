@@ -506,7 +506,13 @@ public final class Lua {
     return false;
   }
 
-  /** Protected {@link Lua#call}. */
+  /**
+   * Protected {@link Lua#call}.
+   * @param nargs     number of arguments.
+   * @param nresults  number of result required.
+   * @param errfunc   error function to call in case of error.
+   * @return status code
+   */
   public int pcall(int nargs, int nresults, Object errfunc) {
     apiChecknelems(nargs+1);
     int restoreStack = stack.size() - (nargs + 1);
@@ -534,7 +540,8 @@ public final class Lua {
   }
 
   /**
-   * Removes the top-most <var>n</var> elements from the stack.
+   * Removes (and discards) the top-most <var>n</var> elements from the stack.
+   * @param n  the number of elements to remove.
    */
   public void pop(int n) {
     if (n < 0) {
@@ -549,17 +556,24 @@ public final class Lua {
    * the protocol to be used for calling functions.  See {@link
    * Lua#pushNumber} for pushing numbers, and {@link Lua#pushValue} for
    * pushing a value that is already on the stack.
+   * @param o  the Lua value to push.
    */
   public void push(Object o) {
     stack.addElement(o);
   }
 
-  /** Push boolean onto the stack. */
+  /**
+   * Push boolean onto the stack.
+   * @param b  the boolean to push.
+   */
   public void pushBoolean(boolean b) {
     push(valueOfBoolean(b));
   }
 
-  /** Push literal string onto the stack. */
+  /**
+   * Push literal string onto the stack.
+   * @param s  the string to push.
+   */
   public void pushLiteral(String s) {
     push(s);
   }
@@ -571,15 +585,16 @@ public final class Lua {
 
   /**
    * Pushes a number onto the stack.  See also {@link Lua#push}.
+   * @param d  the number to push.
    */
   public void pushNumber(double d) {
     push(new Double(d));
   }
 
   /**
-   * Pushes a value onto the stack.  <var>idx</var> specifies the stack
-   * index of a value, it is pushed (copied) onto the top of the stack.
+   * Copies a stack element onto the top of the stack.
    * Equivalent to <code>L.push(L.value(idx))</code>.
+   * @param idx  stack index of value to push.
    */
   public void pushValue(int idx) {
     push(value(idx));
@@ -587,6 +602,9 @@ public final class Lua {
 
   /**
    * Implements equality without metamethods.
+   * @param o1  the first Lua value to compare.
+   * @param o2  the other Lua value.
+   * @return  true if and only if they compare equal.
    */
   public static boolean rawEqual(Object o1, Object o2) {
     return oRawequal(o1, o2);
@@ -604,7 +622,10 @@ public final class Lua {
   }
 
   /**
-   * Gets an element from an array.
+   * Gets an element from an array, without using metamethods.
+   * @param t  the array (table).
+   * @param i  the index of the element to retrieve.
+   * @return  the value at the specified index.
    */
   public static Object rawGetI(Object t, int i) {
     LuaTable table = (LuaTable)t;
