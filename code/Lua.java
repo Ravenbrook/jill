@@ -15,7 +15,6 @@
 
 
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Enumeration;
@@ -67,10 +66,10 @@ public final class Lua {
   private LuaTable global = new LuaTable();
   /** VM data stack. */
   private Vector stack = new Vector();
-  private int base = 0;
-  private int nCcalls = 0;
+  private int base;     // = 0;
+  private int nCcalls;  // = 0;
   /** Instruction to resume execution at.  Index into code array. */
-  private int savedpc = 0;
+  private int savedpc;  // = 0;
   /**
    * Vector of CallInfo records.  Actually it's a Stack which is a
    * subclass of Vector, but it mostly the Vector methods that are used.
@@ -116,7 +115,7 @@ public final class Lua {
 
   //////////////////////////////////////////////////////////////////////
   // Public API
-  
+
 
   /**
    * Equivalent of LUA_MULTRET.  Required, by vmPoscall, to be
@@ -145,7 +144,7 @@ public final class Lua {
   private static final int NUM_TAGS     = 8;
   // Names for above type tags, starting from TNIL.
   // Equivalent to luaT_typenames
-  private static final String[] typename = {
+  private static final String[] TYPENAME = {
     "nil", "boolean", "userdata", "number",
     "string", "table", "function", "userdata", "thread"
   };
@@ -194,7 +193,7 @@ public final class Lua {
    * <var>r</var>.  So the first result from the function call will be
    * at the same index where the function was immediately prior to
    * calling this method.
-   * 
+   *
    * @param n  The number of arguments in this function call.
    * @param r  The number of results required.
    */
@@ -289,7 +288,7 @@ public final class Lua {
    */
   public LuaTable getMetatable(Object o) {
     LuaTable mt;
-    
+
     if (o instanceof LuaTable) {
       LuaTable t = (LuaTable)o;
       mt = t.getMetatable();
@@ -638,7 +637,7 @@ public final class Lua {
     // interface and an interface method call may be shorter
     // than this mess.
     LuaTable t = (LuaTable)table;
-    
+
     if (o instanceof LuaFunction) {
       LuaFunction f = (LuaFunction)o;
       f.setEnv(t);
@@ -781,7 +780,7 @@ public final class Lua {
     if (TNONE == type) {
       return "no value";
     }
-    return typename[type];
+    return TYPENAME[type];
   }
 
   /**
@@ -934,7 +933,7 @@ public final class Lua {
       tagError(narg, t);
     }
   }
-  
+
   public int doString(String s) {
     int status = load(Lua.stringReader(s), s);
     if (status == 0) {
@@ -1018,7 +1017,7 @@ public final class Lua {
 
   /** Name of type of value at <var>idx</var>. */
   public String typeNameOfIndex(int idx) {
-    return typename[type(idx)];
+    return TYPENAME[type(idx)];
   }
 
   public void typerror(int narg, String tname) {
@@ -1455,7 +1454,8 @@ reentry:
         int i = code[pc++];       // VM instruction.
         // :todo: count and line hook
         int a = ARGA(i);          // its A field.
-        Object rb, rc;
+        Object rb;
+        Object rc;
 
         switch (OPCODE(i)) {
           case OP_MOVE:
@@ -1773,8 +1773,8 @@ reentry:
                 ((Double)stack.elementAt(base+a)).doubleValue() + step;
             double limit =
                 ((Double)stack.elementAt(base+a+1)).doubleValue();
-            if ( (0 < step && idx <= limit) ||
-                (step <= 0 && limit <= idx) ) {
+            if ((0 < step && idx <= limit) ||
+                (step <= 0 && limit <= idx)) {
               // dojump
               pc += ARGsBx(i);
               Object d = valueOfNumber(idx);
@@ -1950,7 +1950,7 @@ reentry:
   private boolean vmPoscall(int firstResult) {
     // :todo: call hook
     CallInfo lci; // local copy, for faster access
-    lci = dec_ci(); 
+    lci = dec_ci();
     // Now (as a result of the dec_ci call), lci is the CallInfo record
     // for the current function (the function executing an OP_RETURN
     // instruction), and this.ci is the CallInfo record for the function
@@ -2031,7 +2031,7 @@ reentry:
         return PCRJ;
       }
     }
-      
+
     throw new IllegalArgumentException();
   }
 
@@ -2069,7 +2069,7 @@ reentry:
       stack.addElement(NIL);
     }
     // PUC-Rio's LUA_COMPAT_VARARG is not supported here.
-    
+
     // Move fixed parameters to final position
     int fixed = stack.size() - actual;  // first fixed argument
     int base = stack.size();    // final position of first argument
