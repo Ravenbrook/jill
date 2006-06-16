@@ -859,6 +859,12 @@ public final class Lua {
     apiCheck(n <= stack.size() - base);
   }
 
+  /**
+   * Checks a general condition and raises error if false.
+   * @param cond      the (evaluated) condition to check.
+   * @param numarg    argument index.
+   * @param extramsg  extra error message to append.
+   */
   public void argCheck(boolean cond, int numarg, String extramsg) {
     if (cond) {
       return;
@@ -867,7 +873,10 @@ public final class Lua {
   }
 
   /**
-   * Equivalent to luaL_argerror.
+   * Raise a general error for an argument.
+   * @param narg      argument index.
+   * @param extramsg  extra message string to append.
+   * @return never (used idiomatically in <code>return argError(...)</code>)
    */
   public int argError(int narg, String extramsg) {
     // :todo: use debug API as per PUC-Rio
@@ -877,6 +886,12 @@ public final class Lua {
     return 0;
   }
 
+  /**
+   * Calls a metamethod.  Pushes 1 result onto stack if method called.
+   * @param obj    stack index of object whose metamethod to call
+   * @param event  metamethod (event) name.
+   * @return  true if and only if metamethod was found and called.
+   */
   public boolean callMeta(int obj, String event) {
     Object o = value(obj);
     Object ev = getMetafield(o, event);
@@ -889,12 +904,23 @@ public final class Lua {
     return true;
   }
 
+  /**
+   * Checks that an argument is present (can be anything).
+   * Raises error if not.
+   * @param narg  argument index.
+   */
   public void checkAny(int narg) {
     if (type(narg) == TNONE) {
       argError(narg, "value expected");
     }
   }
 
+  /**
+   * Checks is a number and returns it as an integer.  Raises error if
+   * not a number.
+   * @param narg  argument index.
+   * @return  the argument as an int.
+   */
   public int checkInt(int narg) {
     Object o = value(narg);
     int d = toInteger(o);
@@ -904,6 +930,14 @@ public final class Lua {
     return d;
   }
 
+  /**
+   * Checks that an optional string argument is an element from a set of
+   * strings.  Raises error if not.
+   * @param narg  argument index.
+   * @param def   default string to use if argument not present.
+   * @param lst   the set of strings to match against.
+   * @return an index into <var>lst</var> specifying the matching string.
+   */
   public int checkOption(int narg, String def, String[] lst) {
     String name;
 
@@ -920,6 +954,12 @@ public final class Lua {
     return argError(narg, "invalid option '" + name + "'");
   }
 
+  /**
+   * Checks argument is a string and returns it.  Raises error if not a
+   * string.
+   * @param narg  argument index.
+   * @return  the argument as a string.
+   */
   public String checkString(int narg) {
     String s = toString(value(narg));
     if (s == null) {
@@ -928,12 +968,22 @@ public final class Lua {
     return s;
   }
 
+  /**
+   * Checks the type of an argument, raises error if not matching.
+   * @param narg  argument index.
+   * @param t     typecode (from @{Lua#type} for example).
+   */
   public void checkType(int narg, int t) {
     if (type(narg) != t) {
       tagError(narg, t);
     }
   }
 
+  /**
+   * Loads and runs the given string.
+   * @param s  the string to run.
+   * @return  a status code, as per {@link Lua#load}.
+   */
   public int doString(String s) {
     int status = load(Lua.stringReader(s), s);
     if (status == 0) {
@@ -947,8 +997,12 @@ public final class Lua {
     return ERRFILE;
   }
 
-  /** Get a field (event) from an Lua value's metatable.  Returns null
-   * if there is no metatable nor field.
+  /**
+   * Get a field (event) from an Lua value's metatable.  Returns null
+   * if there is no field nor metatable.
+   * @param o           Lua value to get metafield for.
+   * @param event       name of metafield (event).
+   * @return            the field from the metatable, or null.
    */
   public Object getMetafield(Object o, String event) {
     LuaTable mt = getMetatable(o);
@@ -967,7 +1021,10 @@ public final class Lua {
    * used in a call to {@link Class#getResourceAsStream} where
    * <code>this</code> is the @{link Lua} instance, thus relative
    * pathnames will be relative to the location of the
-   * <code>Lua.class</code> file.
+   * <code>Lua.class</code> file.  Pushes compiled chunk, or error
+   * message, onto stack.
+   * @param filename  location of file.
+   * @return status code, as per {@link Lua#load}.
    */
   public int loadFile(String filename) {
     if (filename == null) {
@@ -992,11 +1049,24 @@ public final class Lua {
     return status;
   }
 
-  /** Loads a Lua chunk from a string. */
+  /**
+   * Loads a Lua chunk from a string.  Pushes compiled chunk, or error
+   * message, onto stack.
+   * @param s           the string to load.
+   * @param chunkname   the name of the chunk.
+   * @return status code, as per {@link Lua#load}.
+   */
   public int loadString(String s, String chunkname) {
     return load(stringReader(s), chunkname);
   }
 
+  /**
+   * Get optional integer argument.  Raises error if non-number
+   * supplied.
+   * @param narg  argument index.
+   * @param def   default value for integer.
+   * @return an int.
+   */
   public int optInt(int narg, int def) {
     if (isnoneornil(narg)) {
       return def;
@@ -1004,6 +1074,12 @@ public final class Lua {
     return checkInt(narg);
   }
 
+  /**
+   * Get optional string argument.  Raises error if non-string supplied.
+   * @param narg  argument index.
+   * @param def   default value for string.
+   * @return a string.
+   */
   public String optString(int narg, String def) {
     if (isnoneornil(narg)) {
       return def;
@@ -1015,11 +1091,19 @@ public final class Lua {
     typerror(narg, typeName(tag));
   }
 
-  /** Name of type of value at <var>idx</var>. */
+  /**
+   * Name of type of value at <var>idx</var>.
+   * @param idx  stack index.
+   */
   public String typeNameOfIndex(int idx) {
     return TYPENAME[type(idx)];
   }
 
+  /**
+   * Declare type error in argument.
+   * @param narg   Index of argument.
+   * @param tname  Name of type expected.
+   */
   public void typerror(int narg, String tname) {
     argError(narg, tname + " expected, got " + typeNameOfIndex(narg));
   }
