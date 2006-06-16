@@ -212,7 +212,9 @@
         <module name="Indentation"/>
 -->
         <module name="ModifiedControlVariable"/>
-        <module name="MultipleStringLiterals"/>
+        <module name="MultipleStringLiterals">
+          <property name="allowedDuplicates" value="2" />
+        </module>
         <module name="MultipleVariableDeclarations"/>
         <module name="StringLiteralEquality"/>
 
