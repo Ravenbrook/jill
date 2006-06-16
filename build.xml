@@ -30,12 +30,20 @@
   <property name="preverify" value="${mpp}/osx/preverify/preverify" />
     -->
 
+  <taskdef resource="checkstyletask.properties"
+      classpath="lib/checkstyle-all-4.1.jar" />
+
   <target name="sysinfo">
     <echo message="os.name:    ${os.name}" />
     <echo message="os.arch:    ${os.arch}" />
     <echo message="os.version: ${os.version}" />
   </target>
 
+  <target name="style">
+    <checkstyle config="code/codingstyle.xml">
+      <fileset dir="code" includes="**/*.java" />
+    </checkstyle>
+  </target>
 
   <target name="bin-dir">
     <mkdir dir="bin" />
