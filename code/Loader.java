@@ -333,12 +333,12 @@ final class Loader {
   }
 
   /**
-   * Undumps an int.  This is the only method that needs to swab.
+   * Undumps an int.  This method swabs accordingly.
    * size_t and Instruction need swabbing too, but the code
    * simply uses this method to load size_t and Instruction.
    */
   private int intLoad() throws IOException {
-    // :size:int  Here we assume an int is 4 bytes.
+    // :int:size  Here we assume an int is 4 bytes.
     byte buf[] = new byte[4];
     block(buf);
 
