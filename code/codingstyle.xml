@@ -202,6 +202,7 @@
         <module name="ParameterAssignment"/>
         <module name="Header">
             <property name="headerFile" value="code/header.txt"/>
+            <property name="ignoreLines" value="1,2"/>
         </module>
 <!--
         <module name="IllegalCatch"/>
