@@ -78,6 +78,12 @@ public final class BaseLib extends LuaJavaCallback {
     this.which = which;
   }
 
+  /**
+   * Implements all of the functions in the Lua base library.  Do not
+   * call directly.
+   * @param L  the Lua state in which to execute.
+   * @return number of returned parameters, as per convention.
+   */
   public int luaFunction(Lua L) {
     switch (which) {
       case ASSERT:
@@ -136,6 +142,11 @@ public final class BaseLib extends LuaJavaCallback {
     return 0;
   }
 
+  /**
+   * Opens the base library into the given Lua state.  This registers
+   * the symbols of the base library in the global table.
+   * @param L  The Lua state into which to open.
+   */
   public static void open(Lua L) {
     // set global _G
     L.setGlobal("_G", L.getGlobals());
