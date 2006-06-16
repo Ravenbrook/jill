@@ -52,19 +52,20 @@ final class BaseLibReader extends java.io.Reader {
     }
     return s.charAt(i++);
   }
-    
+
   public int read(char[] cbuf, int off, int len) {
-    for (int i=0; i<len; ++i) {
+    int j = 0;  // loop index required after loop
+    for (j=0; j<len; ++j) {
       int c = read();
       if (c == -1) {
-        if (i == 0) {
+        if (j == 0) {
           return -1;
         } else {
-          return i;
+          return j;
         }
       }
-      cbuf[off+i] = (char)c;
+      cbuf[off+j] = (char)c;
     }
-    return i;
+    return j;
   }
 }
