@@ -192,7 +192,7 @@ final class FuncState {
   }
 
   /** Equivalent to luaK_infix. */
-  void kInfix (int op, Expdesc e) {
+  void kInfix(int op, Expdesc e) {
     // :todo: implement me
   }
 
@@ -227,6 +227,8 @@ final class FuncState {
         break;
       case Syntax.OPR_LEN:
         kExp2anyreg(e);
+        codearith(Lua.OP_LEN, e, e2);
+        break;
       default:
         throw new IllegalArgumentException();
     }
@@ -287,12 +289,12 @@ final class FuncState {
     return nk++;
   }
 
-  void codearith (int op, Expdesc e1, Expdesc e2) {
+  void codearith(int op, Expdesc e1, Expdesc e2) {
     // :todo: implement me
     return;
   }
 
-  void codenot (Expdesc e) {
+  void codenot(Expdesc e) {
     kDischargevars(e);
     // :todo: implement me
   }
@@ -343,13 +345,13 @@ final class FuncState {
     e.init(Expdesc.VNONRELOC, reg);
   }
 
-  private void freeexp (Expdesc e) {
+  private void freeexp(Expdesc e) {
     if (e.kind() == Expdesc.VNONRELOC) {
       freereg(e.info());
     }
   }
 
-  private void freereg (int reg) {
+  private void freereg(int reg) {
     if (!Lua.ISK(reg) && reg >= nactvar) {
       --freereg;
       // assert reg == freereg;
