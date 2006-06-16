@@ -86,8 +86,14 @@
         <module name="LocalFinalVariableName"/>
         <module name="LocalVariableName"/>
         <module name="MemberName"/>
-        <module name="MethodName"/>
-        <module name="ParameterName"/>
+        <module name="MethodName">
+          <property name="format"
+              value="^(([a-z][a-zA-Z0-9]*)|([a-z][a-z0-9_]*))$" />
+        </module>
+        <module name="ParameterName">
+          <property name="format"
+            value="^(([a-z][a-zA-Z0-9]*)|L)$" />
+        </module>
         <module name="StaticVariableName"/>
 
         <!-- Item 47 - Don't ignore exceptions -->
@@ -146,19 +152,25 @@
 -->
 
         <module name="LeftCurly">
-            <property name="option" value="nl"/>
+            <property name="option" value="eol"/>
         </module>
         <module name="RightCurly">
-            <property name="option" value="alone"/>
+            <property name="option" value="same"/>
         </module>
 
         <module name="DoubleCheckedLocking"/>
         <module name="EmptyStatement"/>
-        <module name="HiddenField"/>
+        <module name="HiddenField">
+          <property name="ignoreConstructorParameter" value="true" />
+          <property name="ignoreSetter" value="true" />
+        </module>
+          
         <module name="InnerAssignment"/>
+<!--
         <module name="MagicNumber">
 		<property name="ignoreNumbers" value="-1,0,1,2,3,4,5,6,7,8"/>
 	</module>
+-->
 <!--
         <module name="MissingSwitchDefault"/>
 -->
@@ -172,7 +184,9 @@
         <module name="HideUtilityClassConstructor"/>
 
         <module name="ArrayTypeStyle"/>
+<!--
         <module name="FinalParameters"/>
+-->
         <module name="GenericIllegalRegexp">
             <property name="format" value="\s+$"/>
             <property name="message" value="Line has trailing spaces."/>
