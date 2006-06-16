@@ -662,12 +662,21 @@ public final class Lua {
     return false;
   }
 
-  /** Set a field in an object. */
+  /**
+   * Set a field in a Lua value.
+   * @param t     Lua value of which to set a field.
+   * @param name  Name of field to set.
+   * @param v     new Lua value for field.
+   */
   public void setField(Object t, String name, Object v) {
     vmSettable(t, name, v);
   }
 
-  /** Sets the metatable for a Lua value. */
+  /**
+   * Sets the metatable for a Lua value.
+   * @param o   Lua value of which to set metatable.
+   * @param mt  The new metatable.
+   */
   public void setMetatable(Object o, Object mt) {
     if (isNil(mt)) {
       mt = null;
@@ -688,6 +697,8 @@ public final class Lua {
 
   /**
    * Set a global variable.
+   * @param name   name of the global variable to set.
+   * @param value  desired new value for the variable.
    */
   public void setGlobal(String name, Object value) {
     vmSettable(global, name, value);
@@ -695,6 +706,7 @@ public final class Lua {
 
   /**
    * Set the stack top.
+   * @param n  the desired size of the stack (in elements).
    */
   public void setTop(int n) {
     if (n < 0) {
@@ -705,6 +717,8 @@ public final class Lua {
 
   /**
    * Convert to boolean.
+   * @param o  Lua value to convert.
+   * @return  the resulting primitive boolean.
    */
   public boolean toBoolean(Object o) {
     return !(o == NIL || Boolean.FALSE.equals(o));
@@ -713,6 +727,8 @@ public final class Lua {
   /**
    * Convert to integer and return it.  Returns 0 if cannot be
    * converted.
+   * @param o  Lua value to convert.
+   * @return  the resulting int.
    */
   public int toInteger(Object o) {
     if (tonumber(o, numop)) {
@@ -724,6 +740,8 @@ public final class Lua {
   /**
    * Convert to number and return it.  Returns 0 if cannot be
    * converted.
+   * @param o  Lua value to convert.
+   * @return  The resulting number.
    */
   public double toNumber(Object o) {
     if (tonumber(o, numop)) {
@@ -734,14 +752,19 @@ public final class Lua {
 
   /**
    * Convert to string and return it.  If value cannot be converted then
-   * null is returned.
+   * null is returned.  Note that unlike <code>lua_tostring</code> this
+   * does not modify the Lua value.
+   * @param o  Lua value to convert.
+   * @return  The resulting string.
    */
   public String toString(Object o) {
     return vmTostring(o);
   }
 
   /**
-   * Returns the type of the Lua value at the specified stack index.
+   * Type of the Lua value at the specified stack index.
+   * @param idx  stack index to type.
+   * @return  the type, or {@link Lua#TNONE} if there is no value at <var>idx</var>
    */
   public int type(int idx) {
     idx = absIndex(idx);
@@ -752,7 +775,11 @@ public final class Lua {
     return type(o);
   }
 
-  /** Return the type of the Lua value. */
+  /**
+   * Type of a Lua value.
+   * @param o  the Lua value whose type to return.
+   * @return  the Lua type from an enumeration.
+   */
   public int type(Object o) {
     if (o == NIL) {
       return TNIL;
@@ -775,6 +802,8 @@ public final class Lua {
 
   /**
    * Name of type.
+   * @param type  a Lua type from, for example, @{link lua#type}.
+   * @return  the type's name.
    */
   public String typeName(int type) {
     if (TNONE == type) {
@@ -784,9 +813,11 @@ public final class Lua {
   }
 
   /**
-   * Gets a value from the stack.  The value at the specified stack
-   * position is returned.  If <var>idx</var> is positive and exceeds
+   * Gets a value from the stack.
+   * If <var>idx</var> is positive and exceeds
    * the size of the stack, {@link Lua#NIL} is returned.
+   * @param idx  the stack index of the value to retrieve.
+   * @return  the Lua value from the stack.
    */
   public Object value(int idx) {
     idx = absIndex(idx);
@@ -797,13 +828,16 @@ public final class Lua {
   }
 
   /**
-   * Converts primitive boolean into a Lua value.  If CLDC 1.1 had
-   * <code>java.lang.Boolean.valueOf(boolean);</code> then I probably
-   * wouldn't have written this.  This does have a small advantage:
-   * code that uses this method does not need to assume that Lua booleans in
-   * Jili are represented using Java.lang.Boolean.
+   * Converts primitive boolean into a Lua value.
+   * @param b  the boolean to convert.
+   * @return  the resulting Lua value.
    */
   public static Object valueOfBoolean(boolean b) {
+     // If CLDC 1.1 had
+     // <code>java.lang.Boolean.valueOf(boolean);</code> then I probably
+     // wouldn't have written this.  This does have a small advantage:
+     // code that uses this method does not need to assume that Lua booleans in
+     // Jili are represented using Java.lang.Boolean.
     if (b) {
       return Boolean.TRUE;
     } else {
@@ -813,6 +847,8 @@ public final class Lua {
 
   /**
    * Converts primitive number into a Lua value.
+   * @param d  the number to convert.
+   * @return  the resulting Lua value.
    */
   public static Object valueOfNumber(double d) {
     // :todo: consider interning "common" numbers, like 0, 1, -1, etc.
