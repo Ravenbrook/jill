@@ -178,9 +178,6 @@ final class Loader {
    * @param proto  The Proto instance to which debug info will be added.
    */
   private void debug(Proto proto) throws IOException {
-    // Currently everything is carefully loaded from the chunk, then
-    // thrown away.
-
     // lineinfo
     int n = intLoad();
     int[] lineinfo = new int[n];
@@ -193,10 +190,10 @@ final class Loader {
     n = intLoad();
     LocVar[] locvar = new LocVar[n];
     for (int i=0; i<n; ++i) {
-      String name = string();
-      int s = intLoad();
-      int e = intLoad();
-      locvar[i] = new LocVar(name, s, e);
+      String s = string();
+      int start = intLoad();
+      int end = intLoad();
+      locvar[i] = new LocVar(s, start, end);
     }
 
     // upvalue (names)
@@ -219,8 +216,10 @@ final class Loader {
    */
   private Proto function(String parentSource) throws IOException {
     String source;
-    int linedefined, lastlinedefined;
-    int nups, numparams;
+    int linedefined;
+    int lastlinedefined;
+    int nups;
+    int numparams;
     int varargByte;
     boolean vararg;
     int maxstacksize;
@@ -285,7 +284,7 @@ final class Loader {
    * On no account should anyone except {@link Loader#header} modify
    * this array.
    */
-  static final byte[] goldenHeader = new byte[] {
+  static final byte[] HEADER = new byte[] {
       033, (byte)'L', (byte)'u', (byte)'a',
       0x51, 0, 99, 4,
       4, 4, 8, 0};
@@ -324,10 +323,10 @@ final class Loader {
 
     block(buf);
 
-    // poke the goldenHeader's endianness byte and compare.
-    goldenHeader[6] = buf[6];
+    // poke the HEADER's endianness byte and compare.
+    HEADER[6] = buf[6];
 
-    if (buf[6] < 0 || buf[6] > 1 || !arrayEquals(goldenHeader, buf)) {
+    if (buf[6] < 0 || buf[6] > 1 || !arrayEquals(HEADER, buf)) {
       throw new IOException();
     }
     bigendian = (buf[6] == 0);
@@ -335,7 +334,7 @@ final class Loader {
 
   /**
    * Undumps an int.  This is the only method that needs to swab.
-   * size_t and Instruction need swabbing too, but the code 
+   * size_t and Instruction need swabbing too, but the code
    * simply uses this method to load size_t and Instruction.
    */
   private int intLoad() throws IOException {
@@ -416,7 +415,6 @@ final class Loader {
 
     return new String(buf);
   }
-    
 
   /**
    * CLDC 1.1 does not provide <code>java.util.Arrays</code> so we make

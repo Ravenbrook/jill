@@ -56,7 +56,7 @@ final class LuaInternal extends LuaJavaCallback {
         stream.reset();
       }
 
-      if (c == Loader.goldenHeader[0]) {
+      if (c == Loader.HEADER[0]) {
         // assert stream != null
         Loader l = new Loader(stream, chunkname);
         p = l.undump();
