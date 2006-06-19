@@ -61,6 +61,9 @@ import java.util.Vector;
  * </p>
  */
 public final class Lua {
+  /** Version string. */
+  public static final String VERSION = "Lua 5.1 (Jili 0.X.Y)";
+
   /** Table of globals (global variables).  Actually shared across all
    * coroutines. */
   private LuaTable global = new LuaTable();
