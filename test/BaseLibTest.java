@@ -196,6 +196,7 @@ public class BaseLibTest extends JiliTestCase {
 
     // Test that each global name is defined as expected.
     String[] name = {
+      "_VERSION",
       "_G", "ipairs", "pairs", "print", "rawequal", "rawget", "rawset",
       "select", "tonumber", "tostring", "type", "unpack"
     };
@@ -341,6 +342,16 @@ public class BaseLibTest extends JiliTestCase {
     nTrue("testdofile", 1);
   }
 
+  /** Tests _VERSION */
+  public void testVersion() {
+    Lua L = new Lua();
+    BaseLib.open(L);
+
+    Object o = L.getGlobal("_VERSION");
+    assertTrue("_VERSION exists", o != null);
+    assertTrue("_VERSION is a string", L.isString(o));
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -396,6 +407,8 @@ public class BaseLibTest extends JiliTestCase {
         public void runTest() { testLoad(); } });
     suite.addTest(new BaseLibTest("testDofile") {
         public void runTest() { testDofile(); } });
+    suite.addTest(new BaseLibTest("testVersion") {
+        public void runTest() { testVersion(); } });
     return suite;
   }
 }
