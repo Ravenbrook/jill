@@ -50,6 +50,14 @@ Edit the readme:
   vi version\0.X\readme.txt
   p4 submit version\0.X\readme.txt
 
+Edit the Lua.VERSION (a public string declared in Lua.java):
+
+  p4 edit version\0.X\code\Lua.java
+  vi version\0.X\code\Lua.java
+  p4 submit version\0.X\code\Lua.java
+
+:todo: run smoke test?
+
 Note change-level for version branch (RELEASE):
 
   p4 changes -m 1 version/0.X/...
