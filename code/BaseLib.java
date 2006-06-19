@@ -134,6 +134,8 @@ public final class BaseLib extends LuaJavaCallback {
         return type(L);
       case UNPACK:
         return unpack(L);
+      case XPCALL:
+        return xpcall(L);
       case IPAIRS_AUX:
         return ipairsaux(L);
       case PAIRS_AUX:
@@ -571,4 +573,13 @@ public final class BaseLib extends LuaJavaCallback {
     return n;
   }
 
+  /** Implements xpcall. */
+  private static int xpcall(Lua L) {
+    L.checkAny(2);
+    Object errfunc = L.value(2);
+    L.setTop(1);        // remove error function from stack
+    int status = L.pcall(0, Lua.MULTRET, errfunc);
+    L.insert(L.valueOfBoolean(status == 0), 1);
+    return L.getTop();  // return status + all results
+  }
 }

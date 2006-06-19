@@ -108,6 +108,11 @@ public final class Lua {
    * error is raised to the code that catches it.
    */
   private int errorStatus;
+  /**
+   * The current error handler (set by {@link Lua#pcall}).  A Lua
+   * function to call.
+   */
+  private Object errfunc;
 
   /** Nonce object used by pcall and friends (to detect when an
    * exception is a Lua error). */
@@ -590,17 +595,21 @@ public final class Lua {
    * @param errfunc   error function to call in case of error.
    * @return status code
    */
-  public int pcall(int nargs, int nresults, Object errfunc) {
+  public int pcall(int nargs, int nresults, Object ef) {
     apiChecknelems(nargs+1);
     int restoreStack = stack.size() - (nargs + 1);
+    // Most of this code comes from luaD_pcall
     int restoreCi = civ.size();
     int oldnCcalls = nCcalls;
-    // :todo: save and restore allowhooks and errfunc
+    Object old_errfunc = errfunc;
+    errfunc = ef;
+    // :todo: save and restore allowhooks
     try  {
+      errorStatus = 0;
       call(nargs, nresults);
     } catch (RuntimeException e) {
       if (e.getMessage() == LUA_ERROR) {
-        fClose(restoreStack);
+        fClose(restoreStack);   // close eventual pending closures
         // copy error object (usually a string) down
         stack.setElementAt(stack.lastElement(), restoreStack);
         stack.setSize(restoreStack+1);
@@ -609,11 +618,12 @@ public final class Lua {
         ci = (CallInfo)civ.lastElement();
         base = ci.base();
         savedpc = ci.savedpc();
-        return errorStatus;
+      } else {
+        throw e;
       }
-      throw e;
     }
-    return 0;
+    errfunc = old_errfunc;
+    return errorStatus;
   }
 
   /**
@@ -1331,13 +1341,28 @@ public final class Lua {
 
   // Methods equivalent to the file ldebug.c.  Prefixed with g.
 
+  /** p1 and p2 are absolute stack indexes. */
+  private void gConcaterror(int p1, int p2) {
+    if (stack.elementAt(p1) instanceof String) {
+      p1 = p2;
+    }
+    // assert !(p1 instanceof String);
+    gTypeerror(stack.elementAt(p1), "concatenate");
+  }
+
   static void gCheckcode(Proto p) {
     // :todo: implement me.
   }
 
   private int gErrormsg(Object message) {
-    // :todo: check for errfunc
     push(message);
+    if (errfunc != null) {      // is there an error handling function
+      if (!isFunction(errfunc)) {
+        dThrow(ERRERR);
+      }
+      insert(errfunc, getTop());        // push function (under error arg)
+      vmCall(stack.size()-2, 1);        // call it
+    }
     dThrow(ERRRUN);
     // NOTREACHED
     return 0;
@@ -1583,7 +1608,11 @@ public final class Lua {
 
   // end of instruction decomposition
 
-  /** Equivalent of luaD_call. */
+  /**
+   * Equivalent of luaD_call.
+   * @param func  absolute stack index of function to call.
+   * @param r     number of required results.
+   */
   private void vmCall(int func, int r) {
     ++nCcalls;
     if (vmPrecall(func, r) == PCRLUA) {
@@ -1598,7 +1627,8 @@ public final class Lua {
       int top = base + last + 1;
       int n = 2;  // number of elements handled in this pass (at least 2)
       if (!tostring(top-2)|| !tostring(top-1)) {
-        // :todo: implement me
+        // :todo: try metamethods
+        gConcaterror(top-2, top-1);
         throw new IllegalArgumentException();
       } else if (((String)stack.elementAt(top-1)).length() > 0) {
         int tl = ((String)stack.elementAt(top-1)).length();
@@ -2208,7 +2238,7 @@ reentry:
   /**
    * Equivalent of LuaD_precall.  This method expects that the arguments
    * to the function are placed above the function on the stack.
-   * @param func  stack index of the function to call.
+   * @param func  absolute stack index of the function to call.
    * @param r     number of results expected.
    */
   private int vmPrecall(int func, int r) {
