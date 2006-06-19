@@ -407,7 +407,7 @@ final class Syntax {
 
   // From lparser.c
 
-  private static boolean block_follow (int token) {
+  private static boolean block_follow(int token) {
     switch (token) {
       case TK_ELSE: case TK_ELSEIF: case TK_END:
       case TK_UNTIL: case TK_EOS:
@@ -549,7 +549,7 @@ final class Syntax {
     leavelevel();
   }
 
-  private void constructor (Expdesc t) {
+  private void constructor(Expdesc t) {
     // constructor -> ??
     // :todo: implement me
   }
@@ -690,7 +690,7 @@ final class Syntax {
     fs.kRet(first, nret);
   }
 
-  private void simpleexp (Expdesc v) throws IOException {
+  private void simpleexp(Expdesc v) throws IOException {
     // simpleexp -> NUMBER | STRING | NIL | true | false | ... |
     //              constructor | FUNCTION body | primaryexp
     switch (token) {
@@ -779,9 +779,9 @@ final class Syntax {
   /**
    * Priority table.  left-priority of an operator is
    * <code>priority[op][0]</code>, its right priority is
-   * <code>priority[op][1]</code>.
+   * <code>priority[op][1]</code>.  Please do not modify this table.
    */
-  private static final int[][] priority = new int[][] {
+  private static final int[][] PRIORITY = new int[][] {
     {6, 6}, {6, 6}, {7, 7}, {7, 7}, {7, 7},     // + - * / %
     {10, 9}, {5, 4},                // power and concat (right associative)
     {3, 3}, {3, 3},                 // equality and inequality
@@ -810,12 +810,12 @@ final class Syntax {
     }
     // expand while operators have priorities higher than 'limit'
     int op = getbinopr(token);
-    while (op != OPR_NOBINOPR && priority[op][0] > limit) {
+    while (op != OPR_NOBINOPR && PRIORITY[op][0] > limit) {
       Expdesc v2 = new Expdesc();
       xNext();
       fs.kInfix(op, v);
       // read sub-expression with higher priority
-      int nextop = subexpr(v2, priority[op][1]);
+      int nextop = subexpr(v2, PRIORITY[op][1]);
       fs.kPosfix(op, v, v2);
       op = nextop;
     }
