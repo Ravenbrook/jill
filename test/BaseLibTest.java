@@ -159,7 +159,7 @@ import j2meunit.framework.TestSuite;
 //   function testdofile()
 //     return dofile(testloadfilename)==99
 //   end
-//   function testdoxpcall()
+//   function testxpcall()
 //     local function anerror()return {}..{}end
 //     local function seven()return 7 end
 //     local a,b = xpcall(anerror, nil)
