@@ -150,6 +150,8 @@ public final class BaseLib extends LuaJavaCallback {
   public static void open(Lua L) {
     // set global _G
     L.setGlobal("_G", L.getGlobals());
+    // set global _VERSION
+    L.setGlobal("_VERSION", Lua.VERSION);
     r(L, "assert", ASSERT);
     r(L, "collectgarbage", COLLECTGARBAGE);
     r(L, "dofile", DOFILE);
