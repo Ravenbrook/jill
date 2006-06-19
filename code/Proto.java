@@ -29,11 +29,11 @@
  */
 final class Proto {
   /** Interned 0-element array. */
-  private static final int[] intArrayZero = new int[0];
-  private static final LocVar[] locvarArrayZero = new LocVar[0];
-  private static final Object[] objectArrayZero = new Object[0];
-  private static final Proto[] protoArrayZero = new Proto[0];
-  private static final String[] stringArrayZero = new String[0];
+  private static final int[] ZERO_INT_ARRAY = new int[0];
+  private static final LocVar[] ZERO_LOCVAR_ARRAY = new LocVar[0];
+  private static final Object[] ZERO_OBJECT_ARRAY = new Object[0];
+  private static final Proto[] ZERO_PROTO_ARRAY = new Proto[0];
+  private static final String[] ZERO_STRING_ARRAY = new String[0];
 
   // Generally the fields are named following the PUC-Rio implementation
   // and so are unusually terse.
@@ -114,12 +114,12 @@ final class Proto {
   Proto(String source) {
     maxstacksize = 2;   // register 0/1 are always valid.
     this.source = source;
-    this.k = objectArrayZero;
-    this.code = intArrayZero;
-    this.p = protoArrayZero;
-    this.lineinfo = intArrayZero;
-    this.locvar = locvarArrayZero;
-    this.upvalue = stringArrayZero;
+    this.k = ZERO_OBJECT_ARRAY;
+    this.code = ZERO_INT_ARRAY;
+    this.p = ZERO_PROTO_ARRAY;
+    this.lineinfo = ZERO_INT_ARRAY;
+    this.locvar = ZERO_LOCVAR_ARRAY;
+    this.upvalue = ZERO_STRING_ARRAY;
   }
 
   /**
@@ -210,7 +210,7 @@ final class Proto {
   }
 
   /** LocVar array (do not modify). */
-  LocVar[] locvar() { 
+  LocVar[] locvar() {
     return locvar;
   }
 

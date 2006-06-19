@@ -118,32 +118,42 @@ public final class Lua {
 
 
   /**
-   * Equivalent of LUA_MULTRET.  Required, by vmPoscall, to be
-   * negative.
+   * Equivalent of LUA_MULTRET.
    */
+  // Required, by vmPoscall, to be negative.
   public static final int MULTRET = -1;
   /**
-   * Lua's nil value.
+   * The Lua <code>nil</code> value.
    */
   public static final Object NIL = null;
 
   // Lua type tags, from lua.h
+  /** Lua type tag, representing no stack value. */
   public static final int TNONE         = -1;
+  /** Lua type tag, representing <code>nil</code>. */
   public static final int TNIL          = 0;
+  /** Lua type tag, representing boolean. */
   public static final int TBOOLEAN      = 1;
   // TLIGHTUSERDATA not available.  :todo: make available?
+  /** Lua type tag, representing numbers. */
   public static final int TNUMBER       = 3;
+  /** Lua type tag, representing strings. */
   public static final int TSTRING       = 4;
+  /** Lua type tag, representing tables. */
   public static final int TTABLE        = 5;
+  /** Lua type tag, representing functions. */
   public static final int TFUNCTION     = 6;
+  /** Lua type tag, representing userdata. */
   public static final int TUSERDATA     = 7;
+  /** Lua type tag, representing threads.
   public static final int TTHREAD       = 8;
   /** Number of type tags.  Should correspond to last entry in the list
    * of tags.
    */
   private static final int NUM_TAGS     = 8;
-  // Names for above type tags, starting from TNIL.
-  // Equivalent to luaT_typenames
+  /** Names for above type tags, starting from {@link Lua#TNIL}.
+   * Equivalent to luaT_typenames.
+   */
   private static final String[] TYPENAME = {
     "nil", "boolean", "userdata", "number",
     "string", "table", "function", "userdata", "thread"
@@ -155,23 +165,57 @@ public final class Lua {
    */
   public static final int MINSTACK = 20;
 
-  /** Status code from pcall et al. */
+  /** Status code, returned from pcall and friends, that indicates the
+   * coroutine has yielded.
+   */
   public static final int YIELD         = 1;
+  /** Status code, returned from pcall and friends, that indicates
+   * a runtime error.
+   */
   public static final int ERRRUN        = 2;
+  /** Status code, returned from pcall and friends, that indicates
+   * a syntax error.
+   */
   public static final int ERRSYNTAX     = 3;
+  /** Status code, returned from pcall and friends, that indicates
+   * a memory allocation error.
+   */
   public static final int ERRMEM        = 4;
+  /** Status code, returned from pcall and friends, that indicates
+   * an error whilst running the error handler function.
+   */
   public static final int ERRERR        = 5;
-  /** Statuc code for loadFile. */
+  /** Status code, returned from loadFile and friends, that indicates
+   * an IO error.
+   */
   public static final int ERRFILE       = 6;
 
-  /** Enums for gc(). */
+  // Enums for gc().
+  /** Action, passed to {@link Lua#gc}, that requests the GC to stop. */
   public static final int GCSTOP        = 0;
+  /** Action, passed to {@link Lua#gc}, that requests the GC to restart. */
   public static final int GCRESTART     = 1;
+  /** Action, passed to {@link Lua#gc}, that requests a full collection. */
   public static final int GCCOLLECT     = 2;
+  /** Action, passed to {@link Lua#gc}, that returns amount of memory
+   * (in Kibibytes) in use (by the entire Java runtime).
+   */
   public static final int GCCOUNT       = 3;
+  /** Action, passed to {@link Lua#gc}, that returns the remainder of
+   * dividing the amount of memory in use by 1024.
+   */
   public static final int GCCOUNTB      = 4;
+  /** Action, passed to {@link Lua#gc}, that requests an incremental
+   * garbage collection be performed.
+   */
   public static final int GCSTEP        = 5;
+  /** Action, passed to {@link Lua#gc}, that sets a new value for the
+   * <var>pause</var> of the collector.
+   */
   public static final int GCSETPAUSE    = 6;
+  /** Action, passed to {@link Lua#gc}, that sets a new values for the
+   * <var>step multiplier</var> of the collector.
+   */
   public static final int GCSETSTEPMUL  = 7;
 
   /**
@@ -206,8 +250,10 @@ public final class Lua {
   }
 
   /**
-   * Concatenate strings on the stack.  <var>n</var> strings from the
-   * top of the stack are concatenated and replaced with the result.
+   * Concatenate values (usually strings) on the stack.
+   * <var>n</var> values from the top of the stack are concatenated, as
+   * strings, and replaced with the resulting string.
+   * @param n  the number of values to concatenate.
    */
   public void concat(int n) {
     apiChecknelems(n);
@@ -221,6 +267,8 @@ public final class Lua {
 
   /**
    * Generates a Lua error using the error message.
+   * @param message  the error message.
+   * @return never.
    */
   public int error(Object message) {
     return gErrormsg(message);
@@ -229,6 +277,9 @@ public final class Lua {
   /**
    * Control garbage collector.  Note that in Jili most of the options
    * to this function make no sense and they will not do anything.
+   * @param what  specifies what GC action to take.
+   * @param data  data that may be used by the action.
+   * @return varies.
    */
   public int gc(int what, int data) {
     Runtime rt;
@@ -258,6 +309,7 @@ public final class Lua {
    * Get a field from a table (or other object).
    * @param t      The object whose field to retrieve.
    * @param field  The name of the field.
+   * @return  the Lua value
    */
   public Object getField(Object t, String field) {
     return vmGettable(t, field);
@@ -284,6 +336,7 @@ public final class Lua {
   }
 
   /** Get metatable.
+   * @param o  the Lua value whose metatable to retrieve.
    * @return The metatable, or null if there is no metatable.
    */
   public LuaTable getMetatable(Object o) {
@@ -304,14 +357,17 @@ public final class Lua {
   /**
    * Gets the number of elements in the stack.  If the stack is not
    * empty then this is the index of the top-most element.
+   * @return number of stack elements.
    */
   public int getTop() {
     return stack.size() - base;
   }
 
   /**
-   * Insert object into stack immediately at specified index.  Objects
+   * Insert Lua value into stack immediately at specified index.  Values
    * in stack at that index and higher get pushed up.
+   * @param o    the Lua value to insert into the stack.
+   * @param idx  the stack index at which to insert.
    */
   public void insert(Object o, int idx) {
     idx = absIndex(idx);
@@ -319,17 +375,19 @@ public final class Lua {
   }
 
   /**
-   * Tests that an object is a Lua boolean.  Returns <code>true</code>
-   * if the object represents a boolean Lua value (<code>true</code> or
-   * <code>false</code> in Lua); return <code>false</code> otherwise.
+   * Tests that an object is a Lua boolean.
+   * @param o  the Object to test.
+   * @return true if and only if the object is a Lua boolean.
    */
   public static boolean isBoolean(Object o) {
     return o instanceof Boolean;
   }
 
   /**
-   * Tests that an object is a Lua function implementated in Java.
-   * Returns <code>true</code> if so, <code>false</code> otherwise.
+   * Tests that an object is a Lua function implementated in Java (a Lua
+   * Java Function).
+   * @param o  the Object to test.
+   * @return true if and only if the object is a Lua Java Function.
    */
   public static boolean isJavaFunction(Object o) {
     return o instanceof LuaJavaCallback;
@@ -337,8 +395,9 @@ public final class Lua {
 
   /**
    * Tests that an object is a Lua function (implemented in Lua or
-   * Java).  Returns <code>true</code> if so, <code>false</code>
-   * otherwise.
+   * Java).
+   * @param o  the Object to test.
+   * @return true if and only if the object is a function.
    */
   public static boolean isFunction(Object o) {
     return o instanceof LuaFunction ||
@@ -346,8 +405,9 @@ public final class Lua {
   }
 
   /**
-   * Tests that an object is Lua nil.  Returns <code>true</code> if so,
-   * <code>false</code> otherwise.
+   * Tests that an object is Lua <code>nil</code>.
+   * @param o  the Object to test.
+   * @return true if and only if the object is Lua <code>nil</code>.
    */
   public static boolean isNil(Object o) {
     return null == o;
@@ -355,33 +415,37 @@ public final class Lua {
 
   /**
    * Tests that an object is a Lua number or a string convertible to a
-   * number.  Returns <code>true</code> if so,
-   * <code>false</code> otherwise.
+   * number.
+   * @param o  the Object to test.
+   * @return true if and only if the object is a number or a convertible string.
    */
   public static boolean isNumber(Object o) {
-    return tonumber(o, numop);
+    return tonumber(o, NUMOP);
   }
 
   /**
    * Tests that an object is a Lua string or a number (which is always
-   * convertible to a string).  Returns <code>true</code> if
-   * so, <code>false</code> otherwise.
+   * convertible to a string).
+   * @param o  the Object to test.
+   * @return true if and only if object is a string or number.
    */
   public static boolean isString(Object o) {
     return o instanceof String;
   }
 
   /**
-   * Tests that an object is a Lua table.  Return <code>true</code> if
-   * so, <code>false</code> otherwise.
+   * Tests that an object is a Lua table.
+   * @param o  the Object to test.
+   * @return <code>true</code> if and only if the object is a Lua table.
    */
   public static boolean isTable(Object o) {
     return o instanceof LuaTable;
   }
 
   /**
-   * Tests that an object is a Lua thread.  Return <code>true</code> if
-   * so, <code>false</code> otherwise.
+   * Tests that an object is a Lua thread.
+   * @param o  the Object to test.
+   * @return <code>true</code> if and only if the object is a Lua thread.
    */
   public static boolean isThread(Object o) {
     // :todo: implement me.
@@ -389,14 +453,16 @@ public final class Lua {
   }
 
   /**
-   * Tests that an object is a Lua userdata.  Return <code>true</code>
-   * if so, <code>false</code> otherwise.
+   * Tests that an object is a Lua userdata.
+   * @param o  the Object to test.
+   * @return true if and only if the object is a Lua userdata.
    */
   public static boolean isUserdata(Object o) {
     return o instanceof LuaUserdata;
   }
 
   /**
+   * <p>
    * Tests that an object is a Lua value.  Returns <code>true</code> for
    * an argument that is a Jili representation of a Lua value,
    * <code>false</code> for Java references that are not Lua values.
@@ -404,10 +470,15 @@ public final class Lua {
    * <code>true</code>, but <code>isValue(new Object[] { })</code> is
    * <code>false</code> because Java arrays are not a representation of
    * any Lua value.
+   * </p>
+   * <p>
    * PUC-Rio Lua provides no
    * counterpart for this method because in their implementation it is
    * impossible to get non Lua values on the stack, whereas in Jili it
    * is common to mix Lua values with ordinary, non Lua, Java objects.
+   * </p>
+   * @param o  the Object to test.
+   * @return true if and if it represents a Lua value.
    */
   public static boolean isValue(Object o) {
     return o == null ||
@@ -473,6 +544,9 @@ public final class Lua {
    * pushed onto the stack and <code>true</code> is returned.
    * Otherwise (the end of the table has been reached)
    * <code>false</code> is returned.
+   * @param idx  stack index of table.
+   * @return  true if and only if there are more keys in the table.
+   * @deprecated Use :todo: iterator protocol instead.
    */
   public boolean next(int idx) {
     Object o = value(idx);
@@ -752,8 +826,8 @@ public final class Lua {
    * @return  the resulting int.
    */
   public int toInteger(Object o) {
-    if (tonumber(o, numop)) {
-      return (int)numop[0];
+    if (tonumber(o, NUMOP)) {
+      return (int)NUMOP[0];
     }
     return 0;
   }
@@ -765,8 +839,8 @@ public final class Lua {
    * @return  The resulting number.
    */
   public double toNumber(Object o) {
-    if (tonumber(o, numop)) {
-      return numop[0];
+    if (tonumber(o, NUMOP)) {
+      return NUMOP[0];
     }
     return 0;
   }
@@ -823,7 +897,7 @@ public final class Lua {
 
   /**
    * Name of type.
-   * @param type  a Lua type from, for example, @{link lua#type}.
+   * @param type  a Lua type from, for example, {@link Lua#type}.
    * @return  the type's name.
    */
   public String typeName(int type) {
@@ -1028,7 +1102,7 @@ public final class Lua {
   /**
    * Checks the type of an argument, raises error if not matching.
    * @param narg  argument index.
-   * @param t     typecode (from @{Lua#type} for example).
+   * @param t     typecode (from {@link Lua#type} for example).
    */
   public void checkType(int narg, int t) {
     if (type(narg) != t) {
@@ -1076,7 +1150,7 @@ public final class Lua {
   /**
    * Loads a Lua chunk from a file.  The <var>filename</var> argument is
    * used in a call to {@link Class#getResourceAsStream} where
-   * <code>this</code> is the @{link Lua} instance, thus relative
+   * <code>this</code> is the {@link Lua} instance, thus relative
    * pathnames will be relative to the location of the
    * <code>Lua.class</code> file.  Pushes compiled chunk, or error
    * message, onto stack.
@@ -1151,6 +1225,7 @@ public final class Lua {
   /**
    * Name of type of value at <var>idx</var>.
    * @param idx  stack index.
+   * @return  the name of the value's type.
    */
   public String typeNameOfIndex(int idx) {
     return TYPENAME[type(idx)];
@@ -1168,6 +1243,8 @@ public final class Lua {
   /**
    * Return string identifying current position of the control at level
    * <var>level</var>.
+   * @param level  specifies the call-stack level.
+   * @return a description for that level.
    */
   public String where(int level) {
     // :todo: implement me.
@@ -1175,12 +1252,14 @@ public final class Lua {
   }
 
   /**
-   * Provide <code>Reader</code> interface over a <code>String</code>.
+   * Provide {@link java.ioReader} interface over a <code>String</code>.
    * Equivalent of {@link java.io.StringReader#StringReader} from J2SE.
    * The ability to convert a <code>String</code> to a
    * <code>Reader</code> is required internally,
    * to provide the Lua function <code>loadstring</code>; exposed
    * externally as a convenience.
+   * @param s  the string from which to read.
+   * @return a {@link java.ioReader} that reads successive chars from <var>s</var>.
    */
   public static Reader stringReader(String s) {
     return new StringReader(s);
@@ -1286,7 +1365,7 @@ public final class Lua {
       return NIL == b;
     }
     // Now a is not null, so a.equals() is a valid call.
-    // Numbers (Doubles), Booleans, Strings all get compared by values,
+    // Numbers (Doubles), Booleans, Strings all get compared by value,
     // as they should; tables, functions, get compared by identity as
     // they should.
     return a.equals(b);
@@ -1358,7 +1437,7 @@ public final class Lua {
   // | sBx                         | A          | OPCODE |
   // +--------------+--------------+------------+--------+
 
-  final static int NO_REG = 0xff;       // SIZE_A == 8, (1 << 8)-1
+  static final int NO_REG = 0xff;       // SIZE_A == 8, (1 << 8)-1
 
   // Hardwired values for speed.
   /** Equivalent of macro GET_OPCODE */
@@ -1566,7 +1645,7 @@ public final class Lua {
    * Array of numeric operands.  Used when converting strings to numbers
    * by an arithmetic opcode (ADD, SUB, MUL, DIV, MOD, POW, UNM).
    */
-  private static final double[] numop = new double[2];
+  private static final double[] NUMOP = new double[2];
 
   /** The core VM execution engine. */
   private void vmExecute(int nexeccalls) {
@@ -1673,8 +1752,8 @@ reentry:
               double sum = ((Double)rb).doubleValue() +
                   ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(sum), base+a);
-            } else if (toNumberPair(rb, rc, numop)) {
-              double sum = numop[0] + numop[1];
+            } else if (toNumberPair(rb, rc, NUMOP)) {
+              double sum = NUMOP[0] + NUMOP[1];
               stack.setElementAt(valueOfNumber(sum), base+a);
             } else {
               // :todo: use metamethod
@@ -1688,8 +1767,8 @@ reentry:
               double difference = ((Double)rb).doubleValue() -
                   ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(difference), base+a);
-            } else if (toNumberPair(rb, rc, numop)) {
-              double difference = numop[0] - numop[1];
+            } else if (toNumberPair(rb, rc, NUMOP)) {
+              double difference = NUMOP[0] - NUMOP[1];
               stack.setElementAt(valueOfNumber(difference), base+a);
             } else {
               // :todo: use metamethod
@@ -1703,8 +1782,8 @@ reentry:
               double product = ((Double)rb).doubleValue() *
                 ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(product), base+a);
-            } else if (toNumberPair(rb, rc, numop)) {
-              double product = numop[0] * numop[1];
+            } else if (toNumberPair(rb, rc, NUMOP)) {
+              double product = NUMOP[0] * NUMOP[1];
               stack.setElementAt(valueOfNumber(product), base+a);
             } else {
               // :todo: use metamethod
@@ -1718,8 +1797,8 @@ reentry:
               double quotient = ((Double)rb).doubleValue() /
                 ((Double)rc).doubleValue();
               stack.setElementAt(valueOfNumber(quotient), base+a);
-            } else if (toNumberPair(rb, rc, numop)) {
-              double quotient = numop[0] / numop[1];
+            } else if (toNumberPair(rb, rc, NUMOP)) {
+              double quotient = NUMOP[0] / NUMOP[1];
               stack.setElementAt(valueOfNumber(quotient), base+a);
             } else {
               // :todo: use metamethod
@@ -1734,8 +1813,8 @@ reentry:
               double dc = ((Double)rc).doubleValue();
               double modulus = modulus(db, dc);
               stack.setElementAt(valueOfNumber(modulus), base+a);
-            } else if (toNumberPair(rb, rc, numop)) {
-              double modulus = modulus(numop[0], numop[1]);
+            } else if (toNumberPair(rb, rc, NUMOP)) {
+              double modulus = modulus(NUMOP[0], NUMOP[1]);
               stack.setElementAt(valueOfNumber(modulus), base+a);
             } else {
               // :todo: use metamethod
@@ -1750,8 +1829,8 @@ reentry:
             if (rb instanceof Double) {
               double db = ((Double)rb).doubleValue();
               stack.setElementAt(valueOfNumber(-db), base+a);
-            } else if (tonumber(rb, numop)) {
-              stack.setElementAt(valueOfNumber(-numop[0]), base+a);
+            } else if (tonumber(rb, NUMOP)) {
+              stack.setElementAt(valueOfNumber(-NUMOP[0]), base+a);
             } else {
               // :todo: metamethod
               throw new IllegalArgumentException();
@@ -2151,7 +2230,7 @@ reentry:
       }
 
       int top = base + p.maxstacksize();
-      CallInfo ci = inc_ci(func, base, top, r);
+      inc_ci(func, base, top, r);
 
       savedpc = 0;
       // expand stack to the function's max stack size.
@@ -2277,12 +2356,12 @@ reentry:
    * the specified stack slot was converted to a number.  False
    * otherwise.  Note that this actually modifies the element stored at
    * <var>idx</var> in the stack (in faithful emulation of the PUC-Rio
-   * code).  Corrupts <code>numop[0]</code>.
+   * code).  Corrupts <code>NUMOP[0]</code>.
    * @param idx  absolute stack slot.
    */
   private boolean tonumber(int idx) {
-    if (tonumber(stack.elementAt(idx), numop)) {
-      stack.setElementAt(new Double(numop[0]), idx);
+    if (tonumber(stack.elementAt(idx), NUMOP)) {
+      stack.setElementAt(new Double(NUMOP[0]), idx);
       return true;
     }
     return false;
