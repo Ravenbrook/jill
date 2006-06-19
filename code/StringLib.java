@@ -50,6 +50,12 @@ public final class StringLib extends LuaJavaCallback {
     this.which = which;
   }
 
+  /**
+   * Implements all of the functions in the Lua string library.  Do not
+   * call directly.
+   * @param L  the Lua state in which to execute.
+   * @return number of returned parameters, as per convention.
+   */
   public int luaFunction(Lua L) {
     switch (which) {
       case BYTE:
@@ -72,6 +78,12 @@ public final class StringLib extends LuaJavaCallback {
     return 0;
   }
 
+  /**
+   * Opens the string library into the given Lua state.  This registers
+   * the symbols of the string library in a newly created table called
+   * "string".
+   * @param L  The Lua state into which to open.
+   */
   public static void open(Lua L) {
     Object lib = new LuaTable();
     L.setGlobal("string", lib);
