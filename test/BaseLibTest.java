@@ -159,6 +159,14 @@ import j2meunit.framework.TestSuite;
 //   function testdofile()
 //     return dofile(testloadfilename)==99
 //   end
+//   function testdoxpcall()
+//     local function anerror()return {}..{}end
+//     local function seven()return 7 end
+//     local a,b = xpcall(anerror, nil)
+//     local c,d = xpcall(anerror, seven)
+//     local e,f = xpcall(seven, anerror)
+//     return a == false, c == false, d == 7, e == true, f == 7
+//   end
 
 
 // :todo: test radix conversion for tonumber.
@@ -352,6 +360,10 @@ public class BaseLibTest extends JiliTestCase {
     assertTrue("_VERSION is a string", L.isString(o));
   }
 
+  public void testXpcall() {
+    nTrue("testxpcall", 1);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -409,6 +421,8 @@ public class BaseLibTest extends JiliTestCase {
         public void runTest() { testDofile(); } });
     suite.addTest(new BaseLibTest("testVersion") {
         public void runTest() { testVersion(); } });
+    suite.addTest(new BaseLibTest("testXpcall") {
+        public void runTest() { testXpcall(); } });
     return suite;
   }
 }
