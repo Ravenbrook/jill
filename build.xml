@@ -34,9 +34,12 @@
       classpath="lib/checkstyle-all-4.1.jar" />
 
   <target name="sysinfo">
-    <echo message="os.name:    ${os.name}" />
-    <echo message="os.arch:    ${os.arch}" />
-    <echo message="os.version: ${os.version}" />
+    <echo message="os.name:          ${os.name}" />
+    <echo message="os.arch:          ${os.arch}" />
+    <echo message="os.version:       ${os.version}" />
+    <echo message="ant.version:      ${ant.version}" />
+    <echo message="ant.java.version: ${ant.java.version}" />
+    <echo message="java.version:     ${java.version}" />
   </target>
 
   <target name="style">
