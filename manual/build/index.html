@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>Build Process</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/jili/">Java Implementation of Lua for Intuwave</a>
+</p>
+<p><i>
+<a href="/project/jili/">Java Implementation of Lua for
+Intuwave</a></i></p>
+
+<hr />
+
+<h1>Build Process</h1>
+
+<address>
+<a href="mailto:drj@ravenbrook.com">David Jones</a>,
+<a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>,
+2006-06-20
+</address>
+
+</div>
+
+<h2><a id="section-1" name="section-1">1. Introduction</a></h2>
+
+<p>
+This document describes the build process and documents the particular
+procedure used in Jili.
+</p>
+
+<p>The readership of this document is anyone interested in the
+project.</p>
+
+<p>This document is client confidential.</p>
+
+<h2><a id="section-2" name="section-2">2. Overview</a></h2>
+
+<p>
+The vast majority of the software for the core of Jili (disregarding the
+build materials and the test materials for now) is in Java.
+</p>
+
+<p>
+The build procedure is kept as simple as possible.  A certain amount of
+complexity is required by the toolchains that are used for the JME
+environments.
+</p>
+
+<p>
+In terms of getting Java code running on a device it goes like this:
+</p>
+
+<ul>
+<li>
+Java source is compiled into <code>.class</code> files.
+</li>
+
+<li>
+Compiled class files and 3rd party class files (for example, j2meunit if
+building a test MIDlet) are assembled into their final positions in a package
+hierarchy.  Other files are assembled into this hierarchy too.
+</li>
+
+<li>
+At this stage an obfuscator could be run.  We currently don't do this.
+</li>
+
+<li>
+A JME preverification tool is run (this annotates the class files so
+that they can be securely loaded by the cut-down KVM used by JME).
+</li>
+
+<li>
+A jar file is built.  In principle this jar file can be used by any JME
+device, but that hasn't been tested.
+</li>
+
+<li>
+The jar file is converted to a BlackBerry <code>.cod</code> file using a
+tool from the BlackBerry SDK.  This <code>.cod</code> file is suitable
+to loading onto a BlackBerry device.
+</li>
+
+</ul>
+
+<p>
+Java binaries are not the only thing produced by the build process.
+Javadoc documentation is compiled from the Java source using Sun's
+javadoc tool.  A code style report (generated using Checkstyle) can also
+be generated.
+</p>
+
+<p>
+Most of the build procedure is captured in an Ant build file.  This file
+also has procedures for running tests, and loading onto a real
+BlackBerry device (neither of which are strictly, building).
+</p>
+
+<h2 id="section-3">Prerequisites</h2>
+
+<p>
+In general you need some way of building and running JME applications.
+</p>
+
+<li>
+Java SDK (version of 1.4.2 and 1.5.0_06 have been used.  The BlackBerry SDK
+claims to require 1.5)
+</li>
+
+<li>
+Ant.  Version 1.6.5 is used, but it should be possible to use older and
+newer versions as well.  The environment variable ANT_HOME should
+be set.
+</li>
+
+<li>
+A JME SDK.
+On Mac OS X Mpowerplayer (mpp) has been used.  On Windows XP, the BlackBerry
+SDK 4.1 has been used.  As long as you can build and run JME
+applications then any SDK should be okay.  Currently the Ant build file,
+<code>build.xml</code>, has hardwired dependencies on the locations of
+the JME tools.
+</li>
+
+<li>
+Checkstyle.
+</li>
+
+<li>
+j2meunit
+</li>
+
+<h2 id="section-4">4. Using Ant</h2>
+
+<pre>
+ant -projecthelp
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<table>
+</table>
+    
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+    
+<tr valign="top">
+  <td>2006-06-20</td>
+  <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+  <td>Created.</td>
+</tr>   
+
+
+</table>
+
+<hr />
+
+<p><small>Copyright &copy; 2006 Intuwave Limited.  This document is
+provided "as is", without any express or implied warranty.  In no
+event will the authors be held liable for any damages arising from the
+use of this document. You may not duplicate or reproduce this document
+in any form without the express permission of the copyright
+holder. </small></p>
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/jili/">Java Implementation of Lua for Intuwave</a>
+</p>
+
+
+</div>
+
+</body>
+
+</html>
