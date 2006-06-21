@@ -3,18 +3,36 @@
 <!-- $Header$ -->
 
 <project name="Jili" default="compile" basedir=".">
-  <property name="project" value="${ant.project.name}" />
 
-  <!-- Properties that you might want to change.
-  
-    j2meunit - location of j2meunit.jar file.
-    mpp - location of mpowerplayer sdk directory
+  <!--
+    The buildprop.local is intended to be written by users
+    (maintainers and builders) if needed.  It is not supplied as part of
+    the managed sources, and Ant will not complain if it is not present.
+    It is intended to be used so that properties that define the
+    location of .jar files, etc, can be overriden.
+  -->
+  <property file="buildprop.local" />
+
+  <!--
+    Properties that you might want to change.  These properties can be
+    overridden by defining them in a file called buildprop.local (see
+    above)
+
+    j2meunit    - location of j2meunit.jar file.
+    mpp         - location of mpowerplayer sdk directory (for OS X)
+    rim         - location of RIM BlackBerry JDE
+    checkstyle  - location of checkstyle-all-4.1.jar
 
   -->
 
-  <property name="j2meunit" value="lib/j2meunit.jar" />
-  <property name="mpp" value="/usr/local/mpp-sdk" />
-  <property name="rim" value="C:/Program Files/Research In Motion/BlackBerry JDE 4.1.0/" />
+  <property name="j2meunit"
+      value="lib/j2meunit.jar" />
+  <property name="mpp"
+      value="/usr/local/mpp-sdk" />
+  <property name="rim"
+      value="C:/Program Files/Research In Motion/BlackBerry JDE 4.1.0" />
+  <property name="checkstyle"
+      value="lib/checkstyle-all-4.1.jar" />
 
   <!-- Standard java classes -->
   <property name="java.classes.jar"
@@ -31,7 +49,7 @@
     -->
 
   <taskdef resource="checkstyletask.properties"
-      classpath="lib/checkstyle-all-4.1.jar" />
+      classpath="${checkstyle}" />
 
   <target name="sysinfo">
     <echo message="os.name:          ${os.name}" />
