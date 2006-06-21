@@ -110,20 +110,20 @@ also has procedures for running tests, and loading onto a real
 BlackBerry device (neither of which are strictly, building).
 </p>
 
-<h2 id="section-3">Prerequisites</h2>
+<h2 id="section-3">3. Prerequisites</h2>
 
 <p>
 In general you need some way of building and running JME applications.
 </p>
 
 <li>
-Java SDK (version of 1.4.2 and 1.5.0_06 have been used.  The BlackBerry SDK
-claims to require 1.5)
+Java SDK.  Versions of 1.4.2, and 1.5.0_06 have been used.  The BlackBerry
+JDE 4.1 claims to require Java SDK 1.5.
 </li>
 
 <li>
-Ant.  Version 1.6.5 is used, but it should be possible to use older and
-newer versions as well.  The environment variable ANT_HOME should
+Ant.  Version 1.6.5 is used, but it should be possible to use older (and
+newer?) versions as well.  The environment variable ANT_HOME should
 be set.
 </li>
 
@@ -132,24 +132,116 @@ A JME SDK.
 On Mac OS X Mpowerplayer (mpp) has been used.  On Windows XP, the BlackBerry
 SDK 4.1 has been used.  As long as you can build and run JME
 applications then any SDK should be okay.  Currently the Ant build file,
-<code>build.xml</code>, has hardwired dependencies on the locations of
-the JME tools.
+<code>build.xml</code>, assumes it knows where the JME tools and class
+files can be found.  If you place them somewhere else, you can set
+<code>build.xml</code> straight by defining some properties in a
+<code>buildprop.local</code> file.  See <a href="#section-4">section
+4</a>.
 </li>
 
 <li>
-Checkstyle.
+Checkstyle.  Optional.
 </li>
 
 <li>
-j2meunit
+j2meunit.
 </li>
 
 <h2 id="section-4">4. Using Ant</h2>
 
-<pre>
-ant -projecthelp
-</pre>
+<p>
+This section isn't about how to use (and configure) Ant in general, it's
+about how to use Ant in the Jili project.
+</p>
 
+<p>
+As is standard, the command <code>ant -projecthelp</code> briefly
+documents the public targets.  There are other targets, but they're
+considered either internal (for example used to express internal
+dependencies) or only of interest to staff hacking around in the build
+file.
+</p>
+
+<p>
+The build file is configurable with Ant properties.  Properties are
+defined and used to specify the locations of 3rd party <code>.jar</code>
+files and other things.  Any property defined in <code>build.xml</code>
+can be overriden by creating a property in a file named
+<code>buildprop.local</code>.  The <code>buildprop.local</code> file is
+not supplied as part of the managed sources (it's not in source code
+control), and Ant will not complain if it isn't present.  It's intended
+to be created by any user that needs it (to override a property).
+</p>
+
+<p>
+It is not currently possible to use <code>buildprop.local</code>, or any
+similar feature, to define properties to have different values on
+different platforms.  Thus, sharing a single build source tree across
+different platforms, via NFS or Samba or similar, is not recommended.
+</p>
+
+<p>Here are the properties that you might want to change:</p>
+
+<dl>
+
+<dt>rim</dt>
+  <dd>
+  <p>
+  Defaults to <code>C:/Program Files/Research In
+  Motion/BlackBerry JDE 4.1.0</code>.
+  </p>
+
+  <p>
+  This defines the location of the RIM BlackBerry JDE.  This is
+  currently only intended to be used on Windows.
+  </p>
+  </dd>
+
+<dt>mpp</dt>
+  <dd>
+  <p>
+  Defaults to <code>/usr/local/mpp-sdk</code>.
+  </p>
+
+  <p>
+  This defines the location of the mpowerplayer sdk.  This is currently
+  only intended to be used on Mac OS X.
+  </p>
+  </dd>
+
+<dt>j2meunit</dt>
+  <dd>
+  <p>
+  Defaults to <code>lib/j2meunit.jar</code> (that is, a location within
+  the project hierarchy).
+  </p>
+
+  <p>
+  Specifies the location of the <code>j2meunit.jar</code> jar file from
+  j2meunit.  For convenience this has been placed in the expected
+  location under source code control.  You'll only need to fiddle with
+  this if you have a perverse Perforce client map or you deliberately
+  want to use a different version of j2meunit.
+  </p>
+  </dd>
+
+<dt>checkstyle</dt>
+  <dd>
+  <p>
+  Defaults to <code>lib/checkstyle-all-4.1.jar</code> (that is, a
+  location within the project hierarchy).
+  </p>
+
+  <p>
+  Specifies the location of the <code>.jar</code> file that defines the
+  Checkstyle Ant task.  For your annoyance this hasn't been placed in
+  the expected location under source code control.  You'll need to copy
+  it here (the <code>.tar.gz</code> for Checkstyle can be found in
+  <code>import/</code>.
+  </p>
+  </dd>
+
+</dl>
 
 <h2><a id="section-A" name="section-A">A. References</a></h2>
 

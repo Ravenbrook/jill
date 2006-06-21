@@ -25,6 +25,12 @@
 
   -->
 
+  <!--
+    The default definitions for these properties are given below.  If
+    you change these defaults, please also update the documentation in
+    manual/build/
+  -->
+
   <property name="j2meunit"
       value="lib/j2meunit.jar" />
   <property name="mpp"
