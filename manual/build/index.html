@@ -116,6 +116,8 @@ BlackBerry device (neither of which are strictly, building).
 In general you need some way of building and running JME applications.
 </p>
 
+<ul>
+
 <li>
 Java SDK.  Versions of 1.4.2, and 1.5.0_06 have been used.  The BlackBerry
 JDE 4.1 claims to require Java SDK 1.5.
@@ -128,8 +130,11 @@ be set.
 </li>
 
 <li>
+<p>
 A JME SDK.
-On Mac OS X Mpowerplayer (mpp) has been used.  On Windows XP, the BlackBerry
+</p>
+<p>
+On Mac OS X mpowerplayer (mpp) has been used.  On Windows XP, the BlackBerry
 SDK 4.1 has been used.  As long as you can build and run JME
 applications then any SDK should be okay.  Currently the Ant build file,
 <code>build.xml</code>, assumes it knows where the JME tools and class
@@ -137,15 +142,32 @@ files can be found.  If you place them somewhere else, you can set
 <code>build.xml</code> straight by defining some properties in a
 <code>buildprop.local</code> file.  See <a href="#section-4">section
 4</a>.
+</p>
+<dl>
+  <dt>mpowerplayer</dt>
+  <dd>A version of this is available in the <code>import/</code>
+  directory.  Currently <code>build.xml</code> assumes that mpp is being
+  used on Mac OS X and assumes that it has been unzipped into
+  <code>/usr/local/mpp-sdk/</code>.  Because it is distributed as a zip
+  file the preverify tool must be <code>chmod</code>ed before it can be
+  used.  <code>chmod +x osx/preverify/preverify</code>.  Otherwise you
+  get errors from ant like:
+  <code>/Users/drj/info.ravenbrook.com/project/jili/master/build.xml:172:
+  Execute failed: java.io.IOException:
+  /usr/local/mpp-sdk/osx/preverify/preverify: cannot execute</code>.
+  </dd>
+</dl>
 </li>
 
 <li>
-Checkstyle.  Optional.
+Checkstyle.  Optional.  In <code>import/</code>.
 </li>
 
 <li>
-j2meunit.
+j2meunit.  Already included in source code control.
 </li>
+
+</ul>
 
 <h2 id="section-4">4. Using Ant</h2>
 
@@ -238,6 +260,30 @@ different platforms, via NFS or Samba or similar, is not recommended.
   the expected location under source code control.  You'll need to copy
   it here (the <code>.tar.gz</code> for Checkstyle can be found in
   <code>import/</code>.
+  </p>
+  </dd>
+
+<dt>which.jme</dt>
+  <dd>
+  <p>
+  Default is platform dependent.
+  </p>
+
+  <p>
+  Specifies which JME SDK to use.  One of:
+  </p>
+
+  <dl>
+  <dt>mpp</dt><dd>mpowerplayer.  The default on Mac OS X.</dd>
+  <dt>rim</dt><dd>RIM BlackBerry JDE.  The default on Windows.</dd>
+  <dt>sjwt</dt><dd>Sun Java Wireless Toolkit.  Not actually used, but
+  likely in the future.</dd>
+  </dl>
+
+  <p>
+  Like other properties, this can be overriden in
+  <code>buildprop.local</code>.  Useful if you want to use mpowerplayer
+  on Linux, or the Sun Java Wireless Toolkit on Windows.
   </p>
   </dd>
 
