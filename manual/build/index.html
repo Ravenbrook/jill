@@ -120,13 +120,18 @@ In general you need some way of building and running JME applications.
 
 <li>
 Java SDK.  Versions of 1.4.2, and 1.5.0_06 have been used.  The BlackBerry
-JDE 4.1 claims to require Java SDK 1.5.
+JDE 4.1 claims to require Java SDK 1.5.  On Windows Sun's Java SDK has
+been used, on Mac OS X the Java SDK supplied by Apple with Developer
+Tools has been used.
 </li>
 
 <li>
 Ant.  Version 1.6.5 is used, but it should be possible to use older (and
-newer?) versions as well.  The environment variable ANT_HOME should
-be set.
+newer?) versions as well.  The environment variable ANT_HOME may need to
+be set.  On Mac OS X 10.4 (and I think 10.3) the Ant that comes with the
+Developer Tools can be used (a link to it is created in
+<code>/usr/bin/ant</code>, so your <code>PATH</code> should not need
+changing).  It is recommended that Ant be on your <code>PATH</code>.
 </li>
 
 <li>
@@ -142,6 +147,10 @@ files can be found.  If you place them somewhere else, you can set
 <code>build.xml</code> straight by defining some properties in a
 <code>buildprop.local</code> file.  See <a href="#section-4">section
 4</a>.
+</p>
+<p>
+<code>build.xml</code> currently requires that the tools it needs are
+found on your <code>PATH</code>.
 </p>
 <dl>
   <dt>mpowerplayer</dt>
