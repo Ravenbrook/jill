@@ -8,7 +8,9 @@ import j2meunit.framework.TestSuite;
 // BaseLibTestLoadfile.luc
 //   return 99
 // BaseLibTest.luc - contains functions that test each of base library
-// functions:
+// functions.  It is important (for testing "error") that this file is
+// not stripped when compiled.
+// Here's the source code for BaseLibTest.luc:
 //   function testprint()
 //     print()
 //     print(7, 'foo', {}, nil, function()end, true, false, -0.0)
@@ -167,6 +169,18 @@ import j2meunit.framework.TestSuite;
 //     local e,f = xpcall(seven, anerror)
 //     return a == false, c == false, d == 7, e == true, f == 7
 //   end
+//   -- Do not move or rewrite testerrormore without changing the line
+//   -- number on which it depends.
+//   function testerrormore()
+//     local function f(x)
+//       if x ~= nil then
+//         error('spong', 1)
+//       end
+//     end
+//     local a,b = pcall(function()f(6)end)
+//     print(b)
+//     return a==false, b=='spong'
+//   end
 
 
 // :todo: test radix conversion for tonumber.
@@ -175,7 +189,7 @@ import j2meunit.framework.TestSuite;
 // :todo: test rawget for tables with metamethods.
 // :todo: test rawset for tables with metamethods.
 // :todo: (when string library is available) test the strings returned
-//     by error and assert.
+//     by assert.
 
 
 /**
@@ -364,6 +378,10 @@ public class BaseLibTest extends JiliTestCase {
     nTrue("testxpcall", 1);
   }
 
+  public void testErrormore() {
+    nTrue("testerrormore", 2);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -423,6 +441,8 @@ public class BaseLibTest extends JiliTestCase {
         public void runTest() { testVersion(); } });
     suite.addTest(new BaseLibTest("testXpcall") {
         public void runTest() { testXpcall(); } });
+    suite.addTest(new BaseLibTest("testErrormore") {
+        public void runTest() { testErrormore(); } });
     return suite;
   }
 }
