@@ -75,9 +75,15 @@
 
 
   <!-- Standard java classes, only needed by mpp -->
+  <!--
+    Note that recent versions of Mac OS X 10.4 come with Java 1.5 as
+    default.  The classes.jar file for Java 1.5 cannot be preverified by
+    the mpp preverify tool.  Therefore we explicitly name the Java 1.4
+    classes.jar file.
+  -->
   <!-- :todo: is there a better way of doing this? -->
   <condition property="java.classes.jar"
-      value="/System/Library/Frameworks/JavaVM.framework/Classes/classes.jar">
+      value="/System/Library/Frameworks/JavaVM.framework/Versions/1.4/Classes/classes.jar">
     <isset property="platform.macosx" />
   </condition>
 
