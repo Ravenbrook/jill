@@ -119,7 +119,7 @@ public final class Lua {
   private static final String LUA_ERROR = "";
 
   /** Metatable for primitive types.  Shared between all coroutines. */
-  private LuaTable[] mt = new LuaTable[NUM_TAGS];
+  private LuaTable[] metatable = new LuaTable[NUM_TAGS];
 
   //////////////////////////////////////////////////////////////////////
   // Public API
@@ -357,7 +357,7 @@ public final class Lua {
       LuaUserdata u = (LuaUserdata)o;
       mt = u.getMetatable();
     } else {
-      mt = this.mt[type(o)];
+      mt = metatable[type(o)];
     }
     return mt;
   }
@@ -592,7 +592,7 @@ public final class Lua {
    * Protected {@link Lua#call}.
    * @param nargs     number of arguments.
    * @param nresults  number of result required.
-   * @param errfunc   error function to call in case of error.
+   * @param ef        error function to call in case of error.
    * @return status code
    */
   public int pcall(int nargs, int nresults, Object ef) {
@@ -799,7 +799,7 @@ public final class Lua {
       LuaUserdata u = (LuaUserdata)o;
       u.setMetatable(mtt);
     } else {
-      this.mt[type(o)] = mtt;
+      metatable[type(o)] = mtt;
     }
   }
 
@@ -1267,7 +1267,7 @@ public final class Lua {
         return ar.short_src() + ":" + ar.currentline() + ": ";
       }
     }
-    return "";  // else, no information available... 
+    return "";  // else, no information available...
   }
 
   /**
