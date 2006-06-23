@@ -1260,8 +1260,14 @@ public final class Lua {
    * @return a description for that level.
    */
   public String where(int level) {
-    // :todo: implement me.
-    return "unknown:??:";
+    Debug ar = getStack(level);         // check function at level
+    if (ar != null) {
+      getInfo("Sl", ar);                // get info about it
+      if (ar.currentline() > 0) {       // is there info?
+        return ar.short_src() + ":" + ar.currentline() + ": ";
+      }
+    }
+    return "";  // else, no information available... 
   }
 
   /**
@@ -1278,6 +1284,120 @@ public final class Lua {
     return new StringReader(s);
   }
 
+  //////////////////////////////////////////////////////////////////////
+  // Debug
+
+  // Methods equivalent to debug API.  In PUC-Rio most of these are in
+  // ldebug.c
+
+  private boolean getInfo(String what, Debug ar) {
+    Object f = null;
+    CallInfo callinfo = null;
+    // :todo: complete me
+    if (ar.i_ci() > 0) {        // no tail call?
+      callinfo = (CallInfo)civ.elementAt(ar.i_ci());
+      f = stack.elementAt(callinfo.function());
+      // assert isFunction(f);
+    }
+    return auxgetinfo(what, ar, f, callinfo);
+  }
+
+  /**
+   * Locates function activation at specified call level and returns a
+   * {@link Debug}
+   * record for it, or <code>null</code> if level is too high.
+   * May become public.
+   * @param level  the call level.
+   * @return a {@link Debug} instance describing the activation record.
+   */
+  private Debug getStack(int level) {
+    int ici;    // Index of CallInfo
+
+    for (ici=civ.size()-1; level > 0 && ici > 0; --ici) {
+      CallInfo ci = (CallInfo)civ.elementAt(ici);
+      --level;
+      if (isLua(ci)) {                  // Lua function?
+        level -= ci.tailcalls();        // skip lost tail calls
+      }
+    }
+    if (level == 0 && ici > 0) {        // level found?
+      return new Debug(ici);
+    } else if (level < 0) {     // level is of a lost tail call?
+      return new Debug(0);
+    }
+    return null;
+  }
+
+  /**
+   * @return true is okay, false otherwise (for example, error).
+   */
+  private boolean auxgetinfo(String what, Debug ar, Object f, CallInfo ci) {
+    boolean status = true;
+    if (f == null) {
+      // :todo: implement me
+      return status;
+    }
+    for (int i=0; i<what.length(); ++i) {
+      switch (what.charAt(i)) {
+        case 'S':
+          funcinfo(ar, f);
+          break;
+        case 'l':
+          ar.setCurrentline((ci != null) ? currentline(ci) : -1);
+          break;
+        // :todo: more cases.
+        default:
+          status = false;
+      }
+    }
+    return status;
+  }
+
+  private int currentline(CallInfo ci) {
+    int pc = currentpc(ci);
+    if (pc < 0) {
+      return -1;        // only active Lua functions have current-line info
+    } else {
+      Object faso = stack.elementAt(ci.function());
+      LuaFunction f = (LuaFunction)faso;
+      return f.proto().getline(pc);
+    }
+  }
+
+  private int currentpc(CallInfo ci) {
+    if (!isLua(ci)) {   // function is not a Lua function?
+      return -1;
+    }
+    if (ci == this.ci) {
+      ci.setSavedpc(savedpc);
+    }
+    return pcRel(ci.savedpc());
+  }
+
+  private void funcinfo(Debug ar, Object cl) {
+    if (cl instanceof LuaJavaCallback) {
+      ar.setSource("=[Java]");
+      ar.setLinedefined(-1);
+      ar.setLastlinedefined(-1);
+      ar.setWhat("Java");
+    } else {
+      Proto p = ((LuaFunction)cl).proto();
+      ar.setSource(p.source());
+      ar.setLinedefined(p.linedefined());
+      ar.setLastlinedefined(p.lastlinedefined());
+      ar.setWhat(ar.linedefined() == 0 ? "main" : "Lua");
+    }
+  }
+
+  /** Equivalent to macro isLua _and_ f_isLua from lstate.h. */
+  private boolean isLua(CallInfo callinfo) {
+    Object f = stack.elementAt(callinfo.function());
+    return f instanceof LuaFunction;
+  }
+
+  private static int pcRel(int pc) {
+    return pc - 1;
+  }
 
   //////////////////////////////////////////////////////////////////////
   // Do
@@ -1385,6 +1505,48 @@ public final class Lua {
   // Object
 
   // Methods equivalent to the file lobject.c.  Prefixed with o.
+
+  private static final int IDSIZE = 60;
+  /**
+   * @return a string no longer than IDSIZE.
+   */
+  static String oChunkid(String source) {
+    int len = IDSIZE;
+    if (source.startsWith("=")) {
+      if(source.length() < IDSIZE+1) {
+        return source.substring(1);
+      } else {
+        return source.substring(1, 1+len);
+      }
+    }
+    // else  "source" or "...source"
+    if (source.startsWith("@")) {
+      len -= " '...' ".length();
+      int l = source.length();
+      if (l > len) {
+        return "..." +  // get last part of file name
+            source.substring(source.length()-len, source.length());
+      }
+      return source;
+    }
+    // else  [string "string"]
+    int l = source.indexOf('\n');
+    if (l == -1) {
+      l = source.length();
+    }
+    len -= " [string \"...\"] ".length();
+    if (l > len) {
+      l = len;
+    }
+    StringBuffer buf = new StringBuffer();
+    buf.append("[string \"");
+    buf.append(source.substring(0, l));
+    if (source.length() > l) {  // must truncate
+      buf.append("...");
+    }
+    buf.append("\"]");
+    return buf.toString();
+  }
 
   /** Equivalent to luaO_rawequalObj. */
   private static boolean oRawequal(Object a, Object b) {
