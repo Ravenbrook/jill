@@ -226,7 +226,6 @@ final class Loader {
     int[] code;
     Object[] constant;
     Proto[] proto;
-    Proto newProto;
 
     source = this.string();
     if (null == source) {
@@ -268,8 +267,12 @@ final class Loader {
     code = this.code();
     constant = this.constant();
     proto = this.proto(source);
-    newProto = new Proto(constant, code, proto, nups, numparams, vararg,
-      maxstacksize);
+    Proto newProto = new Proto(constant, code, proto, nups,
+      numparams, vararg, maxstacksize);
+    newProto.setSource(source);
+    newProto.setLinedefined(linedefined);
+    newProto.setLastlinedefined(lastlinedefined);
+
     this.debug(newProto);
     // :todo: call code verifier
     return newProto;

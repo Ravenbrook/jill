@@ -84,6 +84,14 @@ final class CallInfo {
   int nresults() {
     return nresults;
   }
+
+  /**
+   * Get number of tailcalls
+   */
+  int tailcalls() {
+    return tailcalls;
+  }
+
   /**
    * Used during tailcall to set the base and top members.
    */

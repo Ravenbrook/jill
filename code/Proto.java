@@ -68,6 +68,8 @@ final class Proto {
   private LocVar[] locvar;
   private String[] upvalue;
   private String source;
+  private int linedefined;
+  private int lastlinedefined;
 
   /**
    * Proto synthesized by {@link Loader}.
@@ -132,6 +134,30 @@ final class Proto {
     this.upvalue = upvalue;
   }
 
+  /** Gets source. */
+  String source() {
+    return source;
+  }
+
+  /** Setter for source. */
+  void setSource(String source) {
+    this.source = source;
+  }
+
+  int linedefined() {
+    return linedefined;
+  }
+  void setLinedefined(int linedefined) {
+    this.linedefined = linedefined;
+  }
+
+  int lastlinedefined() {
+    return lastlinedefined;
+  }
+  void setLastlinedefined(int lastlinedefined) {
+    this.lastlinedefined = lastlinedefined;
+  }
+
   /** Gets Number of Upvalues */
   int nups() {
     return nups;
@@ -177,6 +203,14 @@ final class Proto {
   /** Set lineinfo record. */
   void setLineinfo(int pc, int line) {
     lineinfo[pc] = line;
+  }
+
+  /** Get linenumber corresponding to pc, or 0 if no info. */
+  int getline(int pc) {
+    if (lineinfo.length == 0) {
+      return 0;
+    }
+    return lineinfo[pc];
   }
 
   /** Array of inner protos (do not modify). */
