@@ -179,7 +179,7 @@ import j2meunit.framework.TestSuite;
 //     end
 //     local a,b = pcall(function()f(6)end)
 //     print(b)
-//     return a==false, b=='spong'
+//     return a==false, b=='stdin:164: spong'
 //   end
 
 
