@@ -342,7 +342,7 @@ final class Loader {
    */
   private int intLoad() throws IOException {
     // :int:size  Here we assume an int is 4 bytes.
-    byte buf[] = new byte[4];
+    byte[] buf = new byte[4];
     block(buf);
 
     int i;
@@ -411,7 +411,7 @@ final class Loader {
       return null;
     }
 
-    byte buf[] = new byte[size-1];
+    byte[] buf = new byte[size-1];
     block(buf);
     // Discard trailing NUL byte
     block(new byte[1]);
