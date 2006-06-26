@@ -41,6 +41,8 @@
       value="/usr/local/mpp-sdk" />
   <property name="rim"
       value="C:/Program Files/Research In Motion/BlackBerry JDE 4.1.0" />
+  <property name="sun-wtk"
+      value="/home/markt/software/javas/j2me-2.2" />
   <property name="checkstyle"
       value="lib/checkstyle-all-4.1.jar" />
 
@@ -58,6 +60,13 @@
     <os family="windows" />
   </condition>
 
+  <condition property="platform.linux">
+    <and>
+      <os family="unix" />
+      <not><os family="mac" /></not>
+    </and>
+  </condition>
+
   <!-- and something for linux and/or other unixes -->
 
 
@@ -69,6 +78,10 @@
 
   <condition property="which.jme" value="rim">
     <isset property="platform.win" />
+  </condition>
+
+  <condition property="which.jme" value="sun-wtk">
+    <isset property="platform.linux" />
   </condition>
 
   <!-- and something for Sun's Java Wireless Toolkit -->
@@ -92,6 +105,8 @@
       value="${mpp}/cldc.jar:${mpp}/midp.jar:${java.classes.jar}" />
   <!-- JME jar files when using RIM -->
   <property name="rim.jar" value="${rim}/lib/net_rim_api.jar" />
+  <!-- JME jar files when using Sun WTK -->
+  <property name="sun-wtk.jar" value="${sun-wtk}/lib/cldcapi11.jar:${sun-wtk}/lib/midpapi20.jar" />
 
   <!-- All required JME jar files in classpath syntax -->
   <condition property="jme.jar" value="${mpp.jar}">
@@ -99,6 +114,9 @@
   </condition>
   <condition property="jme.jar" value="${rim.jar}">
     <equals arg1="${which.jme}" arg2="rim" />
+  </condition>
+  <condition property="jme.jar" value="${sun-wtk.jar}">
+    <equals arg1="${which.jme}" arg2="sun-wtk" />
   </condition>
 
   <!-- Location of preverify tool -->
