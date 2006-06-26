@@ -97,6 +97,32 @@ to adapt the build procedure.
 4. RELEASE NOTES
 
 
+RELEASE 0.5.0
+
+This release is intended to meet the planned "Full VM".
+
+All Lua expressions and statements are supported (there is no compiler,
+so all Lua scripts must be pre-compiled), with the following noted
+exceptions: Lua's power operator (x^y) is not supported; accessing a
+table with a nil key (t[nil]) is no supported yet.  The power operator
+requires a substantial amount of code in order to be implemented
+properly, and it's not clear whether this is justified yet.  "t[nil]"
+has a new meaning in Lua 5.1 (compared to Lua 5.0), it is intended to be
+supported, but given the relative obscurity of the operation, its lack
+of support is not seen as a problem at the moment.
+
+The following notable improvements have been made since the last
+release:
+
+For loops (both varieties).
+
+API names now consitently use Java style naming convention.
+
+Partial base and string libraries are provided.
+
+Bug fix: Lua equality for tables was wrong, now fixed.
+
+
 RELEASE 0.4.0
 
 This release is intended to meet the planned "Calculator Mode VM".
