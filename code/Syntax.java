@@ -213,10 +213,57 @@ final class Syntax {
         case '\r':
           inclinenumber();
           continue;
+        case '=':
+	  next() ;
+          if (current != '=')
+	  { return '=' ; }
+          else
+	  {
+	    next() ;
+	    return TK_EQ ;
+	  }
+        case '<':
+	  next() ;
+	  if (current != '=')
+	  { return '<' ; }
+	  else
+	  {
+	    next () ;
+	    return TK_LE ;
+	  }		
+        case '>':
+	  next() ;
+	  if (current != '=')
+	  { return '>' ; }
+	  else
+	  {
+	    next () ;
+	    return TK_GE ;
+	  }		
+        case '~':
+	  next();
+	  if (current != '=')
+	  { return '~'; }
+	  else
+	  {
+	    next();
+	    return TK_NE;
+	  }
         case '"':
         case '\'':
           read_string(current);
           return TK_STRING;
+        case '.':
+          save_and_next();
+	  if (check_next(".")) {
+	    return check_next(".") ? TK_DOTS : TK_CONCAT ;
+	  }
+          else if (!isdigit(current)) {
+	    return '.';
+	  } else {
+            read_numeral();
+            return TK_NUMBER;
+          }
         case EOZ:
           return TK_EOS;
         default:
