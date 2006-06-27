@@ -1,4 +1,4 @@
-/*  $Header: $
+/*  $Header$
  *  (c) Copyright 2006, Intuwave Ltd. All Rights Reserved.
  *
  *  Although Intuwave has tested this program and reviewed the documentation,
