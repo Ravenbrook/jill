@@ -498,6 +498,10 @@ final class Syntax {
     e.init(Expdesc.VK, fs.kStringK(s));
   }
 
+  private void checkname(Expdesc e) throws IOException {
+    codestring(e, str_checkname());
+  }
+
   private void enterlevel() {
     // :todo: implement me;
   }
@@ -756,10 +760,50 @@ final class Syntax {
   private boolean statement() throws IOException {
     int line = linenumber;
     switch (token) {
-      // :todo: missing cases
+/*
+      case TK_IF:   // stat -> ifstat
+	ifstat(line);
+	return false;
+
+      case TK_WHILE:  // stat -> whilestat
+	whilestat(line);
+	return false;
+
+      case TK_DO:       // stat -> DO block END
+	next();         // skip DO
+	block();
+	check_match(TK_END, TK_DO, line);
+	return false;
+
+      case TK_FOR:      // stat -> forstat
+        forstat(line);
+	return false;
+
+      case TK_REPEAT:   // stat -> repeatstat
+	repeatstat(line);
+	return false;
+*/
+      case TK_FUNCTION:
+	funcstat(line); // stat -> funcstat
+	return false;
+/*
+      case TK_LOCAL:    // stat -> localstat
+	next();         // skip LOCAL
+	if (testnext(TK_FUNCTION))  // local function?
+	  localfunc();
+	else
+          localstat();
+	return false;
+*/
       case TK_RETURN:
         retstat();
-        return true;
+        return true;  // must be last statement
+
+      case TK_BREAK:  // stat -> breakstat
+	next();       // skip BREAK
+	breakstat();
+	return true;  // must be last statement
+
       default:
         exprstat();
         return false;
@@ -869,5 +913,113 @@ final class Syntax {
     leavelevel();
     return op;
   }
+
+  private void enterblock (FuncState fs, BlockCnt bl, boolean isbreakable) {
+    bl.breaklist = FuncState.NO_JUMP ;
+    bl.isbreakable = isbreakable ;
+    bl.nactvar = fs.nactvar ;
+    bl.upval = false ;
+    bl.previous = fs.bl;
+    fs.bl = bl;
+    // lua_assert(fs->freereg == fs->nactvar);
+  }
+
+  private void leaveblock (FuncState fs) {
+    BlockCnt bl = fs.bl;
+    fs.bl = bl.previous;
+    removevars(bl.nactvar);
+    if (bl.upval)
+      fs.kCodeABC(Lua.OP_CLOSE, bl.nactvar, 0, 0);
+    // lua_assert(!bl->isbreakable || !bl->upval);  /* loops have no body */
+    // lua_assert(bl->nactvar == fs->nactvar);
+    fs.freereg = fs.nactvar;  /* free registers */
+    fs.kPatchtohere(bl.breaklist);
+  }
+
+
+/*
+** {======================================================================
+** Rules for Statements
+** =======================================================================
+*/
+
+
+  private void block () throws IOException {
+    /* block -> chunk */
+    BlockCnt bl = new BlockCnt () ;
+    enterblock(fs, bl, false);
+    chunk();
+    // lua_assert(bl.breaklist == FuncState.NO_JUMP);
+    leaveblock(fs);
+  }
+
+  private void breakstat () {
+    BlockCnt bl = fs.bl;
+    boolean upval = false;
+    while (bl != null && !bl.isbreakable) {
+      upval |= bl.upval;
+      bl = bl.previous;
+    }
+    if (bl == null)
+      xSyntaxerror("no loop to break");
+    if (upval)
+      fs.kCodeABC(Lua.OP_CLOSE, bl.nactvar, 0, 0);
+    bl.breaklist = fs.kConcat(bl.breaklist, fs.kJump());
+  }
+    
+  private void funcstat (int line) throws IOException {
+    /* funcstat -> FUNCTION funcname body */
+    Expdesc b = new Expdesc () ;
+    Expdesc v = new Expdesc () ;
+    xNext();  /* skip FUNCTION */
+    boolean needself = funcname(v);
+    body(b, needself, line);
+    fs.kStorevar(v, b);
+    fs.kFixline(line);  /* definition `happens' in the first line */
+  }
+
+  private void body (Expdesc e, boolean needself, int line) {
+    /* body ->  `(' parlist `)' chunk END */
+/* TODO make this compile:
+    FuncState new_fs = new FuncState ();
+    open_func(new_fs);
+    new_fs.f.linedefined = line;
+    checknext('(');
+    if (needself) {
+      new_localvarliteral("self", 0);
+      adjustlocalvars(1);
+    }
+    parlist();
+    checknext(')');
+    chunk();
+    new_fs.f.lastlinedefined = linenumber;
+    check_match(TK_END, TK_FUNCTION, line);
+    close_func();
+    pushclosure(new_fs, e);
+*/
+  }
+
+  private boolean funcname (Expdesc v) throws IOException {
+    /* funcname -> NAME {field} [`:' NAME] */
+    boolean needself = false;
+    singlevar(v);
+    while (token == '.')
+      field(v);
+    if (token == ':') {
+      needself = true;
+      field(v);
+    }
+    return needself;
+  }
+
+  private void field (Expdesc v) throws IOException {
+    /* field -> ['.' | ':'] NAME */
+    Expdesc key = new Expdesc () ;
+    fs.kExp2anyreg(v);
+    xNext();  /* skip the dot or colon */
+    checkname(key);
+    fs.kIndexed(v, key);
+  }
+
 }
 

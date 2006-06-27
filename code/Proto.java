@@ -40,7 +40,7 @@ final class Proto {
   /** Array of constants. */
   private Object[] k;
   /** Array of VM instructions. */
-  private int[] code;
+  int[] code;
   /** Array of Proto objects. */
   private Proto[] p;
   /**

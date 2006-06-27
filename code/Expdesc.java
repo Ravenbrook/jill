@@ -35,12 +35,12 @@ final class Expdesc {
   static final int VCALL = 13;          // info = instruction pc
   static final int VVARARG = 14;        // info = instruction pc
 
-  private int k;        // one of V* enums above
-  private int info;
-  private int aux;
-  private double nval;
-  private int t;
-  private int f;
+  int k;        // one of V* enums above
+  int info;
+  int aux;
+  double nval;
+  int t;
+  int f;
 
   Expdesc() { }
 

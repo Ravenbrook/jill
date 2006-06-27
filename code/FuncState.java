@@ -39,7 +39,8 @@ final class FuncState {
   Syntax ls;
   /** Lua state. */
   Lua L;
-  // :todo: chain of current blocks
+  /** chain of current blocks */
+  BlockCnt bl;
   /** next position to code. */
   int pc;
   /** pc of last jump target. */
@@ -134,6 +135,11 @@ final class FuncState {
     // assert getOpMode(o) == iABx || getOpMode(o) == iAsBx);
     // assert getCMode(o) == OpArgN);
     return kCode(Lua.CREATE_ABx(o, a, bc), ls.lastline());
+  }
+
+  /** Equivalent to luaK_codeAsBx. */
+  int kCodeAsBx(int o, int a, int bc) {
+    return kCodeABx(o, a, bc+Lua.MAXARG_sBx);
   }
 
   /** Equivalent to luaK_dischargevars. */
@@ -401,4 +407,142 @@ final class FuncState {
     int[] code = f.code();
     code[pc] = Lua.SETARG_C(code[pc], c);
   }
+
+  /** Equivalent to <code>luaK_getlabel</code>. */
+  int kGetlabel () {
+    lasttarget = pc ;
+    return pc;
+  }
+
+  /** Equivalent to <code>luaK_concat</code>. */
+  /** l1 was an int*, now passing back as result */
+  int kConcat (int l1, int l2) {
+    if (l2 == NO_JUMP)
+      return l1;
+    else if (l1 == NO_JUMP)
+      return l2;
+    else {
+      int list = l1;
+      int next;
+      while ((next = getjump(list)) != NO_JUMP)  /* find last element */
+	list = next;
+      fixjump(list, l2);
+      return l1;
+    }
+  }
+
+  /** Equivalent to <code>luaK_patchtohere</code>. */
+  void kPatchtohere (int list) {
+    kGetlabel();
+    jpc = kConcat(jpc, list);
+  }
+
+  private void fixjump (int pc, int dest) {
+    int jmp = f.code[pc];
+    int offset = dest-(pc+1);
+    // lua_assert(dest != NO_JUMP);
+    if (Math.abs(offset) > Lua.MAXARG_sBx)
+      ls.xSyntaxerror("control structure too long");
+    Lua.SETARG_sBx(jmp, offset);
+  }
+
+  private int getjump (int pc) {
+    int offset = Lua.ARGsBx(f.code[pc]);
+    if (offset == NO_JUMP)  /* point to itself represents end of list */
+     return NO_JUMP;  /* end of list */
+    else
+      return (pc+1)+offset;  /* turn offset into absolute position */
+  }
+
+  /** Equivalent to <code>luaK_jump</code>. */
+  int kJump () {
+    int old_jpc = jpc;  /* save list of jumps to here */
+    jpc = NO_JUMP;
+    int j = kCodeAsBx(Lua.OP_JMP, 0, NO_JUMP);
+    j = kConcat(j, old_jpc);  /* keep them on hold */
+    return j;
+  }
+
+  /** Equivalent to <code>luaK_storevar</code>. */
+  void kStorevar (Expdesc var, Expdesc ex) {
+    switch (var.k) {
+      case Expdesc.VLOCAL: {
+	freeexp(ex);
+	exp2reg(ex, var.info);
+	return;
+      }
+      case Expdesc.VUPVAL: {
+	int e = kExp2anyreg(ex);
+	kCodeABC(Lua.OP_SETUPVAL, e, var.info, 0);
+	break;
+      }
+      case Expdesc.VGLOBAL: {
+	int e = kExp2anyreg(ex);
+	kCodeABx(Lua.OP_SETGLOBAL, e, var.info);
+	break;
+      }
+      case Expdesc.VINDEXED: {
+        int e = kExp2RK(ex);
+	kCodeABC(Lua.OP_SETTABLE, var.info, var.aux, e);
+	break;
+      }
+      default: {
+        //lua_assert(0);  /* invalid var kind to store */
+        break;
+      }
+    }
+    freeexp(ex);
+  }
+
+  /** Equivalent to <code>luaK_indexed</code>. */
+  void kIndexed (Expdesc t, Expdesc k) {
+    t.aux = kExp2RK(k);
+    t.k = Expdesc.VINDEXED;
+  }
+
+  /** Equivalent to <code>luaK_exp2RK</code>. */
+  int kExp2RK (Expdesc e) {
+    kExp2val(e);
+    switch (e.k) {
+      case Expdesc.VKNUM:
+      case Expdesc.VTRUE:
+      case Expdesc.VFALSE:
+      case Expdesc.VNIL:
+        if (nk <= Lua.MAXINDEXRK) {  /* constant fit in RK operand? */
+	  e.info = (e.k == Expdesc.VNIL)  ? nilK() :
+	      (e.k == Expdesc.VKNUM) ? kNumberK(e.nval) :
+	      boolK(e.k == Expdesc.VTRUE);
+	  e.k = Expdesc.VK;
+	  return e.info | Lua.BITRK;
+	}
+	else break;
+
+      case Expdesc.VK:
+        if (e.info <= Lua.MAXINDEXRK)  /* constant fit in argC? */
+	  return e.info | Lua.BITRK;
+	else break;
+
+      default: break;
+    }
+    /* not a constant in the right range: put it in a register */
+    return kExp2anyreg(e);
+  }
+
+  /** Equivalent to <code>luaK_exp2val</code>. */
+  private void kExp2val (Expdesc e) {
+    if (e.hasjumps())
+	kExp2anyreg(e);
+    else
+	kDischargevars(e);
+  }
+
+  /** TODO: int may become boolean or Boolean */
+  private int boolK (boolean b) {
+    return addk(Lua.valueOfBoolean(b));
+  }
+
+  private int nilK () {
+    return addk(Lua.NIL);
+  }
+
 }

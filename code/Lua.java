@@ -1631,7 +1631,7 @@ public final class Lua {
 
   // Hardwired values for speed.
   /** Equivalent of macro GET_OPCODE */
-  private static int OPCODE(int instruction) {
+  static int OPCODE(int instruction) {
     // POS_OP == 0 (shift amount)
     // SIZE_OP == 6 (opcode width)
     return instruction & 0x3f;
@@ -1648,7 +1648,7 @@ public final class Lua {
   }
 
   /** Equivalent of macro GETARG_B */
-  private static int ARGB(int instruction) {
+  static int ARGB(int instruction) {
     // POS_B == POS_OP + SIZE_OP + SIZE_A + SIZE_C == 23 (shift amount)
     // SIZE_B == 9 (operand width)
     /* No mask required as field occupies the most significant bits of a
@@ -1661,7 +1661,7 @@ public final class Lua {
   }
 
   /** Equivalent of macro GETARG_C */
-  private static int ARGC(int instruction) {
+  static int ARGC(int instruction) {
     // POS_C == POS_OP + SIZE_OP + SIZE_A == 14 (shift amount)
     // SIZE_C == 9 (operand width)
     return (instruction >>> 14) & 0x1ff;
@@ -1672,7 +1672,7 @@ public final class Lua {
   }
 
   /** Equivalent of macro GETARG_Bx */
-  private static int ARGBx(int instruction) {
+  static int ARGBx(int instruction) {
     // POS_Bx = POS_C == 14
     // SIZE_Bx == SIZE_C + SIZE_B == 18
     /* No mask required as field occupies the most significant bits of a
@@ -1680,10 +1680,19 @@ public final class Lua {
     return (instruction >>> 14);
   }
 
+  static int SETARG_Bx(int i, int bx) {
+    return (i & 0x3fff) | (bx << 14) ;
+  }
+
+
   /** Equivalent of macro GETARG_sBx */
-  private static int ARGsBx(int instruction) {
+  static int ARGsBx(int instruction) {
     // As ARGBx but with (2**17-1) subtracted.
     return (instruction >>> 14) - ((1<<17)-1);
+  }
+
+  static int SETARG_sBx(int i, int bx) {
+    return (i & 0x3fff) | (bx << 14) ;  // CHECK THIS IS RIGHT
   }
 
   static boolean ISK(int field) {
@@ -1769,6 +1778,33 @@ public final class Lua {
   static final int OP_VARARG = 37;
 
   // end of instruction decomposition
+
+  static final int SIZE_C = 9;
+  static final int SIZE_B = 9;
+  static final int SIZE_Bx = SIZE_C + SIZE_B;
+  static final int SIZE_A = 8;
+
+  static final int SIZE_OP = 6;
+
+  static final int POS_OP = 0;
+  static final int POS_A = POS_OP + SIZE_OP;
+  static final int POS_C = POS_A + SIZE_A;
+  static final int POS_B = POS_C + SIZE_C;
+  static final int POS_Bx = POS_C;
+
+  static final int MAXARG_Bx = (1<<SIZE_Bx)-1;
+  static final int MAXARG_sBx = MAXARG_Bx>>1;    // `sBx' is signed
+
+
+  static final int MAXARG_A = (1<<SIZE_A)-1;
+  static final int MAXARG_B = (1<<SIZE_B)-1;
+  static final int MAXARG_C = (1<<SIZE_C)-1;
+
+  /* this bit 1 means constant (0 means register) */
+  static final int BITRK = 1 << (SIZE_B - 1) ;
+  static final int MAXINDEXRK = BITRK - 1 ;
+
+
 
   /**
    * Equivalent of luaD_call.
