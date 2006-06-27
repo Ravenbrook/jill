@@ -83,6 +83,23 @@ public class LuaTest extends JiliTestCase {
     assertTrue("Result is 7foo", "7foo".equals(L.value(1)));
   }
 
+  /**
+   * Test that we can set a table entry to nil.  Because the API is not
+   * yet complete this uses {@link Lua#setGlobal} instead of the more obvious
+   * Lua.setTable.  This is indicative for Ravenbrook job001451.
+   */
+  public void testLua4() {
+    Lua L = new Lua();
+    System.out.println("testLua4");
+    boolean good = false;
+    try {
+      L.setGlobal("x", Lua.NIL);
+      good = true;
+    } catch (Exception e_) {
+    }
+    assertTrue("x = nil was okay", good);
+  }
+
   public Test suite() {
     TestSuite suite = new TestSuite();
 
@@ -94,6 +111,8 @@ public class LuaTest extends JiliTestCase {
         public void runTest() { testLua2(); } });
     suite.addTest(new LuaTest("testLua3") {
         public void runTest() { testLua3(); } });
+    suite.addTest(new LuaTest("testLua4") {
+        public void runTest() { testLua4(); } });
     return suite;
   }
 }
