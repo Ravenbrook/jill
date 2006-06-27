@@ -105,4 +105,18 @@ public final class LuaTable extends java.util.Hashtable {
     }
     return i;
   }
+
+  /**
+   * Overrides {@link java.util.Hashtable#put} to enable Lua's semantics
+   * for <code>nil</code>.  In particular that <code>x = nil</nil>
+   * deletes <code>x</code>.  In Jili it is dangerous to use the return
+   * value from this method (because it may be null).
+   */
+  public Object put(Object key, Object value) {
+    // :todo: check key == Lua.NIL and raise an error
+    if (value == Lua.NIL) {
+      return remove(key);
+    }
+    return super.put(key, value);
+  }
 }
