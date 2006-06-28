@@ -112,7 +112,7 @@ public class StringLibTest extends JiliTestCase {
     Lua L = luaGlobal(name, n);
     for (int i=1; i<=n; ++i) {
       assertTrue("Result " + i + " is true",
-	  L.valueOfBoolean(true).equals(L.value(i)));
+          L.valueOfBoolean(true).equals(L.value(i)));
     }
   }
 
