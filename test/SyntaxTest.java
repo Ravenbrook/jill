@@ -50,7 +50,11 @@ public class SyntaxTest extends TestCase {
     assertTrue("script 2 okay", 0 == dostring(L, " \t"));
     assertTrue("script 3 okay", 0 == dostring(L, "\n\n"));
     assertTrue("script 4 okay", 0 == dostring(L, "return 99"));
-    assertTrue("script 5 okay", 0 == dostring(L, "return -99"));
+    assertTrue("script 5 okay", 0 == dostring(L, "  return -99 ;  "));
+    assertTrue("script 6 okay", 0 == dostring(L, "do return 77 end"));
+    assertTrue("script 7 okay", 0 == dostring(L, "repeat do return 77 end until 5"));
+    assertTrue("script 8 okay", 0 == dostring(L, "do local f = 7 ; return f  end"));
+    assertTrue("script 9 okay", 0 == dostring(L, "  return \"This is a String\";  "));
   }
 
   /** Test that function calls are compiled. */

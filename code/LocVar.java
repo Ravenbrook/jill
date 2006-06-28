@@ -15,21 +15,16 @@
 
 
 final class LocVar {
-  private final String name;
-  private final int startpc;
-  private int endpc;
+  String varname;
+  int startpc;
+  int endpc;
 
-  LocVar(String name, int startpc, int endpc) {
-    this.name = name;
+  LocVar () {}
+
+  LocVar(String varname, int startpc, int endpc) {
+    this.varname = varname;
     this.startpc = startpc;
     this.endpc = endpc;
   }
 
-  String name() {
-    return name;
-  }
-
-  void setEndpc(int endpc) {
-    this.endpc = endpc;
-  }
 }

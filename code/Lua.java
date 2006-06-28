@@ -103,6 +103,7 @@ public final class Lua {
    */
   static final int MAXVARS = 200;
   static final int MAXSTACK = 250;
+  static final int MAXUPVALUES = 60;
 
   /** Used to communicate error status (ERRRUN, etc) from point where
    * error is raised to the code that catches it.
@@ -1488,7 +1489,7 @@ public final class Lua {
     return 0;
   }
 
-  private void gRunerror(String s) {
+  void gRunerror(String s) {
     gErrormsg(s);
   }
 
@@ -1636,6 +1637,14 @@ public final class Lua {
     // SIZE_OP == 6 (opcode width)
     return instruction & 0x3f;
   }
+
+  /** Equivalent of macro GET_OPCODE */
+  static int SET_OPCODE(int i, int op) {
+    // POS_OP == 0 (shift amount)
+    // SIZE_OP == 6 (opcode width)
+    return (i & ~0x3F) | (op & 0x3F);
+  }
+
   /** Equivalent of macro GETARG_A */
   static int ARGA(int instruction) {
     // POS_A == POS_OP + SIZE_OP == 6 (shift amount)
@@ -1803,7 +1812,6 @@ public final class Lua {
   /* this bit 1 means constant (0 means register) */
   static final int BITRK = 1 << (SIZE_B - 1) ;
   static final int MAXINDEXRK = BITRK - 1 ;
-
 
 
   /**
@@ -2449,7 +2457,7 @@ reentry:
       Proto p = f.proto();
       // :todo: ensure enough stack
 
-      if (!p.vararg()) {
+      if (!p.is_vararg()) {
         base = func + 1;
         if (stack.size() > base + p.numparams()) {
           // trim stack to the argument list
@@ -2644,4 +2652,3 @@ reentry:
     return ci;
   }
 }
-

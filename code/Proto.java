@@ -38,16 +38,17 @@ final class Proto {
   // Generally the fields are named following the PUC-Rio implementation
   // and so are unusually terse.
   /** Array of constants. */
-  private Object[] k;
+  Object[] k;
   /** Array of VM instructions. */
   int[] code;
   /** Array of Proto objects. */
-  private Proto[] p;
+  Proto[] p;
+  int sizep;
   /**
    * Number of upvalues used by this prototype (and so by all the
    * functions created from this Proto).
    */
-  private int nups;
+  int nups;
   /**
    * Number of formal parameters used by this prototype, and so the
    * number of argument received by a function created from this Proto.
@@ -55,21 +56,24 @@ final class Proto {
    * fixed parameters, the number appearing before '...' in the parameter
    * list.
    */
-  private int numparams;
+  int numparams;
   /**
    * <code>true</code> if and only if the function is variadic, that is,
    * defined with '...' in its parameter list.
    */
-  private boolean vararg;
-  private int maxstacksize;
+  boolean is_vararg;
+  int maxstacksize;
   // Debug info
   /** Map from PC to line number. */
-  private int[] lineinfo;
-  private LocVar[] locvar;
-  private String[] upvalue;
-  private String source;
-  private int linedefined;
-  private int lastlinedefined;
+  int[] lineinfo;
+  int sizelineinfo;
+  LocVar[] locvars;
+  int sizelocvars ;
+  String[] upvalues;
+  int sizeupvalues;
+  String source;
+  int linedefined;
+  int lastlinedefined;
 
   /**
    * Proto synthesized by {@link Loader}.
@@ -83,18 +87,18 @@ final class Proto {
    * @param code       array of VM instructions.
    * @param nups       number of upvalues (used by this function).
    * @param numparams  number of fixed formal parameters.
-   * @param vararg     whether '...' is used.
+   * @param is_vararg     whether '...' is used.
    * @param maxstacksize  number of stack slots required when invoking.
    * @throws NullPointerException if any array arguments are null.
    * @throws IllegalArgumentException if nups or numparams is negative.
    */
   Proto(Object[] constant,
-      int[] code,
-      Proto[] proto,
-      int nups,
-      int numparams,
-      boolean vararg,
-      int maxstacksize) {
+        int[] code,
+        Proto[] proto,
+        int nups,
+        int numparams,
+        boolean is_vararg,
+        int maxstacksize) {
     if (null == constant || null == code || null == proto) {
       throw new NullPointerException();
     }
@@ -104,9 +108,10 @@ final class Proto {
     this.k = constant;
     this.code = code;
     this.p = proto;
+    this.sizep = proto.length ;
     this.nups = nups;
     this.numparams = numparams;
-    this.vararg = vararg;
+    this.is_vararg = is_vararg;
     this.maxstacksize = maxstacksize;
   }
 
@@ -119,19 +124,26 @@ final class Proto {
     this.k = ZERO_OBJECT_ARRAY;
     this.code = ZERO_INT_ARRAY;
     this.p = ZERO_PROTO_ARRAY;
+    this.sizep = 0;
     this.lineinfo = ZERO_INT_ARRAY;
-    this.locvar = ZERO_LOCVAR_ARRAY;
-    this.upvalue = ZERO_STRING_ARRAY;
+    this.sizelineinfo = 0;
+    this.locvars = ZERO_LOCVAR_ARRAY;
+    this.sizelocvars = 0 ;
+    this.upvalues = ZERO_STRING_ARRAY;
+    this.sizeupvalues = 0;
   }
 
   /**
    * Augment with debug info.  All the arguments are referenced by the
    * instance after the method has returned, so try not to share them.
    */
-  void debug(int[] lineinfo, LocVar[] locvar, String[] upvalue) {
+  void debug(int[] lineinfo, LocVar[] locvars, String[] upvalues) {
     this.lineinfo = lineinfo;
-    this.locvar = locvar;
-    this.upvalue = upvalue;
+    this.sizelineinfo = lineinfo.length;
+    this.locvars = locvars;
+    this.sizelocvars = locvars.length;
+    this.upvalues = upvalues;
+    this.sizeupvalues = upvalues.length;
   }
 
   /** Gets source. */
@@ -192,12 +204,43 @@ final class Proto {
     }
     code[pc] = instruction;
 
+    /** TODO: errorcase */
     if (pc >= lineinfo.length) {
       int[] newLineinfo = new int[lineinfo.length*2+1];
       System.arraycopy(lineinfo, 0, newLineinfo, 0, lineinfo.length);
       lineinfo = newLineinfo;
     }
     lineinfo[pc] = line;
+  }
+
+  void ensureLocvars (Lua L, int atleast, int limit) {
+    if (atleast + 1 > sizelocvars) {
+      int newsize = atleast*2+1 ;
+      if (newsize > limit)
+        newsize = limit ;
+      if (atleast + 1 > newsize)
+        L.gRunerror("too many local variables") ;
+      LocVar [] newlocvars = new LocVar [newsize] ;
+      System.arraycopy(locvars, 0, newlocvars, 0, sizelocvars) ;
+      for (int i = sizelocvars ; i < newsize ; i++)
+        newlocvars[i] = new LocVar () ;
+      locvars = newlocvars ;
+      sizelocvars = newsize ;
+    }
+  }
+
+  void ensureProtos (Lua L, int atleast) {
+    if (atleast + 1 > sizep) {
+      int newsize = atleast*2+1 ;
+      if (newsize > Lua.MAXARG_Bx)
+        newsize = Lua.MAXARG_Bx ;
+      if (atleast + 1 > newsize)
+        L.gRunerror("constant table overflow") ;
+      Proto [] newprotos = new Proto [newsize] ;
+      System.arraycopy(p, 0, newprotos, 0, sizep) ;
+      p = newprotos ;
+      sizep = newsize ;
+    }
   }
 
   /** Set lineinfo record. */
@@ -234,18 +277,18 @@ final class Proto {
   }
 
   /** Predicate for whether function uses ... in its parameter list. */
-  boolean vararg() {
-    return vararg;
+  boolean is_vararg() {
+    return is_vararg;
   }
 
-  /** "Setter" for vararg.  Sets it to true. */
-  void setVararg() {
-    vararg = true;
+  /** "Setter" for is_vararg.  Sets it to true. */
+  void setIs_vararg() {
+    is_vararg = true;
   }
 
   /** LocVar array (do not modify). */
-  LocVar[] locvar() {
-    return locvar;
+  LocVar[] locvars() {
+    return locvars;
   }
 
   // All the trim functions, below, check for the redundant case of
@@ -274,6 +317,7 @@ final class Proto {
   /** Trim lineinfo array to specified size. */
   void closeLineinfo(int n) {
     lineinfo = trimInt(lineinfo, n);
+    sizelineinfo = n;
   }
 
   /** Trim k (constant) array to specified size. */
@@ -294,26 +338,29 @@ final class Proto {
     Proto[] newArray = new Proto[n];
     System.arraycopy(p, 0, newArray, 0, n);
     p = newArray;
+    sizep = n ;
   }
 
   /** Trim locvar array to specified size. */
-  void closeLocvar(int n) {
-    if (n == locvar.length) {
+  void closeLocvars(int n) {
+    if (n == locvars.length) {
       return;
     }
     LocVar[] newArray = new LocVar[n];
-    System.arraycopy(locvar, 0, newArray, 0, n);
-    locvar = newArray;
+    System.arraycopy(locvars, 0, newArray, 0, n);
+    locvars = newArray;
+    sizelocvars = n;
   }
 
-  /** Trim upvalue array to size <var>nups</var>. */
-  void closeUpvalue() {
-    if (nups == upvalue.length) {
+  /** Trim upvalues array to size <var>nups</var>. */
+  void closeUpvalues() {
+    if (nups == upvalues.length) {
       return;
     }
     String[] newArray = new String[nups];
-    System.arraycopy(upvalue, 0, newArray, 0, nups);
-    upvalue = newArray;
+    System.arraycopy(upvalues, 0, newArray, 0, nups);
+    upvalues = newArray;
+    sizeupvalues = nups;
   }
-}
 
+}
