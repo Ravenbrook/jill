@@ -456,7 +456,7 @@ final class FuncState {
 
 
   private void dischargejpc() {
-    // :todo: implement me
+    patchlistaux(jpc, pc, Lua.NO_REG, pc);
     jpc = NO_JUMP;
   }
 
@@ -522,16 +522,6 @@ final class FuncState {
     f.code[e.info] = code ;
   }
 
-  /** Equivalent to indexupvalue from lparser.c */
-  int indexupval(String name, Expdesc v) {
-    // :todo: implement me
-    return 99;
-  }
-
-  /** Equivalent to markupval from lparser.c */
-  void markupval(int level) {
-    // :todo: implement me
-  }
 
   /** Equivalent to searchvar from lparser.c */
   int searchvar(String n) {

@@ -622,10 +622,7 @@ final class Syntax {
     }
   }
 
-  private static int singlevaraux(FuncState fs,
-      String n,
-      Expdesc var,
-      boolean base) {
+  private int singlevaraux(FuncState fs, String n, Expdesc var, boolean base) {
     if (fs == null) {   // no more levels?
       var.init(Expdesc.VGLOBAL, Lua.NO_REG);    // default is global variable
       return Expdesc.VGLOBAL;
@@ -634,14 +631,14 @@ final class Syntax {
       if (v >= 0) {
         var.init(Expdesc.VLOCAL, v);
         if (!base) {
-          fs.markupval(v);      // local will be used as an upval
+          markupval(v);      // local will be used as an upval
         }
         return Expdesc.VLOCAL;
       } else {  // not found at current level; try upper one
         if (singlevaraux(fs.prev, n, var, false) == Expdesc.VGLOBAL) {
           return Expdesc.VGLOBAL;
         }
-        var.upval(fs.indexupval(n, var));       // else was LOCAL or UPVAL
+        var.upval(indexupvalue(n, var));       // else was LOCAL or UPVAL
         return Expdesc.VUPVAL;
       }
     }
@@ -1054,7 +1051,6 @@ final class Syntax {
   private boolean statement() throws IOException {
     int line = linenumber;
     switch (token) {
-/*
       case TK_IF:   // stat -> ifstat
         ifstat(line);
         return false;
@@ -1062,17 +1058,17 @@ final class Syntax {
       case TK_WHILE:  // stat -> whilestat
         whilestat(line);
         return false;
-*/
+
       case TK_DO:       // stat -> DO block END
         xNext();         // skip DO
         block();
         check_match(TK_END, TK_DO, line);
         return false;
-/*
+
       case TK_FOR:      // stat -> forstat
         forstat(line);
         return false;
-*/
+
       case TK_REPEAT:   // stat -> repeatstat
         repeatstat(line);
         return false;
@@ -1487,6 +1483,140 @@ final class Syntax {
     adjustlocalvars(nvars);
   }
 
+  private void forstat (int line) throws IOException {
+    /* forstat -> FOR (fornum | forlist) END */
+    BlockCnt bl = new BlockCnt () ;
+    enterblock(fs, bl, true);  /* scope for loop and control variables */
+    xNext();  /* skip `for' */
+    String varname = str_checkname();  /* first variable name */
+    switch (token) {
+      case '=':
+        fornum(varname, line);
+        break;
+      case ',':
+      case TK_IN:
+        forlist(varname);
+        break;
+      default:
+        xSyntaxerror("\"=\" or \"in\" expected");
+    }
+    check_match(TK_END, TK_FOR, line);
+    leaveblock(fs);  /* loop scope (`break' jumps to this point) */
+  }
+
+  private void fornum (String varname, int line) throws IOException {
+    /* fornum -> NAME = exp1,exp1[,exp1] forbody */
+    int base = fs.freereg;
+    new_localvarliteral("(for index)", 0);
+    new_localvarliteral("(for limit)", 1);
+    new_localvarliteral("(for step)", 2);
+    new_localvar(varname, 3);
+    checknext('=');
+    exp1();  /* initial value */
+    checknext(',');
+    exp1();  /* limit */
+    if (testnext(','))
+      exp1();  /* optional step */
+    else {  /* default step = 1 */
+      fs.kCodeABx(Lua.OP_LOADK, fs.freereg, fs.kNumberK(1));
+      fs.kReserveregs(1);
+    }
+    forbody(base, line, 1, true);
+  }
+
+  private int exp1 () throws IOException {
+    Expdesc e = new Expdesc ();
+    expr(e);
+    int k = e.k;
+    fs.kExp2nextreg(e);
+    return k;
+  }
+
+
+  private void forlist (String indexname) throws IOException {
+    /* forlist -> NAME {,NAME} IN explist1 forbody */
+    Expdesc e = new Expdesc () ;
+    int nvars = 0;
+    int base = fs.freereg;
+    /* create control variables */
+    new_localvarliteral("(for generator)", nvars++);
+    new_localvarliteral("(for state)", nvars++);
+    new_localvarliteral("(for control)", nvars++);
+    /* create declared variables */
+    new_localvar(indexname, nvars++);
+    while (testnext(','))
+      new_localvar(str_checkname(), nvars++);
+    checknext(TK_IN);
+    int line = linenumber;
+    adjust_assign(3, explist1(e), e);
+    fs.kCheckstack(3);  /* extra space to call generator */
+    forbody(base, line, nvars - 3, false);
+  }
+
+  private void forbody (int base, int line, int nvars, boolean isnum) throws IOException {
+    /* forbody -> DO block */
+    BlockCnt bl = new BlockCnt () ;
+    adjustlocalvars(3);  /* control variables */
+    checknext(TK_DO);
+    int prep = isnum ? fs.kCodeAsBx(Lua.OP_FORPREP, base, FuncState.NO_JUMP) : fs.kJump();
+    enterblock(fs, bl, false);  /* scope for declared variables */
+    adjustlocalvars(nvars);
+    fs.kReserveregs(nvars);
+    block();
+    leaveblock(fs);  /* end of scope for declared variables */
+    fs.kPatchtohere(prep);
+    int endfor = isnum ? 
+        fs.kCodeAsBx(Lua.OP_FORLOOP, base, FuncState.NO_JUMP) :
+        fs.kCodeABC(Lua.OP_TFORLOOP, base, 0, nvars);
+    fs.kFixline(line);  /* pretend that `OP_FOR' starts the loop */
+    fs.kPatchlist((isnum ? endfor : fs.kJump()), prep + 1);
+  }
+
+  private void ifstat (int line) throws IOException {
+    /* ifstat -> IF cond THEN block {ELSEIF cond THEN block} [ELSE block] END */
+    int escapelist = FuncState.NO_JUMP;
+    int flist = test_then_block();  /* IF cond THEN block */
+    while (token == TK_ELSEIF) {
+      fs.kConcat(escapelist, fs.kJump());
+      fs.kPatchtohere(flist);
+      flist = test_then_block();  /* ELSEIF cond THEN block */
+    }
+    if (token == TK_ELSE) {
+      fs.kConcat(escapelist, fs.kJump());
+      fs.kPatchtohere(flist);
+      xNext();  /* skip ELSE (after patch, for correct line info) */
+      block();  /* `else' part */
+    }
+    else
+      fs.kConcat(escapelist, flist);
+    fs.kPatchtohere(escapelist);
+    check_match(TK_END, TK_IF, line);
+  }
+
+  private int test_then_block () throws IOException {
+    /* test_then_block -> [IF | ELSEIF] cond THEN block */
+    xNext();  /* skip IF or ELSEIF */
+    int condexit = cond();
+    checknext(TK_THEN);
+    block();  /* `then' part */
+    return condexit;
+  }
+
+  private void whilestat (int line) throws IOException {
+    /* whilestat -> WHILE cond DO block END */
+    BlockCnt bl = new BlockCnt () ;
+    xNext();  /* skip WHILE */
+    int whileinit = fs.kGetlabel();
+    int condexit = cond();
+    enterblock(fs, bl, true);
+    checknext(TK_DO);
+    block();
+    fs.kPatchlist(fs.kJump(), whileinit);
+    check_match(TK_END, TK_WHILE, line);
+    leaveblock(fs);
+    fs.kPatchtohere(condexit);  /* false conditions finish the loop */
+  }
+
   private boolean hasmultret(int k) {
     return k == Expdesc.VCALL || k == Expdesc.VVARARG ;
   }
@@ -1547,6 +1677,14 @@ final class Syntax {
     cc.tostore++;
   }
 
+  private void markupval (int level) {
+    BlockCnt bl = fs.bl;
+    while (bl != null && bl.nactvar > level) 
+      bl = bl.previous;
+    if (bl != null)
+      bl.upval = true;
+  }
+
   private int indexupvalue (String name, Expdesc v) {
     int i;
     Proto f = fs.f;
@@ -1576,3 +1714,16 @@ final class LHS_assign
   LHS_assign () {}
   LHS_assign (LHS_assign prev) { this.prev = prev ; }
 }
+
+final class ConsControl {
+  Expdesc v = new Expdesc() ;  /* last list item read */
+  Expdesc t;  /* table descriptor */
+  int nh;  /* total number of `record' elements */
+  int na;  /* total number of array elements */
+  int tostore;  /* number of array elements pending to be stored */
+
+  ConsControl (Expdesc t)
+  {
+    this.t = t ;
+  }
+};
