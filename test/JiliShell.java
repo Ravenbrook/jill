@@ -58,8 +58,8 @@ public class JiliShell extends MIDlet implements CommandListener
         title_screen = new Form ("Jili Shell") ;
         title_screen.append (new StringItem (null, appName)) ;
 
-        the_output_screen = new TextBox ("--output--", "", 1024, 0) ;
-        the_input_box  = new TextField ("input", "", 50, 0) ;
+        the_output_screen = new TextBox ("--output--", "", 2048, 0) ;
+        the_input_box  = new TextField ("input", "", 1024, 0) ;
 
         title_screen.append (the_input_box) ;
 
@@ -90,6 +90,7 @@ public class JiliShell extends MIDlet implements CommandListener
             return ;
         }
         */
+        getLua () ;
         the_display.setCurrent (title_screen) ;
     }
 
@@ -99,6 +100,10 @@ public class JiliShell extends MIDlet implements CommandListener
 
     public void destroyApp (boolean unconditional) throws MIDletStateChangeException 
     {
+        if (unconditional)
+            loseLua () ;
+        else
+            throw new MIDletStateChangeException() ;
     }
 
     public synchronized void commandAction (Command c, Displayable d)
@@ -166,21 +171,52 @@ public class JiliShell extends MIDlet implements CommandListener
 
     }
 
+    String describe (Object o)
+    {
+        return o.getClass().getName()+": "+o.toString() ;
+    }
+
+    Lua l = null ;
+
+    void getLua ()
+    {
+        l = new Lua () ;
+        BaseLib.open (l) ;
+    }
+
+    void loseLua ()
+    {
+        l = null ;
+    }
+
     void execute ()
     {
+        String result = "** no Lua! **" ;
+        if (l == null)
+        {
+            the_output_screen.setString (result) ;
+            return ;
+        }
         String input = the_input_box.getString() ;
-        Lua l = new Lua () ;
-        BaseLib.open (l) ;
-        String result ;
         int res = l.doString (input) ;
         if (res == 0)
         {
             Object obj = l.value(1) ;
-            result = obj == null ? "NULL" : obj.toString () ;
+            l.setTop (0) ;
+            result = obj == null ? "NULL" :
+                describe (obj);
         }
         else
         {
-            result = Integer.toString(res) ;
+            result = "Error: "+Integer.toString(res) ;
+            switch (res)
+            {
+            case Lua.ERRRUN:    result = result + " Runtime error" ; break ;
+            case Lua.ERRSYNTAX: result = result + " Syntax error" ; break ;
+            case Lua.ERRMEM:    result = result + " Memory error" ; break ;
+            case Lua.ERRERR:    result = result + " Error error" ; break ;
+            case Lua.ERRFILE:   result = result + " File error" ; break ;
+            }
         }
         the_output_screen.setString (result) ;
     }

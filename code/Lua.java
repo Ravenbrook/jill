@@ -70,7 +70,7 @@ public final class Lua {
   /** VM data stack. */
   private Vector stack = new Vector();
   private int base;     // = 0;
-  private int nCcalls;  // = 0;
+  int nCcalls;  // = 0;
   /** Instruction to resume execution at.  Index into code array. */
   private int savedpc;  // = 0;
   /**

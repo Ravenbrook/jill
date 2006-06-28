@@ -243,6 +243,20 @@ final class Proto {
     }
   }
 
+  void ensureUpvals (Lua L, int atleast)
+  {
+    if (atleast + 1 > sizeupvalues)
+    {
+      int newsize = atleast*2+1 ;
+      if (atleast + 1 > newsize)
+        L.gRunerror("upvalues overflow") ;
+      String [] newupvalues = new String [newsize] ;
+      System.arraycopy(upvalues, 0, newupvalues, 0, sizeupvalues) ;
+      upvalues = newupvalues ;
+      sizeupvalues = newsize ;
+    }
+  }
+
   /** Set lineinfo record. */
   void setLineinfo(int pc, int line) {
     lineinfo[pc] = line;

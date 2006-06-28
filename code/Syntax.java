@@ -581,7 +581,7 @@ final class Syntax {
   }
 
   private void enterlevel() {
-    // :todo: implement me;
+      L.nCcalls ++ ;
   }
 
   private void error_expected(int token) {
@@ -589,7 +589,7 @@ final class Syntax {
   }
 
   private void leavelevel() {
-    // :todo: implement me;
+      L.nCcalls -- ;
   }
 
   /** Equivalent to luaY_parser. */
@@ -678,9 +678,100 @@ final class Syntax {
     leavelevel();
   }
 
-  private void constructor(Expdesc t) {
+  private void constructor(Expdesc t) throws IOException {
     // constructor -> ??
-    // :todo: implement me
+    int line = linenumber;
+    int pc = fs.kCodeABC(Lua.OP_NEWTABLE, 0, 0, 0);
+    ConsControl cc = new ConsControl(t) ;
+    init_exp(t, Expdesc.VRELOCABLE, pc);
+    init_exp(cc.v, Expdesc.VVOID, 0);  /* no value (yet) */
+    fs.kExp2nextreg(t);  /* fix it at stack top (for gc) */
+    checknext('{');
+    do {
+      // lua_assert(cc.v.k == Expdesc.VVOID || cc.tostore > 0);
+      if (token == '}')
+        break;
+      closelistfield(cc);
+      switch(token) {
+        case TK_NAME:  /* may be listfields or recfields */
+          xLookahead();
+          if (lookahead != '=')  /* expression? */
+            listfield(cc);
+          else
+            recfield(cc);
+          break;
+
+        case '[':  /* constructor_item -> recfield */
+        recfield(cc);
+        break;
+
+        default:  /* constructor_part -> listfield */
+          listfield(cc);
+          break;
+      }
+    } while (testnext(',') || testnext(';'));
+    check_match('}', '{', line);
+    lastlistfield(cc);
+    int [] code = fs.f.code ;
+    code[pc] = Lua.SETARG_B(code[pc], oInt2fb(cc.na)); /* set initial array size */
+    code[pc] = Lua.SETARG_C(code[pc], oInt2fb(cc.nh)); /* set initial table size */
+  }
+
+  private int oInt2fb (int x) {
+    int e = 0;  /* exponent */
+    while (x < 0 || x >= 16) {
+      x = (x+1) >>> 1;
+      e++;
+    }
+    return (x < 8) ? x : (((e+1) << 3) | (x - 8));
+  }
+
+  private void recfield (ConsControl cc) throws IOException {
+    /* recfield -> (NAME | `['exp1`]') = exp1 */
+    int reg = fs.freereg;
+    Expdesc key = new Expdesc() ;
+    Expdesc val = new Expdesc() ;
+    if (token == TK_NAME) {
+      // yChecklimit(fs, cc.nh, MAX_INT, "items in a constructor");
+      checkname(key);
+    }
+    else  /* token == '[' */
+      yindex(key);
+    cc.nh++;
+    checknext('=');
+    fs.kExp2RK(key);
+    expr(val);
+    fs.kCodeABC(Lua.OP_SETTABLE, cc.t.info, fs.kExp2RK(key), fs.kExp2RK(val));
+    fs.freereg = reg;  /* free registers */
+  }
+
+  private void lastlistfield (ConsControl cc) {
+    if (cc.tostore == 0)
+      return;
+    if (hasmultret(cc.v.k)) {
+      fs.kSetmultret(cc.v);
+      fs.kSetlist(cc.t.info, cc.na, Lua.MULTRET);
+      cc.na--;  /* do not count last expression (unknown number of elements) */
+    }
+    else {
+      if (cc.v.k != Expdesc.VVOID)
+        fs.kExp2nextreg(cc.v);
+      fs.kSetlist(cc.t.info, cc.na, cc.tostore);
+    }
+  }
+
+  // from lopcodes.h
+  static final int LFIELDS_PER_FLUSH = 50 ;
+
+  private void closelistfield (ConsControl cc) {
+    if (cc.v.k == Expdesc.VVOID)
+      return;  /* there is no list item */
+    fs.kExp2nextreg(cc.v);
+    cc.v.k = Expdesc.VVOID;
+    if (cc.tostore == LFIELDS_PER_FLUSH) {
+      fs.kSetlist(cc.t.info, cc.na, cc.tostore);  /* flush */
+      cc.tostore = 0;  /* no more items pending */
+    }
   }
 
   private void expr(Expdesc v) throws IOException {
@@ -702,15 +793,73 @@ final class Syntax {
 
   private void exprstat() throws IOException {
     // stat -> func | assignment
-    Expdesc e = new Expdesc();
-    primaryexp(e);
-    if (e.kind() == Expdesc.VCALL) {    // stat -> func
-      fs.setargc(e, 1); // call statement uses no results
+    LHS_assign v = new LHS_assign () ;
+    primaryexp(v.v);
+    if (v.v.kind() == Expdesc.VCALL) {    // stat -> func
+      fs.setargc(v.v, 1); // call statement uses no results
     } else {    // stat -> assignment
-      // :todo: implement me
-      xSyntaxerror("unimplemented assignment");
+      v.prev = null;
+      assignment(v, 1);
     }
   }
+
+/*
+** check whether, in an assignment to a local variable, the local variable
+** is needed in a previous assignment (to a table). If so, save original
+** local value in a safe place and use this safe copy in the previous
+** assignment.
+*/
+  private void check_conflict (LHS_assign lh, Expdesc v) {
+    int extra = fs.freereg;  /* eventual position to save local variable */
+    boolean conflict = false ;
+    for (; lh != null; lh = lh.prev) {
+      if (lh.v.k == Expdesc.VINDEXED) {
+        if (lh.v.info == v.info) {  /* conflict? */
+          conflict = true;
+          lh.v.info = extra;  /* previous assignment will use safe copy */
+        }
+        if (lh.v.aux == v.info) {  /* conflict? */
+          conflict = true;
+          lh.v.aux = extra;  /* previous assignment will use safe copy */
+        }
+      }
+    }
+    if (conflict) {
+      fs.kCodeABC(Lua.OP_MOVE, fs.freereg, v.info, 0);  /* make copy */
+      fs.kReserveregs(1);
+    }
+  }
+
+  private void assignment (LHS_assign lh, int nvars) throws IOException {
+    Expdesc e = new Expdesc () ;
+    if (Expdesc.VLOCAL <= lh.v.k && lh.v.k <= Expdesc.VINDEXED)
+      xSyntaxerror ("syntax error");
+    if (testnext(',')) {  /* assignment -> `,' primaryexp assignment */
+      LHS_assign nv = new LHS_assign (lh) ;
+      primaryexp(nv.v);
+      if (nv.v.k == Expdesc.VLOCAL)
+        check_conflict(lh, nv.v);
+      assignment(nv, nvars+1);
+    }
+    else {  /* assignment -> `=' explist1 */
+      int nexps;
+      checknext('=');
+      nexps = explist1(e);
+      if (nexps != nvars) {
+        adjust_assign(nvars, nexps, e);
+        if (nexps > nvars)
+          fs.freereg -= nexps - nvars;  /* remove extra values */
+      }
+      else {
+        fs.kSetoneret(e);  /* close last expression */
+        fs.kStorevar(lh.v, e);
+        return;  /* avoid default */
+      }
+    }
+    init_exp(e, Expdesc.VNONRELOC, fs.freereg-1);  /* default assignment */
+    fs.kStorevar(lh.v, e);
+  }
+
 
   private void funcargs(Expdesc f) throws IOException {
     Expdesc args = new Expdesc();
@@ -783,7 +932,6 @@ final class Syntax {
   private void primaryexp(Expdesc v) throws IOException {
     // primaryexp ->
     //    prefixexp { '.' NAME | '[' exp ']' | ':' NAME funcargs | funcargs }
-    // :todo: implement me
     prefixexp(v);
     while (true) {
       switch (token) {
@@ -1220,10 +1368,10 @@ final class Syntax {
     pushclosure(new_fs, e);
   }
 
-  static int UPVAL_K (int upvaldesc) {
-    return (upvaldesc >> 8) & 0xFF ; }
-  static int UPVAL_INFO (int upvaldesc) {
-    return upvaldesc & 0xFF ; }
+  static int UPVAL_K (int upvaldesc)    { return (upvaldesc >> 8) & 0xFF ; }
+  static int UPVAL_INFO (int upvaldesc) { return upvaldesc & 0xFF ; }
+  static int UPVAL_ENCODE (int k, int info) { return ((k & 0xFF) << 8) | (info & 0xFF) ; }
+
 
   private void pushclosure (FuncState func, Expdesc v) {
     Proto f = fs.f;
@@ -1385,4 +1533,46 @@ final class Syntax {
     checknext(']');
   }
 
+  void xLookahead () throws IOException {
+    //lua_assert(ls->lookahead.token == TK_EOS);
+    lookahead = llex();
+    lookaheadR = semR ;
+    lookaheadS = semS ;
+  }
+
+  private void listfield (ConsControl cc) throws IOException {
+    expr(cc.v);
+    yChecklimit(cc.na, Lua.MAXARG_Bx, "items in a constructor");
+    cc.na++;
+    cc.tostore++;
+  }
+
+  private int indexupvalue (String name, Expdesc v) {
+    int i;
+    Proto f = fs.f;
+    int oldsize = f.sizeupvalues;
+    for (i=0; i<f.nups; i++) {
+      if (UPVAL_K(fs.upvalues[i]) == v.k &&
+          UPVAL_INFO(fs.upvalues[i]) == v.info) {
+        //lua_assert(f.upvalues[i] == name);
+        return i;
+      }
+    }
+    /* new one */
+    yChecklimit(f.nups + 1, Lua.MAXUPVALUES, "upvalues");
+    f.ensureUpvals (L, f.nups) ;
+    f.upvalues[f.nups] = name;
+    //lua_assert(v.k == Expdesc.VLOCAL || v.k == Expdesc.VUPVAL);
+    fs.upvalues[f.nups] = UPVAL_ENCODE(v.k, v.info) ;
+    return f.nups++;
+  }
+}
+
+final class LHS_assign
+{
+  LHS_assign prev ;
+  Expdesc v = new Expdesc () ;
+
+  LHS_assign () {}
+  LHS_assign (LHS_assign prev) { this.prev = prev ; }
 }
