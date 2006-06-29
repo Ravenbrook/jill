@@ -8,8 +8,10 @@ import j2meunit.framework.TestSuite;
 /**
  * Compendium of all Jili's tests that run in the J2ME environment.
  */
-public class METest extends TestCase {
-  public Test suite() {
+public class METest extends TestCase
+{
+  public Test suite()
+  {
     TestSuite suite = new TestSuite();
     TestCase t;
 

@@ -15,7 +15,8 @@
 
 
 /** Equivalent to struct expdesc. */
-final class Expdesc {
+final class Expdesc
+{
 
   static final int VVOID = 0;           // no value
   static final int VNIL = 1;
@@ -44,66 +45,80 @@ final class Expdesc {
 
   Expdesc() { }
 
-  Expdesc(int k, int i) {
+  Expdesc(int k, int i)
+  {
     init(k, i);
   }
 
   /** Equivalent to init_exp from lparser.c */
-  void init(int kind, int i) {
+  void init(int kind, int i)
+  {
     this.f = this.t = FuncState.NO_JUMP;
     this.k = kind;
     this.info = i;
   }
 
-  int kind() {
+  int kind()
+  {
     return k;
   }
 
-  void setKind(int kind) {
+  void setKind(int kind)
+  {
     this.k = kind;
   }
 
-  int info() {
+  int info()
+  {
     return info;
   }
 
-  void setInfo(int i) {
+  void setInfo(int i)
+  {
     this.info = i;
   }
 
-  int aux() {
+  int aux()
+  {
     return aux;
   }
 
-  double nval() {
+  double nval()
+  {
     return nval;
   }
 
-  void setNval(double d) {
+  void setNval(double d)
+  {
     this.nval = d;
   }
 
   /** Equivalent to hasmultret from lparser.c */
-  boolean hasmultret() {
+  boolean hasmultret()
+  {
     return k == VCALL || k == VVARARG;
   }
 
   /** Equivalent to hasjumps from lcode.c. */
-  boolean hasjumps() {
+  boolean hasjumps()
+  {
     return t != f;
   }
 
-  void nonreloc(int i) {
+  void nonreloc(int i)
+  {
     k = VNONRELOC;
     info = i;
   }
 
-  void reloc(int i) {
+  void reloc(int i)
+  {
     k = VRELOCABLE;
     info = i;
   }
 
-  void upval(int i) {
+  void upval(int i)
+  {
     k = VUPVAL;
     info = i;
   }

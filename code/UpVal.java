@@ -31,7 +31,8 @@ import java.util.Vector;
  * <code>UpVal</code> (somewhere in their <code>upval</code> array
  * member).
  */
-final class UpVal {
+final class UpVal
+{
   private Vector a;
   private int offset;
   /**
@@ -41,11 +42,14 @@ final class UpVal {
    * @throws NullPointerException if a is null.
    * @throws IllegalArgumentException if offset is negative or too big.
    */
-  UpVal(Vector a, int offset) {
-    if (null == a) {
+  UpVal(Vector a, int offset)
+  {
+    if (null == a)
+    {
       throw new NullPointerException();
     }
-    if (offset < 0 || offset >= a.size()) {
+    if (offset < 0 || offset >= a.size())
+    {
       throw new IllegalArgumentException();
     }
 
@@ -56,19 +60,22 @@ final class UpVal {
   /**
    * Getter for underlying value.
    */
-  Object getValue() {
+  Object getValue()
+  {
     return a.elementAt(offset);
   }
   /**
    * Setter for underlying value.
    */
-  void setValue(Object o) {
+  void setValue(Object o)
+  {
     a.setElementAt(o, offset);
   }
   /**
    * The stack offset.
    */
-  int offset() {
+  int offset()
+  {
     return offset;
   }
 
@@ -80,7 +87,8 @@ final class UpVal {
    * the <code>OP_RET</code> VM instruction).  Effectively this
    * transfers a variable binding from the stack to the heap.
    */
-  void close() {
+  void close()
+  {
     Object o = getValue();
     a = new Vector(1, 0);
     a.addElement(o);

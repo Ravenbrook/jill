@@ -26,29 +26,35 @@ import java.io.InputStream;
  * J2MEUnit tests for Jili's internal Loader class.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
  */
-public class LoaderTest extends TestCase {
+public class LoaderTest extends TestCase
+{
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner LoaderTest</code>
    */
   public LoaderTest() { }
 
   /** Clones constructor from superclass.  */
-  private LoaderTest(String name) {
+  private LoaderTest(String name)
+  {
     super(name);
   }
 
   /**
    * @param filename  filename without '.luc' extension.
    */
-  private Proto loadFile(String filename) {
+  private Proto loadFile(String filename)
+  {
     filename += ".luc";
     InputStream in = null;
 
     System.out.println(filename);
 
-    try {
+    try
+    {
       in = this.getClass().getResourceAsStream(filename);
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       e.printStackTrace();
     }
     assertNotNull("Opened file " + filename, in);
@@ -57,10 +63,13 @@ public class LoaderTest extends TestCase {
     Loader loader = new Loader(in, filename);
 
     Proto proto = null;
-    try {
+    try
+    {
       proto = loader.undump();
       loaded = true;
-    } catch (Exception e) {
+    }
+    catch (Exception e)
+    {
       e.printStackTrace();
     }
     assertTrue("Loaded okay", loaded);
@@ -69,36 +78,45 @@ public class LoaderTest extends TestCase {
   }
 
   /** Tests LoaderTest0.luc.  */
-  public void testLoader0() {
+  public void testLoader0()
+  {
     Proto p = loadFile("LoaderTest0");
     assertNotNull(p);
   }
 
   /** Tests LoaderTest1.luc.  */
-  public void testLoader1() {
+  public void testLoader1()
+  {
     loadFile("LoaderTest1");
   }
 
   /** Tests LoaderTest2.luc.  */
-  public void testLoader2() {
+  public void testLoader2()
+  {
     loadFile("LoaderTest2");
   }
 
   /** Tests LoaderTest3.luc. */
-  public void testLoader3() {
+  public void testLoader3()
+  {
     loadFile("LoaderTest3");
   }
 
-  public Test suite() {
+  public Test suite()
+  {
     TestSuite suite = new TestSuite();
 
-    suite.addTest(new LoaderTest("testLoader0") {
+    suite.addTest(new LoaderTest("testLoader0")
+    {
         public void runTest() { testLoader0(); } });
-    suite.addTest(new LoaderTest("testLoader1") {
+    suite.addTest(new LoaderTest("testLoader1")
+        {
         public void runTest() { testLoader1(); } });
-    suite.addTest(new LoaderTest("testLoader2") {
+    suite.addTest(new LoaderTest("testLoader2")
+        {
         public void runTest() { testLoader2(); } });
-    suite.addTest(new LoaderTest("testLoader3") {
+    suite.addTest(new LoaderTest("testLoader3")
+        {
         public void runTest() { testLoader3(); } });
     return suite;
   }

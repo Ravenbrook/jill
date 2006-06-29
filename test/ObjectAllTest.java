@@ -8,8 +8,10 @@ import j2meunit.framework.TestSuite;
 /**
  * Compendium of all Jili's object tests.
  */
-public class ObjectAllTest extends TestCase {
-  public Test suite() {
+public class ObjectAllTest extends TestCase
+{
+  public Test suite()
+  {
     TestSuite suite = new TestSuite();
     TestCase t;
 

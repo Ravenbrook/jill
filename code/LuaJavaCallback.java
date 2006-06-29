@@ -27,6 +27,7 @@
  * will increase the size of the resulting <code>.jar</code> file by a
  * large amount.
  */
-public abstract class LuaJavaCallback {
+public abstract class LuaJavaCallback
+{
   abstract int luaFunction(Lua L);
 }

@@ -27,7 +27,8 @@
  * arrays is punishable by death. (Java has no convenient constant
  * array datatype)
  */
-final class Proto {
+final class Proto
+{
   /** Interned 0-element array. */
   private static final int[] ZERO_INT_ARRAY = new int[0];
   private static final LocVar[] ZERO_LOCVAR_ARRAY = new LocVar[0];
@@ -98,11 +99,14 @@ final class Proto {
         int nups,
         int numparams,
         boolean is_vararg,
-        int maxstacksize) {
-    if (null == constant || null == code || null == proto) {
+        int maxstacksize)
+  {
+    if (null == constant || null == code || null == proto)
+    {
       throw new NullPointerException();
     }
-    if (nups < 0 || numparams < 0 || maxstacksize < 0) {
+    if (nups < 0 || numparams < 0 || maxstacksize < 0)
+    {
       throw new IllegalArgumentException();
     }
     this.k = constant;
@@ -118,7 +122,8 @@ final class Proto {
   /**
    * Blank Proto in preparation for compilation.
    */
-  Proto(String source) {
+  Proto(String source)
+  {
     maxstacksize = 2;   // register 0/1 are always valid.
     this.source = source;
     this.k = ZERO_OBJECT_ARRAY;
@@ -137,7 +142,8 @@ final class Proto {
    * Augment with debug info.  All the arguments are referenced by the
    * instance after the method has returned, so try not to share them.
    */
-  void debug(int[] lineinfo, LocVar[] locvars, String[] upvalues) {
+  void debug(int[] lineinfo, LocVar[] locvars, String[] upvalues)
+  {
     this.lineinfo = lineinfo;
     this.sizelineinfo = lineinfo.length;
     this.locvars = locvars;
@@ -147,57 +153,70 @@ final class Proto {
   }
 
   /** Gets source. */
-  String source() {
+  String source()
+  {
     return source;
   }
 
   /** Setter for source. */
-  void setSource(String source) {
+  void setSource(String source)
+  {
     this.source = source;
   }
 
-  int linedefined() {
+  int linedefined()
+  {
     return linedefined;
   }
-  void setLinedefined(int linedefined) {
+  void setLinedefined(int linedefined)
+  {
     this.linedefined = linedefined;
   }
 
-  int lastlinedefined() {
+  int lastlinedefined()
+  {
     return lastlinedefined;
   }
-  void setLastlinedefined(int lastlinedefined) {
+  void setLastlinedefined(int lastlinedefined)
+  {
     this.lastlinedefined = lastlinedefined;
   }
 
   /** Gets Number of Upvalues */
-  int nups() {
+  int nups()
+  {
     return nups;
   }
 
   /** Number of Parameters. */
-  int numparams() {
+  int numparams()
+  {
     return numparams;
   }
 
   /** Maximum Stack Size. */
-  int maxstacksize() {
+  int maxstacksize()
+  {
     return maxstacksize;
   }
 
   /** Setter for maximum stack size. */
-  void setMaxstacksize(int m) {
+  void setMaxstacksize(int m)
+  {
     maxstacksize = m;
   }
 
   /** Instruction block (do not modify). */
-  int[] code() {
+  int[] code()
+  {
     return code;
   }
 
   /** Append instruction. */
-  void codeAppend(int pc, int instruction, int line) {
-    if (pc >= code.length) {
+  void codeAppend(int pc, int instruction, int line)
+  {
+    if (pc >= code.length)
+    {
       int[] newCode = new int[code.length*2+1];
       System.arraycopy(code, 0, newCode, 0, code.length);
       code = newCode;
@@ -205,7 +224,8 @@ final class Proto {
     code[pc] = instruction;
 
     /** TODO: errorcase */
-    if (pc >= lineinfo.length) {
+    if (pc >= lineinfo.length)
+    {
       int[] newLineinfo = new int[lineinfo.length*2+1];
       System.arraycopy(lineinfo, 0, newLineinfo, 0, lineinfo.length);
       lineinfo = newLineinfo;
@@ -213,8 +233,10 @@ final class Proto {
     lineinfo[pc] = line;
   }
 
-  void ensureLocvars (Lua L, int atleast, int limit) {
-    if (atleast + 1 > sizelocvars) {
+  void ensureLocvars (Lua L, int atleast, int limit)
+  {
+    if (atleast + 1 > sizelocvars)
+    {
       int newsize = atleast*2+1 ;
       if (newsize > limit)
         newsize = limit ;
@@ -229,8 +251,10 @@ final class Proto {
     }
   }
 
-  void ensureProtos (Lua L, int atleast) {
-    if (atleast + 1 > sizep) {
+  void ensureProtos (Lua L, int atleast)
+  {
+    if (atleast + 1 > sizep)
+    {
       int newsize = atleast*2+1 ;
       if (newsize > Lua.MAXARG_Bx)
         newsize = Lua.MAXARG_Bx ;
@@ -258,31 +282,38 @@ final class Proto {
   }
 
   /** Set lineinfo record. */
-  void setLineinfo(int pc, int line) {
+  void setLineinfo(int pc, int line)
+  {
     lineinfo[pc] = line;
   }
 
   /** Get linenumber corresponding to pc, or 0 if no info. */
-  int getline(int pc) {
-    if (lineinfo.length == 0) {
+  int getline(int pc)
+  {
+    if (lineinfo.length == 0)
+    {
       return 0;
     }
     return lineinfo[pc];
   }
 
   /** Array of inner protos (do not modify). */
-  Proto[] proto() {
+  Proto[] proto()
+  {
     return p;
   }
 
   /** Constant array (do not modify). */
-  Object[] constant() {
+  Object[] constant()
+  {
     return k;
   }
 
   /** Append constant. */
-  void constantAppend(int idx, Object o) {
-    if (idx >= k.length) {
+  void constantAppend(int idx, Object o)
+  {
+    if (idx >= k.length)
+    {
       Object[] newK = new Object[k.length*2+1];
       System.arraycopy(k, 0, newK, 0, k.length);
       k = newK;
@@ -291,17 +322,20 @@ final class Proto {
   }
 
   /** Predicate for whether function uses ... in its parameter list. */
-  boolean is_vararg() {
+  boolean is_vararg()
+  {
     return is_vararg;
   }
 
   /** "Setter" for is_vararg.  Sets it to true. */
-  void setIs_vararg() {
+  void setIs_vararg()
+  {
     is_vararg = true;
   }
 
   /** LocVar array (do not modify). */
-  LocVar[] locvars() {
+  LocVar[] locvars()
+  {
     return locvars;
   }
 
@@ -314,8 +348,10 @@ final class Proto {
    * Trim an int array to specified size.
    * @return the trimmed array.
    */
-  private int[] trimInt(int[] old, int n) {
-    if (n == old.length) {
+  private int[] trimInt(int[] old, int n)
+  {
+    if (n == old.length)
+    {
       return old;
     }
     int[] newArray = new int[n];
@@ -324,19 +360,23 @@ final class Proto {
   }
 
   /** Trim code array to specified size. */
-  void closeCode(int n) {
+  void closeCode(int n)
+  {
     code = trimInt(code, n);
   }
 
   /** Trim lineinfo array to specified size. */
-  void closeLineinfo(int n) {
+  void closeLineinfo(int n)
+  {
     lineinfo = trimInt(lineinfo, n);
     sizelineinfo = n;
   }
 
   /** Trim k (constant) array to specified size. */
-  void closeK(int n) {
-    if (n == k.length) {
+  void closeK(int n)
+  {
+    if (n == k.length)
+    {
       return;
     }
     Object[] newArray = new Object[n];
@@ -345,8 +385,10 @@ final class Proto {
   }
 
   /** Trim p (proto) array to specified size. */
-  void closeP(int n) {
-    if (n == p.length) {
+  void closeP(int n)
+  {
+    if (n == p.length)
+    {
       return;
     }
     Proto[] newArray = new Proto[n];
@@ -356,8 +398,10 @@ final class Proto {
   }
 
   /** Trim locvar array to specified size. */
-  void closeLocvars(int n) {
-    if (n == locvars.length) {
+  void closeLocvars(int n)
+  {
+    if (n == locvars.length)
+    {
       return;
     }
     LocVar[] newArray = new LocVar[n];
@@ -367,8 +411,10 @@ final class Proto {
   }
 
   /** Trim upvalues array to size <var>nups</var>. */
-  void closeUpvalues() {
-    if (nups == upvalues.length) {
+  void closeUpvalues()
+  {
+    if (nups == upvalues.length)
+    {
       return;
     }
     String[] newArray = new String[nups];

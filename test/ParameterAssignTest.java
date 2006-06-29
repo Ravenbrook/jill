@@ -14,28 +14,36 @@
 // - compare the size of the two class files.  Use the .map file to see
 //   which obfuscated class file is which plain class file.
 
-final class C1 {
-  static int sum(int n) {
+final class C1
+{
+  static int sum(int n)
+  {
     int x = 0;
-    for (int i=n; i>=0; --i) {
+    for (int i=n; i>=0; --i)
+    {
       x += i;
     }
     return x;
   }
 }
 
-final class C2 {
-  static int sum(int n) {
+final class C2
+  {
+  static int sum(int n)
+  {
     int x = 0;
-    for (; n >= 0; --n) {
+    for (; n >= 0; --n)
+    {
       x += n;
     }
     return x;
   }
 }
 
-public final class ParameterAssignTest {
-  public static void main(String[] arg) {
+public final class ParameterAssignTest
+  {
+  public static void main(String[] arg)
+  {
     System.out.println(C1.sum(10));
     System.out.println(C2.sum(10));
   }

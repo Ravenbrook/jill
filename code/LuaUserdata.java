@@ -26,7 +26,8 @@
  * is possible because each <code>LuaUserdata</code> supports a
  * metatable.
  */
-public final class LuaUserdata {
+public final class LuaUserdata
+{
   private Object userdata;
   private LuaTable metatable;
   private LuaTable env;
@@ -35,7 +36,8 @@ public final class LuaUserdata {
    * was wrapped, use @{link Lua.toUserdata}.
    * @param  o The Java reference to wrap.
    */
-  public LuaUserdata(Object o) {
+  public LuaUserdata(Object o)
+  {
     userdata = o;
   }
 
@@ -44,7 +46,8 @@ public final class LuaUserdata {
    * @return the userdata that was passed to the constructor of this
    * instance.
    */
-  Object getUserdata() {
+  Object getUserdata()
+  {
     return userdata;
   }
 
@@ -52,14 +55,16 @@ public final class LuaUserdata {
    * Getter for metatable.
    * @return the metatable.
    */
-  LuaTable getMetatable() {
+  LuaTable getMetatable()
+  {
     return metatable;
   }
   /**
    * Setter for metatable.
    * @param metatable The metatable.
    */
-  void setMetatable(LuaTable metatable) {
+  void setMetatable(LuaTable metatable)
+  {
     this.metatable = metatable;
   }
 
@@ -67,14 +72,16 @@ public final class LuaUserdata {
    * Getter for environment.
    * @return The environment.
    */
-  Object getEnv() {
+  Object getEnv()
+  {
     return env;
   }
   /**
    * Setter for environment.
    * @param env  The environment.
    */
-  void setEnv(LuaTable env) {
+  void setEnv(LuaTable env)
+  {
     this.env = env;
   }
 }

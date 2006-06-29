@@ -18,7 +18,8 @@
  * Contains Lua's string library.
  * The library can be opened using the {@link StringLib#open} method.
  */
-public final class StringLib extends LuaJavaCallback {
+public final class StringLib extends LuaJavaCallback
+{
   // Each function in the string library corresponds to an instance of
   // this class which is associated (the 'which' member) with an integer
   // which is unique within this class.  They are taken from the following
@@ -46,7 +47,8 @@ public final class StringLib extends LuaJavaCallback {
   private int which;
 
   /** Constructs instance, filling in the 'which' member. */
-  private StringLib(int which) {
+  private StringLib(int which)
+  {
     this.which = which;
   }
 
@@ -56,8 +58,10 @@ public final class StringLib extends LuaJavaCallback {
    * @param L  the Lua state in which to execute.
    * @return number of returned parameters, as per convention.
    */
-  public int luaFunction(Lua L) {
-    switch (which) {
+  public int luaFunction(Lua L)
+  {
+    switch (which)
+    {
       case BYTE:
         return byteFunction(L);
       case CHAR:
@@ -84,7 +88,8 @@ public final class StringLib extends LuaJavaCallback {
    * "string".
    * @param L  The Lua state into which to open.
    */
-  public static void open(Lua L) {
+  public static void open(Lua L)
+  {
     Object lib = new LuaTable();
     L.setGlobal("string", lib);
 
@@ -110,38 +115,46 @@ public final class StringLib extends LuaJavaCallback {
   }
 
   /** Register a function. */
-  private static void r(Lua L, String name, int which) {
+  private static void r(Lua L, String name, int which)
+  {
     StringLib f = new StringLib(which);
     Object lib = L.getGlobal("string");
     L.setField(lib, name, f);
   }
 
   /** Implements string.byte.  Name mangled to avoid keyword. */
-  private static int byteFunction(Lua L) {
+  private static int byteFunction(Lua L)
+  {
     String s = L.checkString(1);
     int posi = posrelat(L.optInt(2, 1), s);
     int pose = posrelat(L.optInt(3, posi), s);
-    if (posi <= 0) {
+    if (posi <= 0)
+    {
       posi = 1;
     }
-    if (pose > s.length()) {
+    if (pose > s.length())
+    {
       pose = s.length();
     }
-    if (posi > pose) {
+    if (posi > pose)
+    {
       return 0; // empty interval; return no values
     }
     int n = pose - posi + 1;
-    for (int i=0; i<n; ++i) {
+    for (int i=0; i<n; ++i)
+    {
       L.pushNumber(s.charAt(posi+i-1));
     }
     return n;
   }
 
   /** Implements string.char.  Name mangled to avoid keyword. */
-  private static int charFunction(Lua L) {
+  private static int charFunction(Lua L)
+  {
     int n = L.getTop(); // number of arguments
     StringBuffer b = new StringBuffer();
-    for (int i=1; i<=n; ++i) {
+    for (int i=1; i<=n; ++i)
+    {
       int c = L.checkInt(i);
       L.argCheck((char)c == c, i, "invalid value");
       b.append((char)c);
@@ -151,25 +164,29 @@ public final class StringLib extends LuaJavaCallback {
   }
 
   /** Implements string.len. */
-  private static int len(Lua L) {
+  private static int len(Lua L)
+  {
     String s = L.checkString(1);
     L.pushNumber(s.length());
     return 1;
   }
 
   /** Implements string.lower. */
-  private static int lower(Lua L) {
+  private static int lower(Lua L)
+  {
     String s = L.checkString(1);
     L.push(s.toLowerCase());
     return 1;
   }
 
   /** Implements string.rep. */
-  private static int rep(Lua L) {
+  private static int rep(Lua L)
+  {
     String s = L.checkString(1);
     int n = L.checkInt(2);
     StringBuffer b = new StringBuffer();
-    for (int i=0; i<n; ++i) {
+    for (int i=0; i<n; ++i)
+    {
       b.append(s);
     }
     L.push(b.toString());
@@ -177,11 +194,13 @@ public final class StringLib extends LuaJavaCallback {
   }
 
   /** Implements string.reverse. */
-  private static int reverse(Lua L) {
+  private static int reverse(Lua L)
+  {
     String s = L.checkString(1);
     StringBuffer b = new StringBuffer();
     int l = s.length();
-    while (--l >= 0) {
+    while (--l >= 0)
+    {
       b.append(s.charAt(l));
     }
     L.push(b.toString());
@@ -189,8 +208,10 @@ public final class StringLib extends LuaJavaCallback {
   }
 
   /** Helper for {@link StringLib#sub} and friends. */
-  private static int posrelat(int pos, String s) {
-    if (pos >= 0) {
+  private static int posrelat(int pos, String s)
+  {
+    if (pos >= 0)
+    {
       return pos;
     }
     int len = s.length();
@@ -198,26 +219,33 @@ public final class StringLib extends LuaJavaCallback {
   }
 
   /** Implements string.sub. */
-  private static int sub(Lua L) {
+  private static int sub(Lua L)
+  {
     String s = L.checkString(1);
     int start = posrelat(L.checkInt(2), s);
     int end = posrelat(L.optInt(3, -1), s);
-    if (start < 1) {
+    if (start < 1)
+    {
       start = 1;
     }
-    if (end > s.length()) {
+    if (end > s.length())
+    {
       end = s.length();
     }
-    if (start <= end) {
+    if (start <= end)
+    {
       L.push(s.substring(start-1, end));
-    } else {
+    }
+    else
+    {
       L.pushLiteral("");
     }
     return 1;
   }
 
   /** Implements string.upper. */
-  private static int upper(Lua L) {
+  private static int upper(Lua L)
+  {
     String s = L.checkString(1);
     L.push(s.toUpperCase());
     return 1;

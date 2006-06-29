@@ -158,10 +158,10 @@
 -->
 
         <module name="LeftCurly">
-            <property name="option" value="eol"/>
+            <property name="option" value="nl"/>
         </module>
         <module name="RightCurly">
-            <property name="option" value="same"/>
+            <property name="option" value="alone"/>
         </module>
 
         <module name="DoubleCheckedLocking"/>

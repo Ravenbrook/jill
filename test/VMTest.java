@@ -112,14 +112,16 @@ import j2meunit.framework.TestSuite;
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
  */
-public class VMTest extends JiliTestCase {
+public class VMTest extends JiliTestCase
+{
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner VMTest</code>
    */
   public VMTest() { }
 
   /** Clones constructor from superclass.  */
-  private VMTest(String name) {
+  private VMTest(String name)
+  {
     super(name);
   }
 
@@ -129,7 +131,8 @@ public class VMTest extends JiliTestCase {
    * value (as opposed to inside an "if").  Our test is "return x==nil".
    * This generates both the skip and non-skip forms.
    */
-  public void testVMLoadbool() {
+  public void testVMLoadbool()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestLoadbool");
     L.call(0, 1);
@@ -148,7 +151,8 @@ public class VMTest extends JiliTestCase {
    * Tests execution of OP_LOADNIL opcode.  This opcode is generated for
    * assignment sequences like "a,b,c=7".
    */
-  public void testVMLoadnil() {
+  public void testVMLoadnil()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestLoadnil");
     L.call(0, 3);
@@ -160,7 +164,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_ADD opcode. */
-  public void testVMAdd() {
+  public void testVMAdd()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestAdd");
     L.call(0, 1);
@@ -170,7 +175,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_SUB opcode. */
-  public void testVMSub() {
+  public void testVMSub()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestSub");
     L.call(0, 1);
@@ -180,7 +186,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_CONCAT opcode. */
-  public void testVMConcat() {
+  public void testVMConcat()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestConcat");
     L.call(0, 1);
@@ -190,7 +197,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_SETTABLE opcode. */
-  public void testVMSettable() {
+  public void testVMSettable()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestSettable");
     L.call(0, 1);
@@ -206,7 +214,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_GETTABLE opcode. */
-  public void testVMGettable() {
+  public void testVMGettable()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestGettable");
     L.call(0, 1);
@@ -223,7 +232,8 @@ public class VMTest extends JiliTestCase {
    * least 25,600 (512*50) elements (!).  The latter is generated when an
    * expression like "{...}" is used.
    */
-  public void testVMSetlist() {
+  public void testVMSetlist()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestSetlist");
     L.call(0, 1);
@@ -232,11 +242,14 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_CALL opcode (when calling Lua Java function). */
-  public void testVMCall() {
+  public void testVMCall()
+  {
     Lua L = new Lua();
     // Create a Lua Java function and install it in the global 'f'.
-    class Mine extends LuaJavaCallback {
-      int luaFunction(Lua L) {
+    class Mine extends LuaJavaCallback
+    {
+      int luaFunction(Lua L)
+      {
         double d = L.toNumber(L.value(1));
         L.pushNumber(d*3);
         return 1;
@@ -250,7 +263,8 @@ public class VMTest extends JiliTestCase {
 
   /** Tests execution of OP_CLOSURE opcode.  Generated when functions
    * are defined. */
-  public void testVMClosure() {
+  public void testVMClosure()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestClosure");
     L.call(0, 1);
@@ -261,7 +275,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_CALL for calling Lua. */
-  public void testVMCall1() {
+  public void testVMCall1()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestCall1");
     L.call(0, 1);
@@ -270,7 +285,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_JMP opcode. */
-  public void testVMJmp() {
+  public void testVMJmp()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestJmp");
     L.call(0, 1);
@@ -284,7 +300,8 @@ public class VMTest extends JiliTestCase {
    * sequence A006577
    * (see http://www.research.att.com/~njas/sequences/A006577 ).
    */
-  public void testVMJmp1() {
+  public void testVMJmp1()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestJmp1");
     L.call(0, 1);
@@ -296,7 +313,8 @@ public class VMTest extends JiliTestCase {
    * Tests execution of Upvalues.  This tests OP_GETUPVAL, OP_SETUPVAL,
    * that OP_CLOSURE creates UpVals, and that OP_RET closes UpVals.
    */
-  public void testVMUpval() {
+  public void testVMUpval()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestUpval");
     L.call(0, 1);
@@ -312,7 +330,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_LE opcode.  */
-  public void testVMLe() {
+  public void testVMLe()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestLe");
     L.call(0, 1);
@@ -321,7 +340,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_TEST opcode.  */
-  public void testVMTest() {
+  public void testVMTest()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestTest");
     L.call(0, 1);
@@ -340,7 +360,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_TESTSET opcode.  */
-  public void testVMTestset() {
+  public void testVMTestset()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestTestset");
     L.rawSet(L.getGlobals(), "y", L.valueOfNumber(7));
@@ -359,7 +380,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_UNM opcode.  */
-  public void testVMUnm() {
+  public void testVMUnm()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestUnm");
     L.call(0, 2);
@@ -370,7 +392,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_NOT opcode.  */
-  public void testVMNot() {
+  public void testVMNot()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestNot");
     L.call(0, 4);
@@ -385,7 +408,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_LEN opcode.  */
-  public void testVMLen() {
+  public void testVMLen()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestLen");
     L.call(0, 4);
@@ -400,7 +424,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_CLOSE opcode.  */
-  public void testVMClose() {
+  public void testVMClose()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestClose");
     L.call(0, 2);
@@ -408,7 +433,8 @@ public class VMTest extends JiliTestCase {
     Object g = L.value(2);
     // Check that f and g have different upvalues by calling them
     // different numbers of times and checking their results.
-    for (int i=0; i<3; ++i) {
+    for (int i=0; i<3; ++i)
+    {
       L.push(f);
       L.call(0,0);
     }
@@ -421,13 +447,15 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests execution of OP_VARARG opcode.  */
-  public void testVMVararg() {
+  public void testVMVararg()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestVararg");
     L.call(0, 0);  // side-effect, defines global 'f'
     L.push(L.rawGet(L.getGlobals(), "f"));
     int narg = 7;
-    for (int i=0; i<narg; ++i) {
+    for (int i=0; i<narg; ++i)
+    {
       L.push(Integer.toString(i));
     }
     L.call(narg, 3);
@@ -445,7 +473,8 @@ public class VMTest extends JiliTestCase {
 
   /** Tests execution of OP_SELF opcode.  Generated when functions
    * are called using the colon syntax (t:f()). */
-  public void testVMSelf() {
+  public void testVMSelf()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestSelf");
     L.call(0, 1);
@@ -454,7 +483,8 @@ public class VMTest extends JiliTestCase {
 
   /** Tests execution of OP_TAILCALL opcode.  Both when b==0 and when b
    * > 0. */
-  public void testVMTailcall() {
+  public void testVMTailcall()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestTailcall");
     L.call(0, 1);
@@ -464,7 +494,8 @@ public class VMTest extends JiliTestCase {
   /** Tests conversion of numbers to string.  Pretty weak, but
    * illustrates a difference between PUC-Rio Lua 5.1 and Jili.
    */
-  public void testVMConvert() {
+  public void testVMConvert()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestConvert");
     L.call(0, 2);
@@ -474,7 +505,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests conversion of strings to numbers.  */
-  public void testVMConvert1() {
+  public void testVMConvert1()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestConvert1");
     L.call(0, 1);
@@ -482,7 +514,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests conversion of a hexadecimal string to number.  */
-  public void testVMConvert2() {
+  public void testVMConvert2()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestConvert2");
     L.call(0, 1);
@@ -490,7 +523,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests for loop. */
-  public void testVMFor() {
+  public void testVMFor()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestFor");
     L.call(0, 1);
@@ -498,7 +532,8 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests generator based for loop. */
-  public void testVMFor1() {
+  public void testVMFor1()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestFor1");
     L.call(0, 1);
@@ -506,78 +541,111 @@ public class VMTest extends JiliTestCase {
   }
 
   /** Tests that OP_RET pads out correctly with nils. */
-  public void testVMRet() {
+  public void testVMRet()
+  {
     Lua L = new Lua();
     loadFile(L, "VMTestRet");
     L.call(0, 3);
-    for (int i=1; i<=3; ++i) {
+    for (int i=1; i<=3; ++i)
+    {
       assertTrue("Result " + i + " is nil",
           L.isNil(L.value(i)));
     }
   }
 
-  public Test suite() {
+  public Test suite()
+  {
     TestSuite suite = new TestSuite();
 
-    suite.addTest(new VMTest("testVMLoadbool") {
+    suite.addTest(new VMTest("testVMLoadbool")
+    {
         public void runTest() { testVMLoadbool(); } });
-    suite.addTest(new VMTest("testVMLoadnil") {
+    suite.addTest(new VMTest("testVMLoadnil")
+        {
         public void runTest() { testVMLoadnil(); } });
-    suite.addTest(new VMTest("testVMAdd") {
+    suite.addTest(new VMTest("testVMAdd")
+        {
         public void runTest() { testVMAdd(); } });
-    suite.addTest(new VMTest("testVMSub") {
+    suite.addTest(new VMTest("testVMSub")
+        {
         public void runTest() { testVMSub(); } });
-    suite.addTest(new VMTest("testVMConcat") {
+    suite.addTest(new VMTest("testVMConcat")
+        {
         public void runTest() { testVMConcat(); } });
-    suite.addTest(new VMTest("testVMSettable") {
+    suite.addTest(new VMTest("testVMSettable")
+        {
         public void runTest() { testVMSettable(); } });
-    suite.addTest(new VMTest("testVMGettable") {
+    suite.addTest(new VMTest("testVMGettable")
+        {
         public void runTest() { testVMGettable(); } });
-    suite.addTest(new VMTest("testVMSetlist") {
+    suite.addTest(new VMTest("testVMSetlist")
+        {
         public void runTest() { testVMSetlist(); } });
-    suite.addTest(new VMTest("testVMCall") {
+    suite.addTest(new VMTest("testVMCall")
+        {
         public void runTest() { testVMCall(); } });
-    suite.addTest(new VMTest("testVMClosure") {
+    suite.addTest(new VMTest("testVMClosure")
+        {
         public void runTest() { testVMClosure(); } });
-    suite.addTest(new VMTest("testVMCall1") {
+    suite.addTest(new VMTest("testVMCall1")
+        {
         public void runTest() { testVMCall1(); } });
-    suite.addTest(new VMTest("testVMJmp") {
+    suite.addTest(new VMTest("testVMJmp")
+        {
         public void runTest() { testVMJmp(); } });
-    suite.addTest(new VMTest("testVMJmp1") {
+    suite.addTest(new VMTest("testVMJmp1")
+        {
         public void runTest() { testVMJmp1(); } });
-    suite.addTest(new VMTest("testVMUpval") {
+    suite.addTest(new VMTest("testVMUpval")
+        {
         public void runTest() { testVMUpval(); } });
-    suite.addTest(new VMTest("testVMLe") {
+    suite.addTest(new VMTest("testVMLe")
+        {
         public void runTest() { testVMLe(); } });
-    suite.addTest(new VMTest("testVMTest") {
+    suite.addTest(new VMTest("testVMTest")
+        {
         public void runTest() { testVMTest(); } });
-    suite.addTest(new VMTest("testVMTestset") {
+    suite.addTest(new VMTest("testVMTestset")
+        {
         public void runTest() { testVMTestset(); } });
-    suite.addTest(new VMTest("testVMUnm") {
+    suite.addTest(new VMTest("testVMUnm")
+        {
         public void runTest() { testVMUnm(); } });
-    suite.addTest(new VMTest("testVMNot") {
+    suite.addTest(new VMTest("testVMNot")
+        {
         public void runTest() { testVMNot(); } });
-    suite.addTest(new VMTest("testVMLen") {
+    suite.addTest(new VMTest("testVMLen")
+        {
         public void runTest() { testVMLen(); } });
-    suite.addTest(new VMTest("testVMClose") {
+    suite.addTest(new VMTest("testVMClose")
+        {
         public void runTest() { testVMClose(); } });
-    suite.addTest(new VMTest("testVMVararg") {
+    suite.addTest(new VMTest("testVMVararg")
+        {
         public void runTest() { testVMVararg(); } });
-    suite.addTest(new VMTest("testVMSelf") {
+    suite.addTest(new VMTest("testVMSelf")
+        {
         public void runTest() { testVMSelf(); } });
-    suite.addTest(new VMTest("testVMTailcall") {
+    suite.addTest(new VMTest("testVMTailcall")
+        {
         public void runTest() { testVMTailcall(); } });
-    suite.addTest(new VMTest("testVMConvert") {
+    suite.addTest(new VMTest("testVMConvert")
+        {
         public void runTest() { testVMConvert(); } });
-    suite.addTest(new VMTest("testVMConvert1") {
+    suite.addTest(new VMTest("testVMConvert1")
+        {
         public void runTest() { testVMConvert1(); } });
-    suite.addTest(new VMTest("testVMConvert2") {
+    suite.addTest(new VMTest("testVMConvert2")
+        {
         public void runTest() { testVMConvert2(); } });
-    suite.addTest(new VMTest("testVMFor") {
+    suite.addTest(new VMTest("testVMFor")
+        {
         public void runTest() { testVMFor(); } });
-    suite.addTest(new VMTest("testVMFor1") {
+    suite.addTest(new VMTest("testVMFor1")
+        {
         public void runTest() { testVMFor1(); } });
-    suite.addTest(new VMTest("testVMRet") {
+    suite.addTest(new VMTest("testVMRet")
+        {
         public void runTest() { testVMRet(); } });
     return suite;
   }

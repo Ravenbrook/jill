@@ -24,23 +24,28 @@ import java.io.Reader;
  * one callback used, one that parses or loads a Lua chunk into binary
  * form.
  */
-final class LuaInternal extends LuaJavaCallback {
+final class LuaInternal extends LuaJavaCallback
+{
   private InputStream stream;
   private Reader reader;
   private String chunkname;
 
-  LuaInternal(InputStream in, String chunkname) {
+  LuaInternal(InputStream in, String chunkname)
+  {
     this.stream = in;
     this.chunkname = chunkname;
   }
 
-  LuaInternal(Reader in, String chunkname) {
+  LuaInternal(Reader in, String chunkname)
+  {
     this.reader = in;
     this.chunkname = chunkname;
   }
 
-  public int luaFunction(Lua L) {
-    try {
+  public int luaFunction(Lua L)
+  {
+    try
+    {
       Proto p = null;
       int c = -1;
 
@@ -49,19 +54,24 @@ final class LuaInternal extends LuaJavaCallback {
       // (there must be a stream defined) try loading as binary, then
       // compiling from source.
 
-      if (stream != null) {
+      if (stream != null)
+      {
         // :todo: consider using markSupported
         stream.mark(1);
         c = stream.read();
         stream.reset();
       }
 
-      if (c == Loader.HEADER[0]) {
+      if (c == Loader.HEADER[0])
+      {
         // assert stream != null
         Loader l = new Loader(stream, chunkname);
         p = l.undump();
-      } else {
-        if (reader == null) {
+      }
+      else
+      {
+        if (reader == null)
+        {
           reader = new InputStreamReader(stream);
         }
         p = Syntax.parser(L, reader, chunkname);
@@ -70,7 +80,9 @@ final class LuaInternal extends LuaJavaCallback {
           new UpVal[0],
           L.getGlobals()));
       return 1;
-    } catch (IOException e) {
+    }
+    catch (IOException e)
+    {
       L.push("cannot read " + chunkname + ": " + e.toString());
       L.dThrow(Lua.ERRFILE);
     }

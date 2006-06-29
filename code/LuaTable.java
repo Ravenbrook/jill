@@ -18,10 +18,12 @@
  * Class that models Lua's tables.  Each Lua table is an instance of
  * this class.
  */
-public final class LuaTable extends java.util.Hashtable {
+public final class LuaTable extends java.util.Hashtable
+{
   private LuaTable metatable;
 
-  LuaTable() {
+  LuaTable()
+  {
     super();
   }
 
@@ -30,7 +32,8 @@ public final class LuaTable extends java.util.Hashtable {
    * @param narray  number of array slots to preallocate.
    * @param nhash   number of hash slots to preallocate.
    */
-  LuaTable(int narray, int nhash) {
+  LuaTable(int narray, int nhash)
+  {
     super(narray+nhash);
   }
 
@@ -38,7 +41,8 @@ public final class LuaTable extends java.util.Hashtable {
    * o2) </code>.  This method is not necessary in CLDC, it's only
    * necessary in J2SE because java.util.Hashtable overrides equals.
    */
-  public boolean equals(Object o) {
+  public boolean equals(Object o)
+  {
     return this == o;
   }
 
@@ -46,7 +50,8 @@ public final class LuaTable extends java.util.Hashtable {
    * Getter for metatable member.
    * @return  The metatable.
    */
-  LuaTable getMetatable() {
+  LuaTable getMetatable()
+  {
     return metatable;
   }
   /**
@@ -57,20 +62,23 @@ public final class LuaTable extends java.util.Hashtable {
   //        This involves detecting when those keys are present in the
   //        metatable, and changing all the entries in the Hashtable
   //        to be instance of java.lang.Ref as appropriate.
-  void setMetatable(LuaTable metatable) {
+  void setMetatable(LuaTable metatable)
+  {
     this.metatable = metatable;
     return;
   }
 
   /** Like get for numeric (integer) keys. */
-  Object getnum(int k) {
+  Object getnum(int k)
+  {
     return get(new Double(k));
   }
 
   /**
    * Like put for numeric (integer) keys.
    */
-  void putnum(int k, Object v) {
+  void putnum(int k, Object v)
+  {
     put(new Double(k), v);
   }
 
@@ -78,28 +86,36 @@ public final class LuaTable extends java.util.Hashtable {
    * Supports Lua's length (#) operator.  More or less equivalent to
    * "unbound_search" in ltable.c.
    */
-  int getn() {
+  int getn()
+  {
     int i = 0;
     int j = 1;
     // Find 'i' and 'j' such that i is present and j is not.
-    while (get(new Double(j)) != null) {
+    while (get(new Double(j)) != null)
+    {
       i = j;
       j *= 2;
-      if (j < 0) {      // overflow
+      if (j < 0)        // overflow
+      {
         // Pathological case.  Linear search.
         i = 1;
-        while (get(new Double(i)) != null) {
+        while (get(new Double(i)) != null)
+        {
           ++i;
         }
         return i-1;
       }
     }
     // binary search between i and j
-    while (j - i > 1) {
+    while (j - i > 1)
+    {
       int m = (i+j)/2;
-      if (get(new Double(m)) == null) {
+      if (get(new Double(m)) == null)
+      {
         j = m;
-      } else {
+      }
+      else
+      {
         i = m;
       }
     }
@@ -112,9 +128,11 @@ public final class LuaTable extends java.util.Hashtable {
    * deletes <code>x</code>.  In Jili it is dangerous to use the return
    * value from this method (because it may be null).
    */
-  public Object put(Object key, Object value) {
+  public Object put(Object key, Object value)
+  {
     // :todo: check key == Lua.NIL and raise an error
-    if (value == Lua.NIL) {
+    if (value == Lua.NIL)
+    {
       return remove(key);
     }
     return super.put(key, value);

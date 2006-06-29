@@ -17,7 +17,8 @@
 /*
 ** nodes for block list (list of active blocks)
 */
-final class BlockCnt {
+final class BlockCnt
+{
   BlockCnt previous;  /* chain */
   int breaklist;      /* list of jumps out of this loop */
   int nactvar;        /* # active locals outside the breakable structure */

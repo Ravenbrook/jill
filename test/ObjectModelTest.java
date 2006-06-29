@@ -11,21 +11,24 @@ import j2meunit.framework.TestSuite;
  * J2MEUnit tests for Jili's Object Model.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
  */
-public class ObjectModelTest extends TestCase {
+public class ObjectModelTest extends TestCase
+{
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner ObjectModelTest</code>
    */
   public ObjectModelTest() { }
 
   /** Clones constructor from superclass.  */
-  private ObjectModelTest(String name) {
+  private ObjectModelTest(String name)
+  {
     super(name);
   }
 
   /**
    * Tests basic facts about LuaTable.
    */
-  public void testTable() {
+  public void testTable()
+  {
     System.out.println("ObjectModelTest.testTable()");
 
     LuaTable table = new LuaTable();
@@ -46,7 +49,8 @@ public class ObjectModelTest extends TestCase {
   /**
    * Tests Metatable of LuaTable.
    */
-  public void testTableMeta() {
+  public void testTableMeta()
+  {
     System.out.println("ObjectModelTest.testTableMeta()");
 
     LuaTable table = new LuaTable();
@@ -65,7 +69,8 @@ public class ObjectModelTest extends TestCase {
   /**
    * Tests basic facts about LuaFunction.
    */
-  public void testFunction() {
+  public void testFunction()
+  {
     System.out.println("ObjectModelTest.testFunction()");
 
     Proto p = new Proto(new Object[0],
@@ -108,7 +113,8 @@ public class ObjectModelTest extends TestCase {
   /**
    * Tests basic facts about Userdata.
    */
-  public void testUserdata() {
+  public void testUserdata()
+  {
     System.out.println("ObjectModelTest.testUserdata()");
 
     Object o = new Object();
@@ -130,7 +136,8 @@ public class ObjectModelTest extends TestCase {
   /**
    * Tests storage facilities of Userdata.
    */
-  public void testUserdataStore() {
+  public void testUserdataStore()
+  {
     System.out.println("ObjectModelTest.testUserdataStore()");
 
     Object o = new Object();
@@ -151,18 +158,24 @@ public class ObjectModelTest extends TestCase {
     assertSame("{Environment set, returned}", u.getEnv(), e);
   }
 
-  public Test suite() {
+  public Test suite()
+  {
     TestSuite suite = new TestSuite();
 
-    suite.addTest(new ObjectModelTest("testTable") {
+    suite.addTest(new ObjectModelTest("testTable")
+    {
         public void runTest() { testTable(); } });
-    suite.addTest(new ObjectModelTest("testTableMeta") {
+    suite.addTest(new ObjectModelTest("testTableMeta")
+        {
         public void runTest() { testTableMeta(); } });
-    suite.addTest(new ObjectModelTest("testFunction") {
+    suite.addTest(new ObjectModelTest("testFunction")
+        {
         public void runTest() { testFunction(); } });
-    suite.addTest(new ObjectModelTest("testUserdata") {
+    suite.addTest(new ObjectModelTest("testUserdata")
+        {
         public void runTest() { testUserdata(); } });
-    suite.addTest(new ObjectModelTest("testUserdataStore") {
+    suite.addTest(new ObjectModelTest("testUserdataStore")
+        {
         public void runTest() { testUserdataStore(); } });
     return suite;
   }

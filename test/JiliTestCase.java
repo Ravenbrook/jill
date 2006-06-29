@@ -4,10 +4,12 @@ import j2meunit.framework.TestCase;
 
 /** Common superclass for all Jili's (j2meunit) tests. */
 
-class JiliTestCase extends TestCase {
+class JiliTestCase extends TestCase
+{
   JiliTestCase() { }
 
-  JiliTestCase(String s) {
+  JiliTestCase(String s)
+  {
     super(s);
   }
 
@@ -17,7 +19,8 @@ class JiliTestCase extends TestCase {
    * @param L         Lua state in which to load file.
    * @param filename  filename without '.luc' extension.
    */
-  protected void loadFile(Lua L, String filename) {
+  protected void loadFile(Lua L, String filename)
+  {
     filename += ".luc";
     System.out.println(filename);
     int status =

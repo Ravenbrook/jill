@@ -19,48 +19,65 @@
  * function.  So that the <code>load</code> function from Lua's base
  * library can be implemented.
  */
-final class BaseLibReader extends java.io.Reader {
+final class BaseLibReader extends java.io.Reader
+{
   private String s = "";
   private int i;        // = 0;
   private Lua L;
   private Object f;
 
-  BaseLibReader(Lua L, Object f) {
+  BaseLibReader(Lua L, Object f)
+  {
     this.L = L;
     this.f = f;
   }
 
-  public void close() {
+  public void close()
+  {
     f = null;
   }
 
-  public int read() {
-    if (i >= s.length()) {
+  public int read()
+  {
+    if (i >= s.length())
+    {
       L.push(f);
       L.call(0, 1);
-      if (L.isNil(L.value(-1))) {
+      if (L.isNil(L.value(-1)))
+      {
         return -1;
-      } else if(L.isString(L.value(-1))) {
+      }
+      else if(L.isString(L.value(-1)))
+      {
         s = L.toString(L.value(-1));
-        if (s.length() == 0) {
+        if (s.length() == 0)
+        {
           return -1;
         }
         i = 0;
-      } else {
+      }
+      else
+      {
         L.error("reader function must return a string");
       }
     }
     return s.charAt(i++);
   }
 
-  public int read(char[] cbuf, int off, int len) {
+  public int read(char[] cbuf, int off, int len)
+  {
     int j = 0;  // loop index required after loop
-    for (j=0; j<len; ++j) {
+    for (j=0; j<len; ++j)
+    {
       int c = read();
-      if (c == -1) {
-        if (j == 0) {
+      if (c == -1)
+      {
+        if (j == 0)
+        {
           return -1;
-        } else {
+        }
+        else
+        {
           return j;
         }
       }

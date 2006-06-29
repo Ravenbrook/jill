@@ -14,14 +14,16 @@
  */
 
 
-final class LocVar {
+final class LocVar
+{
   String varname;
   int startpc;
   int endpc;
 
   LocVar () {}
 
-  LocVar(String varname, int startpc, int endpc) {
+  LocVar(String varname, int startpc, int endpc)
+  {
     this.varname = varname;
     this.startpc = startpc;
     this.endpc = endpc;

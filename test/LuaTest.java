@@ -15,24 +15,28 @@ import j2meunit.framework.TestSuite;
  * J2MEUnit tests for Jili's public API.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
  */
-public class LuaTest extends JiliTestCase {
+public class LuaTest extends JiliTestCase
+{
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner LuaTest</code>
    */
   public LuaTest() { }
 
   /** Clones constructor from superclass.  */
-  private LuaTest(String name) {
+  private LuaTest(String name)
+  {
     super(name);
   }
 
   /** Tests that we can create a Lua state. */
-  public void testLua0() {
+  public void testLua0()
+  {
     Lua L = new Lua();
   }
 
   /** Helper used by testLua1. */
-  private void simpleScript(String filename) {
+  private void simpleScript(String filename)
+  {
     Lua L = new Lua();
     loadFile(L, filename);
     int top = L.getTop();
@@ -53,18 +57,22 @@ public class LuaTest extends JiliTestCase {
    * compiled on a big-endian architecture, and '3' is compiled on a
    * little-endian architecture.
    */
-  public void testLua1() {
+  public void testLua1()
+  {
     simpleScript("LoaderTest0");
     simpleScript("LoaderTest3");
   }
 
   /** Tests that a Lua Java function can be called. */
-  public void testLua2() {
+  public void testLua2()
+  {
     Lua L = new Lua();
     final Object[] v = new Object[1];
     final Object MAGIC = new Object();
-    class Mine extends LuaJavaCallback {
-      int luaFunction(Lua L) {
+    class Mine extends LuaJavaCallback
+    {
+      int luaFunction(Lua L)
+      {
         v[0] = MAGIC;
         return 0;
       }
@@ -75,7 +83,8 @@ public class LuaTest extends JiliTestCase {
   }
 
   /** Tests that the Lua script in the plan can be executed. */
-  public void testLua3() {
+  public void testLua3()
+  {
     Lua L = new Lua();
     loadFile(L, "LuaTest0");
     L.call(0, 1);
@@ -88,30 +97,40 @@ public class LuaTest extends JiliTestCase {
    * yet complete this uses {@link Lua#setGlobal} instead of the more obvious
    * Lua.setTable.  This is indicative for Ravenbrook job001451.
    */
-  public void testLua4() {
+  public void testLua4()
+  {
     Lua L = new Lua();
     System.out.println("testLua4");
     boolean good = false;
-    try {
+    try
+    {
       L.setGlobal("x", Lua.NIL);
       good = true;
-    } catch (Exception e_) {
+    }
+    catch (Exception e_)
+    {
     }
     assertTrue("x = nil was okay", good);
   }
 
-  public Test suite() {
+  public Test suite()
+  {
     TestSuite suite = new TestSuite();
 
-    suite.addTest(new LuaTest("testLua0") {
+    suite.addTest(new LuaTest("testLua0")
+    {
         public void runTest() { testLua0(); } });
-    suite.addTest(new LuaTest("testLua1") {
+    suite.addTest(new LuaTest("testLua1")
+        {
         public void runTest() { testLua1(); } });
-    suite.addTest(new LuaTest("testLua2") {
+    suite.addTest(new LuaTest("testLua2")
+        {
         public void runTest() { testLua2(); } });
-    suite.addTest(new LuaTest("testLua3") {
+    suite.addTest(new LuaTest("testLua3")
+        {
         public void runTest() { testLua3(); } });
-    suite.addTest(new LuaTest("testLua4") {
+    suite.addTest(new LuaTest("testLua4")
+        {
         public void runTest() { testLua4(); } });
     return suite;
   }

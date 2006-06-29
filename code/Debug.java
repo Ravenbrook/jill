@@ -18,7 +18,8 @@
  * because it is not intended to form part of the public API.  It has
  * only been implemented to the extent necessary for internal use.
  */
-public final class Debug {
+public final class Debug
+{
   // private, not public accessors defined
   private int i_ci;
 
@@ -33,28 +34,32 @@ public final class Debug {
   /**
    * @param i_ci  index of CallInfo record in L.civ
    */
-  Debug(int i_ci) {
+  Debug(int i_ci)
+  {
     this.i_ci = i_ci;
   }
 
   /**
    * Get i_ci, index of the {@link CallInfo} record.
    */
-  int i_ci() {
+  int i_ci()
+  {
     return i_ci;
   }
 
   /**
    * Sets the what field.
    */
-  void setWhat(String what) {
+  void setWhat(String what)
+  {
     this.what = what;
   }
 
   /**
    * Sets the source, and the short_src.
    */
-  void setSource(String source) {
+  void setSource(String source)
+  {
     this.source = source;
     this.short_src = Lua.oChunkid(source);
   }
@@ -62,35 +67,40 @@ public final class Debug {
   /**
    * Gets the current line.  May become public.
    */
-  int currentline() {
+  int currentline()
+  {
     return currentline;
   }
 
   /**
    * Set currentline.
    */
-  void setCurrentline(int currentline) {
+  void setCurrentline(int currentline)
+  {
     this.currentline = currentline;
   }
 
   /**
    * Get linedefined.
    */
-  int linedefined() {
+  int linedefined()
+  {
     return linedefined;
   }
 
   /**
    * Set linedefined.
    */
-  void setLinedefined(int linedefined) {
+  void setLinedefined(int linedefined)
+  {
     this.linedefined = linedefined;
   }
 
   /**
    * Set lastlinedefined.
    */
-  void setLastlinedefined(int lastlinedefined) {
+  void setLastlinedefined(int lastlinedefined)
+  {
     this.lastlinedefined = lastlinedefined;
   }
 
@@ -98,7 +108,8 @@ public final class Debug {
    * Gets the "printable" version of source, for error messages.
    * Mat become public.
    */
-  String short_src() {
+  String short_src()
+  {
     return short_src;
   }
 }

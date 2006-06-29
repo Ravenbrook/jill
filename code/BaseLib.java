@@ -21,7 +21,8 @@ import java.util.Enumeration;
  * considered essential for running any Lua program.  The base library
  * can be opened using the {@link BaseLib#open} method.
  */
-public final class BaseLib extends LuaJavaCallback {
+public final class BaseLib extends LuaJavaCallback
+{
   // Each function in the base library corresponds to an instance of
   // this class which is associated (the 'which' member) with an integer
   // which is unique within this class.  They are taken from the following
@@ -74,7 +75,8 @@ public final class BaseLib extends LuaJavaCallback {
   private int which;
 
   /** Constructs instance, filling in the 'which' member. */
-  private BaseLib(int which) {
+  private BaseLib(int which)
+  {
     this.which = which;
   }
 
@@ -84,8 +86,10 @@ public final class BaseLib extends LuaJavaCallback {
    * @param L  the Lua state in which to execute.
    * @return number of returned parameters, as per convention.
    */
-  public int luaFunction(Lua L) {
-    switch (which) {
+  public int luaFunction(Lua L)
+  {
+    switch (which)
+    {
       case ASSERT:
         return assertFunction(L);
       case COLLECTGARBAGE:
@@ -149,7 +153,8 @@ public final class BaseLib extends LuaJavaCallback {
    * the symbols of the base library in the global table.
    * @param L  The Lua state into which to open.
    */
-  public static void open(Lua L) {
+  public static void open(Lua L)
+  {
     // set global _G
     L.setGlobal("_G", L.getGlobals());
     // set global _VERSION
@@ -183,7 +188,8 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Register a function. */
-  private static void r(Lua L, String name, int which) {
+  private static void r(Lua L, String name, int which)
+  {
     BaseLib f = new BaseLib(which);
     L.setGlobal(name, f);
   }
@@ -191,27 +197,34 @@ public final class BaseLib extends LuaJavaCallback {
   /** Implements assert.  assert is a keyword in some versions of Java,
    * so this function has a mangled name.
    */
-  private static int assertFunction(Lua L) {
+  private static int assertFunction(Lua L)
+  {
     L.checkAny(1);
-    if (!L.toBoolean(L.value(1))) {
+    if (!L.toBoolean(L.value(1)))
+    {
       L.error(L.optString(2, "assertion failed!"));
     }
     return L.getTop();
   }
 
-  private static final String[] CGOPTS = new String[] {
+  private static final String[] CGOPTS = new String[]
+  {
     "stop", "restart", "collect",
     "count", "step", "setpause", "setsetpmul"};
-  private static final int[] CGOPTSNUM = new int[] {
+  private static final int[] CGOPTSNUM = new int[]
+  {
     Lua.GCSTOP, Lua.GCRESTART, Lua.GCCOLLECT,
     Lua.GCCOUNT, Lua.GCSTEP, Lua.GCSETPAUSE, Lua.GCSETSTEPMUL};
   /** Implements collectgarbage. */
-  private static int collectgarbage(Lua L) {
+  private static int collectgarbage(Lua L)
+  {
     int o = L.checkOption(1, "collect", CGOPTS);
     int ex = L.optInt(2, 0);
     int res = L.gc(CGOPTSNUM[o], ex);
-    switch (CGOPTSNUM[o]) {
-      case Lua.GCCOUNT: {
+    switch (CGOPTSNUM[o])
+    {
+      case Lua.GCCOUNT:
+      {
         int b = L.gc(Lua.GCCOUNTB, 0);
         L.pushNumber(res + ((double)b)/1024);
         return 1;
@@ -226,10 +239,12 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements dofile. */
-  private static int dofile(Lua L) {
+  private static int dofile(Lua L)
+  {
     String fname = L.optString(1, null);
     int n = L.getTop();
-    if (L.loadFile(fname) != 0) {
+    if (L.loadFile(fname) != 0)
+    {
       L.error(L.value(-1));
     }
     L.call(0, Lua.MULTRET);
@@ -237,10 +252,12 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements error. */
-  private static int error(Lua L) {
+  private static int error(Lua L)
+  {
     int level = L.optInt(2, 1);
     L.setTop(1);
-    if (L.isString(L.value(1)) && level > 0) {
+    if (L.isString(L.value(1)) && level > 0)
+    {
       L.insert(L.where(level), 1);
       L.concat(2);
     }
@@ -250,9 +267,11 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** helper for getfenv and setfenv. */
-  private static Object getfunc(Lua L) {
+  private static Object getfunc(Lua L)
+  {
     Object o = L.value(1);
-    if (L.isFunction(o)) {
+    if (L.isFunction(o))
+    {
       return o;
     }
     // :todo: support integer args
@@ -260,11 +279,15 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements getfenv. */
-  private static int getfenv(Lua L) {
+  private static int getfenv(Lua L)
+  {
     Object o = getfunc(L);
-    if (L.isJavaFunction(o)) {
+    if (L.isJavaFunction(o))
+    {
       L.push(L.getGlobals());
-    } else {
+    }
+    else
+    {
       LuaFunction f = (LuaFunction)o;
       L.push(f.getEnv());
     }
@@ -272,24 +295,30 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements getmetatable. */
-  private static int getmetatable(Lua L) {
+  private static int getmetatable(Lua L)
+  {
     L.checkAny(1);
     Object mt = L.getMetatable(L.value(1));
-    if (mt == null) {
+    if (mt == null)
+    {
       L.pushNil();
       return 1;
     }
     Object protectedmt = L.getMetafield(L.value(1), "__metatable");
-    if (protectedmt == null) {
+    if (protectedmt == null)
+    {
       L.push(mt);               // return metatable
-    } else {
+    }
+    else
+    {
       L.push(protectedmt);      // return __metatable field
     }
     return 1;
   }
 
   /** Implements load. */
-  private static int load(Lua L) {
+  private static int load(Lua L)
+  {
     String cname = L.optString(2, "=(load)");
     L.checkType(1, Lua.TFUNCTION);
     int status = L.load(new BaseLibReader(L, L.value(1)), cname);
@@ -297,22 +326,28 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements loadfile. */
-  private static int loadfile(Lua L) {
+  private static int loadfile(Lua L)
+  {
     String fname = L.optString(1, null);
     return load_aux(L, L.loadFile(fname));
   }
 
   /** Implements loadstring. */
-  private static int loadstring(Lua L) {
+  private static int loadstring(Lua L)
+  {
     String s = L.checkString(1);
     String chunkname = L.optString(2, s);
     return load_aux(L, L.loadString(s, chunkname));
   }
 
-  private static int load_aux(Lua L, int status) {
-    if (status == 0) {  // OK?
+  private static int load_aux(Lua L, int status)
+  {
+    if (status == 0)    // OK?
+    {
       return 1;
-    } else {
+    }
+    else
+    {
       L.pushNil();
       L.insert(L, -2);  // put before error message
       return 2;         // return nil plus error message
@@ -320,10 +355,12 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements next. */
-  private static int next(Lua L) {
+  private static int next(Lua L)
+  {
     L.checkType(1, Lua.TTABLE);
     L.setTop(2);        // Create a 2nd argument is there isn't one
-    if (L.next(1)) {
+    if (L.next(1))
+    {
       return 2;
     }
     L.push(Lua.NIL);
@@ -331,7 +368,8 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements ipairs. */
-  private static int ipairs(Lua L) {
+  private static int ipairs(Lua L)
+  {
     L.checkType(1, Lua.TTABLE);
     L.push(IPAIRS_AUX_FUN);
     L.pushValue(1);
@@ -340,12 +378,14 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Generator for ipairs. */
-  private static int ipairsaux(Lua L) {
+  private static int ipairsaux(Lua L)
+  {
     int i = L.checkInt(2);
     L.checkType(1, Lua.TTABLE);
     ++i;
     Object v = L.rawGetI(L.value(1), i);
-    if (L.isNil(v)) {
+    if (L.isNil(v))
+    {
       return 0;
     }
     L.pushNumber(i);
@@ -357,7 +397,8 @@ public final class BaseLib extends LuaJavaCallback {
    * Jili doesn't do that because it would be way too slow.  We use the
    * java.util.Enumeration returned from java.util.Table.elements.
    */
-  private static int pairs(Lua L) {
+  private static int pairs(Lua L)
+  {
     L.checkType(1, Lua.TTABLE);
     L.push(PAIRS_AUX_FUN);                   // return generator,
     LuaTable t = (LuaTable)L.value(1);
@@ -374,11 +415,13 @@ public final class BaseLib extends LuaJavaCallback {
    * implementation, where the state is the table, and the var is used
    * to generated the next key in sequence.
    */
-  private static int pairsaux(Lua L) {
+  private static int pairsaux(Lua L)
+  {
     Object[] a = (Object[])L.value(1);
     LuaTable t = (LuaTable)a[0];
     Enumeration e = (Enumeration)a[1];
-    if (!e.hasMoreElements()) {
+    if (!e.hasMoreElements())
+    {
       return 0;
     }
     Object key = e.nextElement();
@@ -388,7 +431,8 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements pcall. */
-  private static int pcall(Lua L) {
+  private static int pcall(Lua L)
+  {
     L.checkAny(1);
     int status = L.pcall(L.getTop()-1, Lua.MULTRET, null);
     boolean b = (status == 0);
@@ -397,19 +441,23 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements print. */
-  private static int print(Lua L) {
+  private static int print(Lua L)
+  {
     int n = L.getTop();
     Object tostring = L.getGlobal("tostring");
-    for(int i=1; i<=n; ++i) {
+    for(int i=1; i<=n; ++i)
+    {
       L.push(tostring);
       L.pushValue(i);
       L.call(1, 1);
       String s = L.toString(L.value(-1));
-      if (s == null) {
+      if (s == null)
+      {
         // :todo: error
         throw new NullPointerException();
       }
-      if (i>1) {
+      if (i>1)
+      {
         System.out.print('\t');
       }
       System.out.print(s);
@@ -420,7 +468,8 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements rawequal. */
-  private static int rawequal(Lua L) {
+  private static int rawequal(Lua L)
+  {
     L.checkAny(1);
     L.checkAny(2);
     L.pushBoolean(L.rawEqual(L.value(1), L.value(2)));
@@ -428,7 +477,8 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements rawget. */
-  private static int rawget(Lua L) {
+  private static int rawget(Lua L)
+  {
     L.checkType(1, Lua.TTABLE);
     L.checkAny(2);
     L.push(L.rawGet(L.value(1), L.value(2)));
@@ -436,7 +486,8 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements rawset. */
-  private static int rawset(Lua L) {
+  private static int rawset(Lua L)
+  {
     L.checkType(1, Lua.TTABLE);
     L.checkAny(2);
     L.checkAny(3);
@@ -445,16 +496,21 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements select. */
-  private static int select(Lua L) {
+  private static int select(Lua L)
+  {
     int n = L.getTop();
-    if (L.type(1) == Lua.TSTRING && "#".equals(L.toString(L.value(1)))) {
+    if (L.type(1) == Lua.TSTRING && "#".equals(L.toString(L.value(1))))
+    {
       L.pushNumber(n-1);
       return 1;
     }
     int i = L.checkInt(1);
-    if (i < 0) {
+    if (i < 0)
+    {
       i = n + i;
-    } else if (i > n) {
+    }
+    else if (i > n)
+    {
       i = n;
     }
     L.argCheck(1 <= i, 1, "index out of range");
@@ -462,14 +518,18 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements setfenv. */
-  private static int setfenv(Lua L) {
+  private static int setfenv(Lua L)
+  {
     L.checkType(2, Lua.TTABLE);
     Object o = getfunc(L);
     Object first = L.value(1);
-    if (L.isNumber(first) && L.toNumber(first) == 0) {
+    if (L.isNumber(first) && L.toNumber(first) == 0)
+    {
       // :todo: change environment of current thread.
       return 0;
-    } else if (L.isJavaFunction(o) || !L.setFenv(first, L.value(2))) {
+    }
+    else if (L.isJavaFunction(o) || !L.setFenv(first, L.value(2)))
+    {
       // :todo: error
       throw new IllegalArgumentException();
     }
@@ -478,12 +538,14 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements setmetatable. */
-  private static int setmetatable(Lua L) {
+  private static int setmetatable(Lua L)
+  {
     L.checkType(1, Lua.TTABLE);
     int t = L.type(2);
     L.argCheck(t == Lua.TNIL || t == Lua.TTABLE, 2,
         "nil or table expected");
-    if (L.getMetafield(L.value(1), "__metatable") != null) {
+    if (L.getMetafield(L.value(1), "__metatable") != null)
+    {
       L.error("cannot change a protected metatable");
     }
     L.setMetatable(L.value(1), L.value(2));
@@ -492,25 +554,33 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements tonumber. */
-  private static int tonumber(Lua L) {
+  private static int tonumber(Lua L)
+  {
     int base = L.optInt(2, 10);
-    if (base == 10) {   // standard conversion
+    if (base == 10)     // standard conversion
+    {
       L.checkAny(1);
       Object o = L.value(1);
-      if (L.isNumber(o)) {
+      if (L.isNumber(o))
+      {
         L.pushNumber(L.toNumber(o));
         return 1;
       }
-    } else {
+    }
+    else
+    {
       String s = L.checkString(1);
       L.argCheck(2 <= base && base <= 36, 2, "base out of range");
       // :todo: consider stripping space and sharing some code with
       // Lua.vmTostring
-      try {
+      try
+      {
         int i = Integer.parseInt(s, base);
         L.pushNumber(i);
         return 1;
-      } catch (NumberFormatException e_) {
+      }
+      catch (NumberFormatException e_)
+      {
       }
     }
     L.push(L.NIL);
@@ -518,14 +588,17 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements tostring. */
-  private static int tostring(Lua L) {
+  private static int tostring(Lua L)
+  {
     L.checkAny(1);
     Object o = L.value(1);
 
-    if (L.callMeta(1, "__tostring")) {  // is there a metafield?
+    if (L.callMeta(1, "__tostring"))    // is there a metafield?
+    {
       return 1; // use its value
     }
-    switch (L.type(1)) {
+    switch (L.type(1))
+    {
       case Lua.TNUMBER:
         L.push(L.toString(o));
         break;
@@ -533,9 +606,12 @@ public final class BaseLib extends LuaJavaCallback {
         L.push(o);
         break;
       case Lua.TBOOLEAN:
-        if (L.toBoolean(o)) {
+        if (L.toBoolean(o))
+        {
           L.pushLiteral("true");
-        } else {
+        }
+        else
+        {
           L.pushLiteral("false");
         }
         break;
@@ -550,31 +626,36 @@ public final class BaseLib extends LuaJavaCallback {
   }
 
   /** Implements type. */
-  private static int type(Lua L) {
+  private static int type(Lua L)
+  {
     L.checkAny(1);
     L.push(L.typeNameOfIndex(1));
     return 1;
   }
 
   /** Implements unpack. */
-  private static int unpack(Lua L) {
+  private static int unpack(Lua L)
+  {
     L.checkType(1, Lua.TTABLE);
     LuaTable t = (LuaTable)L.value(1);
     int i = L.optInt(2, 1);
     int e = L.optInt(3, t.getn());
     int n = e - i + 1;  // number of elements
-    if (n <= 0) {
+    if (n <= 0)
+    {
       return 0;         // empty range
     }
     // i already initialised to start index, which isn't necessarily 1
-    for (; i<=e; ++i) {
+    for (; i<=e; ++i)
+    {
       L.push(t.getnum(i));
     }
     return n;
   }
 
   /** Implements xpcall. */
-  private static int xpcall(Lua L) {
+  private static int xpcall(Lua L)
+  {
     L.checkAny(2);
     Object errfunc = L.value(2);
     L.setTop(1);        // remove error function from stack

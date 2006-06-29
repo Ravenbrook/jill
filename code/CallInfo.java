@@ -14,7 +14,8 @@
  */
 
 
-final class CallInfo {
+final class CallInfo
+{
   private int savedpc;
   private int func;
   private int base;
@@ -31,7 +32,8 @@ final class CallInfo {
    * @param top   top-of-stack for this frame
    * @param nresults  number of results expected by caller
    */
-  CallInfo(int func, int base, int top, int nresults) {
+  CallInfo(int func, int base, int top, int nresults)
+  {
     this.func = func;
     this.base = base;
     this.top = top;
@@ -39,18 +41,21 @@ final class CallInfo {
   }
 
   /** Setter for savedpc. */
-  void setSavedpc(int pc) {
+  void setSavedpc(int pc)
+  {
     savedpc = pc;
   }
   /** Getter for savedpc. */
-  int savedpc() {
+  int savedpc()
+  {
     return savedpc;
   }
 
   /**
    * Get the stack index for the function object for this record.
    */
-  int function() {
+  int function()
+  {
     return func;
   }
 
@@ -58,7 +63,8 @@ final class CallInfo {
    * Get stack index where results should end up.  This is an absolute
    * stack index, not relative to L.base.
    */
-  int res() {
+  int res()
+  {
     // Same location as function.
     return func;
   }
@@ -66,7 +72,8 @@ final class CallInfo {
   /**
    * Get stack base for this record.
    */
-  int base() {
+  int base()
+  {
     return base;
   }
 
@@ -74,28 +81,32 @@ final class CallInfo {
    * Get top-of-stack for this record.  This is the number of elements
    * in the stack (or will be when the function is resumed).
    */
-  int top() {
+  int top()
+  {
     return top;
   }
   /**
    * Get number of results expected by the caller of this function.
    * Used to adjust the returned results to the correct number.
    */
-  int nresults() {
+  int nresults()
+  {
     return nresults;
   }
 
   /**
    * Get number of tailcalls
    */
-  int tailcalls() {
+  int tailcalls()
+  {
     return tailcalls;
   }
 
   /**
    * Used during tailcall to set the base and top members.
    */
-  void tailcall(int base, int top) {
+  void tailcall(int base, int top)
+  {
     this.base = base;
     this.top = top;
     ++tailcalls;

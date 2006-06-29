@@ -11,21 +11,24 @@ import j2meunit.framework.TestSuite;
  * J2MEUnit tests for Jili's interal UpVal class.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
  */
-public class UpValTest extends TestCase {
+public class UpValTest extends TestCase
+{
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner UpValTest</code>
    */
   public UpValTest() { }
 
   /** Clones constructor from superclass.  */
-  private UpValTest(String name) {
+  private UpValTest(String name)
+  {
     super(name);
   }
 
   /**
    * Tests UpVal.
    */
-  public void testUpVal() {
+  public void testUpVal()
+  {
     System.out.println("UpValTest.testUpVal()");
 
     Vector a = new Vector();
@@ -72,10 +75,12 @@ public class UpValTest extends TestCase {
     assertNull("a[2] still not changed", a.elementAt(2));
   }
 
-  public Test suite() {
+  public Test suite()
+  {
     TestSuite suite = new TestSuite();
 
-    suite.addTest(new UpValTest("testUpVal") {
+    suite.addTest(new UpValTest("testUpVal")
+    {
         public void runTest() { testUpVal(); } });
     return suite;
   }

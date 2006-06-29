@@ -30,7 +30,8 @@
  * narrowing reference conversion (the latter may of course throw an
  * exception).
  */
-public final class LuaFunction {
+public final class LuaFunction
+{
   private UpVal[] upval;
   private LuaTable env;
   private Proto p;
@@ -51,11 +52,14 @@ public final class LuaFunction {
    * @throws NullPointerException if any arguments are null.
    * @throws IllegalArgumentsException if upval.length is wrong.
    */
-  LuaFunction(Proto proto, UpVal[] upval, LuaTable env) {
-    if (null == proto || null == upval || null == env) {
+  LuaFunction(Proto proto, UpVal[] upval, LuaTable env)
+  {
+    if (null == proto || null == upval || null == env)
+    {
       throw new NullPointerException();
     }
-    if (upval.length != proto.nups()) {
+    if (upval.length != proto.nups())
+    {
       throw new IllegalArgumentException();
     }
 
@@ -65,22 +69,27 @@ public final class LuaFunction {
   }
 
   /** Get nth UpVal. */
-  UpVal upVal(int n) {
+  UpVal upVal(int n)
+  {
     return upval[n];
   }
 
   /** Get the Proto object. */
-  Proto proto() {
+  Proto proto()
+  {
     return p;
   }
 
   /** Getter for environment. */
-  LuaTable getEnv() {
+  LuaTable getEnv()
+  {
     return env;
   }
   /** Setter for environment. */
-  void setEnv(LuaTable env) {
-    if (null == env) {
+  void setEnv(LuaTable env)
+  {
+    if (null == env)
+    {
       throw new NullPointerException();
     }
 
