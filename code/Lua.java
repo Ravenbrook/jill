@@ -15,11 +15,17 @@
 
 
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Stack;
 import java.util.Vector;
+
+// hopefully these only needed during testing:
+import java.io.ByteArrayOutputStream;
 
 /**
  * <p>
@@ -2357,7 +2363,25 @@ reentry:
             continue;
           case OP_POW:
             // There's no Math.pow.  :todo: consider implementing.
-            throw new IllegalArgumentException();
+            rb = RK(k, ARGB(i));
+            rc = RK(k, ARGC(i));
+            if (rb instanceof Double && rc instanceof Double)
+            {
+              double result = iNumpow (((Double)rb).doubleValue(),
+                                      ((Double)rc).doubleValue());
+              stack.setElementAt(valueOfNumber(result), base+a);
+            }
+            else if (toNumberPair(rb, rc, NUMOP))
+            {
+              double result = iNumpow (NUMOP[0], NUMOP[1]);
+              stack.setElementAt(valueOfNumber(result), base+a);
+            }
+            else
+            {
+              // :todo: use metamethod
+              throw new IllegalArgumentException();
+            }
+            continue;
           case OP_UNM:
           {
             rb = stack.elementAt(base+ARGB(i));
@@ -2696,6 +2720,19 @@ reentry:
         } /* switch */
       } /* while */
     } /* reentry: while */
+  }
+
+  double iNumpow (double a, double b)
+  {
+    // :todo: this needs properly implementing for J2ME
+    // this is a +ve integer only stub
+    double result = 1.0 ;
+    while (b >= 1.0)
+    {
+        result = result * a ;
+        b = b - 1.0 ;
+    }
+    return result ;
   }
 
   /** Equivalent of luaV_gettable. */
@@ -3062,4 +3099,198 @@ reentry:
     this.ci = (CallInfo)civ.lastElement();
     return ci;
   }
+
+
+  /** corresponds to ldump's luaU_dump method, but with data gone and writer
+      replaced by OutputStream */
+  int uDump (Proto f, OutputStream writer, boolean strip) throws IOException
+  {
+    DumpState D = new DumpState (this, new DataOutputStream(writer), strip) ;
+    D.DumpHeader();
+    D.DumpFunction(f, null);
+    D.writer.flush();
+    return D.status;
+  }
+
+}
+
+final class DumpState
+{
+  Lua L;
+  DataOutputStream writer;
+  //    void* data;
+  boolean strip;
+  int status;
+
+  // :TODO: Lua interface is for a writer interface, not a stream
+  DumpState (Lua L, DataOutputStream writer, boolean strip)
+  {
+    this.L = L;
+    this.writer = writer ;
+    this.strip = strip ;
+  }
+
+
+  //////////////// dumper ////////////////////
+
+  static final byte [] header = new byte []
+      { 0x1B, 0x4C, 0x75, 0x61,
+        0x51, 0x00, 0x00, 0x04, // big endian currently
+        0x04, 0x04, 0x08, 0x00
+      } ;
+
+  void DumpHeader() throws IOException
+  {
+    DumpBlock (header, 12) ;
+  }
+
+  private void DumpBlock (byte [] b, int len) throws IOException
+  {
+    writer.write (b, 0, len) ;
+  }
+
+  private void DumpChar (int b) throws IOException
+  {
+    writer.writeByte (b) ;
+  }
+
+  private void DumpBool (boolean b) throws IOException
+  {
+    writer.writeBoolean (b) ;
+  }
+
+  private void DumpInt (int i) throws IOException
+  {
+    writer.writeInt (i) ;// big-endian version
+
+    /*
+    // yukky LE version
+    writer.writeByte (i) ;
+    writer.writeByte (i >>> 8) ;
+    writer.writeByte (i >>> 16) ;
+    writer.writeByte (i >>> 24) ;
+    */
+  }
+
+  private void DumpNumber (double d) throws IOException
+  {
+    writer.writeDouble (d) ; // big-endian version
+
+    /*
+    // yukky LE version
+    ByteArrayOutputStream sos = new ByteArrayOutputStream() ;
+    DataOutputStream dos = new DataOutputStream (sos) ;
+    dos.writeDouble (d) ;
+    dos.flush () ;
+    byte [] bytes = sos.toByteArray () ;
+    for (int i = 7 ; i >= 0 ; i--)
+      writer.writeByte (bytes[i]) ;
+    */
+  }
+
+  void DumpFunction(Proto f, String p) throws IOException
+  {
+    DumpString((f.source == p || strip) ? null : f.source);
+    DumpInt(f.linedefined);
+    DumpInt(f.lastlinedefined);
+    DumpChar(f.nups);
+    DumpChar(f.numparams);
+    DumpBool(f.is_vararg);
+    DumpChar(f.maxstacksize);
+    DumpCode(f);
+    DumpConstants(f);
+    DumpDebug(f);
+  }
+
+  private void DumpCode(Proto f) throws IOException
+  {
+    int n = f.sizecode ;
+    int [] code = f.code ;
+    DumpInt(n);
+    for (int i = 0 ; i < n ; i++)
+      DumpInt (code[i]) ;
+  }
+
+  private void DumpConstants(Proto f) throws IOException
+  {
+    int n = f.sizek;
+    Object [] k = f.k ;
+    DumpInt(n) ;
+    for (int i = 0 ; i < n ; i++)
+    {
+      Object o = k[i] ;
+      if (o == null)
+      {
+        DumpChar (Lua.TNIL) ;
+      }
+      else if (o instanceof Boolean)
+      {
+        DumpChar (Lua.TBOOLEAN) ;
+        DumpChar (((Boolean)o).booleanValue() ? 1 : 0) ;
+      }
+      else if (o instanceof Double)
+      {
+        DumpChar (Lua.TNUMBER) ;
+        DumpNumber (((Double)o).doubleValue()) ;
+      }
+      else if (o instanceof String)
+      {
+        DumpChar (Lua.TSTRING) ;
+        DumpString ((String)o) ;
+      }
+      else
+      {
+        //lua_assert(false);  /* cannot happen */
+      }
+    }
+    n = f.sizep ;
+    DumpInt (n) ;
+    for (int i = 0 ; i < n ; i++)
+    {
+      Proto subfunc = f.p[i] ;
+      DumpFunction (subfunc, f.source) ;
+    }
+  }
+
+  private void DumpString(String s) throws IOException
+  {
+    if (s == null)
+    {
+      DumpInt(0);
+    }
+    else
+    {
+      try
+      {
+        byte [] contents = s.getBytes("UTF-8") ;
+        int size = contents.length ;
+        DumpInt (size+1) ;
+        DumpBlock (contents, size) ;
+        DumpChar (0) ;
+      }
+      catch (UnsupportedEncodingException uee) {}
+    }
+  }
+
+  private void DumpDebug(Proto f) throws IOException
+  {
+    int n = strip ? 0 : f.sizelineinfo;
+    DumpInt (n);
+    for (int i=0; i<n; i++)
+      DumpInt (f.lineinfo[i]) ;
+    n = strip ? 0 : f.sizelocvars;
+    DumpInt (n);
+    for (int i=0; i<n; i++)
+    {
+      LocVar locvar = f.locvars[i] ;
+      DumpString(locvar.varname);
+      DumpInt(locvar.startpc);
+      DumpInt(locvar.endpc);
+    }
+    n = strip ? 0 : f.sizeupvalues;
+    DumpInt(n);
+    for (int i=0; i<n; i++) 
+      DumpString(f.upvalues[i]);
+  }
+
 }

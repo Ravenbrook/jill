@@ -18,6 +18,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+
+// these for compiler_debug only:
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.io.File;
 
 /**
  * Class used to implement internal callbacks.  Currently there is only
@@ -72,9 +78,11 @@ final class LuaInternal extends LuaJavaCallback
       {
         if (reader == null)
         {
-          reader = new InputStreamReader(stream);
+          try { reader = new InputStreamReader(stream, "UTF-8"); }
+          catch (UnsupportedEncodingException uee) {}
         }
         p = Syntax.parser(L, reader, chunkname);
+        debug_compiler (L, p, false) ; // :todo: take this out
       }
       L.push(new LuaFunction(p,
           new UpVal[0],
@@ -88,4 +96,28 @@ final class LuaInternal extends LuaJavaCallback
     }
     return 0;
   }
+
+
+  // :todo: take this out
+  static int seq = 0 ;
+  void debug_compiler (Lua L, Proto p, boolean strip)
+  {
+    /*
+    OutputStream out = null ;
+    try
+    {
+      out = new FileOutputStream (new File ("compiler.chunk"+(seq++)+".luc")) ;
+      L.uDump (p, out, strip) ;
+    }
+    catch (Exception e)
+    {
+      System.out.println ("Problem dumping compiler chunk to compiler.chunk.output "+e.getMessage()) ;
+    }
+    finally
+    {
+      if (out != null)
+      { try { out.close () ; } catch (IOException io) {}}
+    }
+    */
+    }
 }

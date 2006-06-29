@@ -70,6 +70,7 @@ final class FuncState
   FuncState(Syntax ls)
   {
     f = new Proto(ls.source());
+    L = ls.L ;
     prev = ls.linkfs(this);
     this.ls = ls;
     // pc = 0;
@@ -127,7 +128,7 @@ final class FuncState
   {
     dischargejpc();
     // Put new instruction in code array.
-    f.codeAppend(pc, i, line);
+    f.codeAppend(L, pc, i, line);
     return pc++;
   }
 
@@ -249,7 +250,25 @@ final class FuncState
   /** Equivalent to luaK_nil. */
   void kNil(int from, int n)
   {
-    // :todo: optimisation case
+    int previous;
+    if (pc > lasttarget)   /* no jumps to current position? */
+    {
+      if (pc == 0)  /* function start? */
+        return;  /* positions are already clean */
+      previous = pc-1 ;
+      int instr = f.code[previous] ;
+      if (Lua.OPCODE(instr) == Lua.OP_LOADNIL)
+      {
+        int pfrom = Lua.ARGA(instr);
+        int pto = Lua.ARGB(instr);
+        if (pfrom <= from && from <= pto+1)  /* can connect both? */
+        {
+          if (from+n-1 > pto)
+            f.code[previous] = Lua.SETARG_B(instr, from+n-1);
+          return;
+        }
+      }
+    }
     kCodeABC(Lua.OP_LOADNIL, from, from+n-1, 0);
   }
 
@@ -399,8 +418,7 @@ final class FuncState
 
   private int addk(Object o)
   {
-    Object v;
-    v = h.get(o);
+    Object v = h.get(o);
     if (v != null)
     {
       // :todo: assert
@@ -449,7 +467,7 @@ final class FuncState
             return false;  /* do not attempt to divide by 0 */
           r = v1 % v2;
           break;
-      case Lua.OP_POW: r = Math.pow(v1, v2); break;
+      case Lua.OP_POW: r = L.iNumpow(v1, v2); break;
       case Lua.OP_UNM: r = -v1; break;
       case Lua.OP_LEN: return false;  /* no constant folding for 'len' */
       default:
@@ -549,15 +567,49 @@ final class FuncState
   private void exp2reg(Expdesc e, int reg)
   {
     discharge2reg(e, reg);
-    if (e.kind() == Expdesc.VJMP)
+    if (e.k == Expdesc.VJMP)
     {
-      // :todo: put this jump in 't' list
+      kConcat(e.t, e.info);  /* put this jump in `t' list */
     }
     if (e.hasjumps())
     {
-      // :todo: implement me
+
+      int p_f = NO_JUMP;  /* position of an eventual LOAD false */
+      int p_t = NO_JUMP;  /* position of an eventual LOAD true */
+      if (need_value(e.t) || need_value(e.f))
+      {
+        int fj = (e.k == Expdesc.VJMP) ? NO_JUMP : kJump();
+        p_f = code_label(reg, 0, 1);
+        p_t = code_label(reg, 1, 0);
+        kPatchtohere(fj);
+      }
+      int finalpos = kGetlabel(); /* position after whole expression */
+      patchlistaux(e.f, finalpos, reg, p_f);
+      patchlistaux(e.t, finalpos, reg, p_t);
     }
     e.init(Expdesc.VNONRELOC, reg);
+  }
+
+  private int code_label (int A, int b, int jump)
+  {
+    kGetlabel();  /* those instructions may be jump targets */
+    return kCodeABC(Lua.OP_LOADBOOL, A, b, jump);
+  }
+
+/*
+** check whether list has any jump that do not produce a value
+** (or produce an inverted value)
+*/
+  private boolean need_value (int list)
+  {
+    for (; list != NO_JUMP; list = getjump(list))
+    {
+      int i = getjumpcontrol(list);
+      int instr = f.code[i] ;
+      if (Lua.OPCODE(instr) != Lua.OP_TESTSET) 
+        return true;
+    }
+    return false;  /* not found */
   }
 
   private void freeexp(Expdesc e)
@@ -594,7 +646,7 @@ final class FuncState
     // caution: descending loop (in emulation of PUC-Rio).
     for (int i=nactvar-1; i >= 0; i--)
     {
-      if (n == getlocvar(i).varname)
+      if (n.equals (getlocvar(i).varname))
       {
         return i;
       }

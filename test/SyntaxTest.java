@@ -75,22 +75,41 @@ public class SyntaxTest extends TestCase
     assertTrue("script 1 okay", 0 == dostring(L, "print'hello'"));
   }
 
+  public void testSyntax4()
+  {
+    System.out.println ("Syntax4") ;
+    Lua L = new Lua();
+    BaseLib.open(L);
+    assertTrue("script 1 okay", 0 == dostring(L, "local a, b = 3, 8 ; return a*b"));
+    assertTrue("script 2 okay", 0 == dostring(L, "do local a = 6 ; return 8+a end"));
+    assertTrue("script 3 okay", 0 == dostring(L, "local a = 1 ; while a < 5 do print('thing') ; a = a+1 end"));
+    assertTrue("script 4 okay", 0 == dostring(L, "for a = 1, 10 do print('thing') end"));
+  }    
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
 
     suite.addTest(new SyntaxTest("testSyntax0")
-    {
-        public void runTest() { testSyntax0(); } });
+        {
+            public void runTest() { testSyntax0(); } 
+        });
     suite.addTest(new SyntaxTest("testSyntax1")
         {
-        public void runTest() { testSyntax1(); } });
+            public void runTest() { testSyntax1(); }
+        });
     suite.addTest(new SyntaxTest("testSyntax2")
         {
-        public void runTest() { testSyntax2(); } });
+            public void runTest() { testSyntax2(); }
+        });
     suite.addTest(new SyntaxTest("testSyntax3")
         {
-        public void runTest() { testSyntax3(); } });
+            public void runTest() { testSyntax3(); }
+        });
+    suite.addTest(new SyntaxTest("testSyntax4")
+        {
+            public void runTest() { testSyntax4(); }
+        });
     return suite;
   }
 }

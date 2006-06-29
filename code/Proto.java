@@ -40,8 +40,10 @@ final class Proto
   // and so are unusually terse.
   /** Array of constants. */
   Object[] k;
+  int sizek;
   /** Array of VM instructions. */
   int[] code;
+  int sizecode;
   /** Array of Proto objects. */
   Proto[] p;
   int sizep;
@@ -128,6 +130,7 @@ final class Proto
     this.source = source;
     this.k = ZERO_OBJECT_ARRAY;
     this.code = ZERO_INT_ARRAY;
+    this.sizecode = 0 ;
     this.p = ZERO_PROTO_ARRAY;
     this.sizep = 0;
     this.lineinfo = ZERO_INT_ARRAY;
@@ -213,14 +216,9 @@ final class Proto
   }
 
   /** Append instruction. */
-  void codeAppend(int pc, int instruction, int line)
+  void codeAppend(Lua L, int pc, int instruction, int line)
   {
-    if (pc >= code.length)
-    {
-      int[] newCode = new int[code.length*2+1];
-      System.arraycopy(code, 0, newCode, 0, code.length);
-      code = newCode;
-    }
+    ensureCode (L, pc);
     code[pc] = instruction;
 
     /** TODO: errorcase */
@@ -278,6 +276,20 @@ final class Proto
       System.arraycopy(upvalues, 0, newupvalues, 0, sizeupvalues) ;
       upvalues = newupvalues ;
       sizeupvalues = newsize ;
+    }
+  }
+
+  void ensureCode (Lua L, int atleast)
+  {
+    if (atleast + 1 > sizecode)
+    {
+      int newsize = atleast*2+1 ;
+      if (atleast + 1 > newsize)
+        L.gRunerror("code overflow") ;
+      int [] newcode = new int [newsize] ;
+      System.arraycopy(code, 0, newcode, 0, sizecode) ;
+      code = newcode ;
+      sizecode = newsize ;
     }
   }
 
@@ -363,6 +375,7 @@ final class Proto
   void closeCode(int n)
   {
     code = trimInt(code, n);
+    sizecode = code.length ;
   }
 
   /** Trim lineinfo array to specified size. */
@@ -375,13 +388,14 @@ final class Proto
   /** Trim k (constant) array to specified size. */
   void closeK(int n)
   {
-    if (n == k.length)
+    if (k.length > n)
     {
-      return;
+      Object [] newArray = new Object[n];
+      System.arraycopy(k, 0, newArray, 0, n);
+      k = newArray;
     }
-    Object[] newArray = new Object[n];
-    System.arraycopy(k, 0, newArray, 0, n);
-    k = newArray;
+    sizek = n ;
+    return;
   }
 
   /** Trim p (proto) array to specified size. */
