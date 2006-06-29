@@ -1939,12 +1939,12 @@ public final class Lua
   static int ARGsBx(int instruction)
   {
     // As ARGBx but with (2**17-1) subtracted.
-    return (instruction >>> 14) - ((1<<17)-1);
+    return (instruction >>> 14) - MAXARG_sBx;
   }
 
   static int SETARG_sBx(int i, int bx)
   {
-    return (i & 0x3fff) | (bx << 14) ;  // CHECK THIS IS RIGHT
+    return (i & 0x3fff) | ((bx+MAXARG_sBx) << 14) ;  // CHECK THIS IS RIGHT
   }
 
   static boolean ISK(int field)
