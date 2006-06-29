@@ -839,7 +839,7 @@ final class FuncState
     // lua_assert(dest != NO_JUMP);
     if (Math.abs(offset) > Lua.MAXARG_sBx)
       ls.xSyntaxerror("control structure too long");
-    Lua.SETARG_sBx(jmp, offset);
+    f.code[pc] = Lua.SETARG_sBx(jmp, offset);
   }
 
   private int getjump (int pc)
