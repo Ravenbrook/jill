@@ -1697,6 +1697,22 @@ public final class Lua
     return 0;
   }
 
+  boolean gOrdererror(Object p1, Object p2)
+  {
+    String t1 = typeName(type(p1));
+    String t2 = typeName(type(p2));
+    if (t1.charAt(2) == t2.charAt(2))
+    {
+      gRunerror("attempt to compare two " + t1 + "values");
+    }
+    else
+    {
+      gRunerror("attempt to compare " + t1 + " with " + t2);
+    }
+    // NOTREACHED
+    return false;
+  }
+
   void gRunerror(String s)
   {
     gErrormsg(s);
@@ -2785,9 +2801,13 @@ reentry:
       // equivalent.
       return ((String)l).compareTo((String)r) < 0;
     }
-    // :todo: metamethods
-    throw new IllegalArgumentException();
+    int res = call_orderTM(l, r, "__lt");
+    if (res >= 0) {
+      return res != 0;
+    }
+    return gOrdererror(l, r);
   }
+
   /** Equivalent of luaV_lessequal. */
   private boolean vmLessequal(Object l, Object r)
   {
@@ -2994,6 +3014,24 @@ reentry:
       stack.setElementAt(NIL, fixed+i);
     }
     return base;
+  }
+
+  /**
+   * @return -1 if no tagmethod, 0 false, 1 true
+   */
+  private int call_orderTM(Object p1, Object p2, String event)
+  {
+    Object tm1 = tagmethod(p1, event);
+    if (tm1 == NIL)     // not metamethod
+    {
+      return -1;
+    }
+    Object tm2 = tagmethod(p2, event);
+    if (!oRawequal(tm1, tm2))   // different metamethods?
+    {
+      return -1;
+    }
+    return isFalse(callTMres(tm1, p1, p2)) ? 0 : 1;
   }
 
   private void callTM(Object f, Object p1, Object p2, Object p3)
