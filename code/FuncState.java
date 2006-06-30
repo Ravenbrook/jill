@@ -422,9 +422,12 @@ final class FuncState
     return addk(s);
   }
 
+  static Object fake_nil = new Object () ;
+
   private int addk(Object o)
   {
-    Object v = h.get(o);
+    Object hash = o == null ? fake_nil : o ;
+    Object v = h.get(hash);
     if (v != null)
     {
       // :todo: assert
@@ -432,7 +435,7 @@ final class FuncState
     }
     // constant not found; create a new entry
     f.constantAppend(nk, o);
-    h.put(o, new Integer(nk));
+    h.put(hash, new Integer(nk));
     return nk++;
   }
 
@@ -540,32 +543,42 @@ final class FuncState
   private void discharge2reg(Expdesc e, int reg)
   {
     kDischargevars(e);
-    switch (e.kind())
+    switch (e.k)
     {
       case Expdesc.VNIL:
         kNil(reg, 1);
         break;
-      case Expdesc.VFALSE: case Expdesc.VTRUE:
-        kCodeABC(Lua.OP_LOADBOOL, reg,
-            e.kind() == Expdesc.VTRUE ? 1 : 0, 0);
+
+      case Expdesc.VFALSE:
+      case Expdesc.VTRUE:
+        kCodeABC(Lua.OP_LOADBOOL, reg, (e.k == Expdesc.VTRUE ? 1 : 0), 0);
         break;
+
       case Expdesc.VK:
-        kCodeABx(Lua.OP_LOADK, reg, e.info());
+        kCodeABx(Lua.OP_LOADK, reg, e.info);
         break;
+
       case Expdesc.VKNUM:
-        kCodeABx(Lua.OP_LOADK, reg, kNumberK(e.nval()));
+        kCodeABx(Lua.OP_LOADK, reg, kNumberK(e.nval));
         break;
+
       case Expdesc.VRELOCABLE:
         setarga(e, reg);
         break;
+
       case Expdesc.VNONRELOC:
-        if (reg != e.info())
+        if (reg != e.info)
         {
-          kCodeABC(Lua.OP_MOVE, reg, e.info(), 0);
+          kCodeABC(Lua.OP_MOVE, reg, e.info, 0);
         }
         break;
+
+      case Expdesc.VVOID:
+      case Expdesc.VJMP:
+        return ;
+
       default:
-        throw new IllegalArgumentException();
+        lua_assert (false, "discharge2reg()") ;
     }
     e.nonreloc(reg);
   }

@@ -100,9 +100,9 @@ final class LuaInternal extends LuaJavaCallback
 
   // :todo: take this out
   static int seq = 0 ;
-  void debug_compiler (Lua L, Proto p, boolean strip)
+  static void debug_compiler (Lua L, Proto p, boolean strip)
   {
-    /*
+/*
     OutputStream out = null ;
     try
     {
@@ -118,6 +118,6 @@ final class LuaInternal extends LuaJavaCallback
       if (out != null)
       { try { out.close () ; } catch (IOException io) {}}
     }
-    */
-    }
+*/
+  }
 }

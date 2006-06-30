@@ -1,5 +1,7 @@
 // $Header$
 
+import java.io.File ;
+
 // For j2meunit see http://j2meunit.sourceforge.net/
 import j2meunit.framework.Test;
 import j2meunit.framework.TestCase;
@@ -148,24 +150,32 @@ public class SyntaxTest extends TestCase
     assertTrue("script 1 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 7676.0) ;
     L.setTop(0) ;
 
-    assertTrue("script 2x okay", 0 == dostring(L, "return function (a, b, ...) local f = function (a) return a end ; local c = a*b ; return f(c),... end")) ;
-    assertTrue("script 2x okay", 0 == dostring(L, "local foo = function (a, b, ...) local c = a*b ; return c,... end")) ;
-
     assertTrue("script 2 okay", 0 == dostring(L, "local foo; foo = function (a) return a end")) ;
     L.setTop(0) ;
 
-    assertTrue("script 2 okay", 0 == dostring(L, "local foo = function (a) return a*a end ; return foo")) ;
-    L.setTop(0) ;
-    /*
-
-    assertTrue("script 2 okay", 0 == dostring(L, "local foo = function (a) return a*a end ; return foo(4)")) ;
-    assertTrue("script 2 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 16.0) ;
+    assertTrue("script 3 okay", 0 == dostring(L, "local foo = function (a) return a*a end ; return foo")) ;
     L.setTop(0) ;
 
-    assertTrue("script 3 okay", 0 == dostring(L, "local foo = function (a) return a*a end ; return foo(foo(4))")) ;
-    assertTrue("script 3 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 7676.0) ;
+    assertTrue("script 4 okay", 0 == dostring(L, "local foo = function (a) return a*a end ; return foo(4)")) ;
+    assertTrue("script 4 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 16.0) ;
     L.setTop(0) ;
-    */
+
+    assertTrue("script 5 okay", 0 == dostring(L, "return function (a, b, ...) local f = function (a) return a end ; local c = a*b ; return f(c),... end")) ;
+    L.setTop(0) ;
+
+    assertTrue("script 6 okay", 0 == dostring(L, "local foo = function (a, b, ...) local c = a*b ; return c,... end")) ;
+    L.setTop(0) ;
+
+    assertTrue("script 7 okay", 0 == dostring(L, "local foo = function (a) return a*a end ; return foo(foo(4))")) ;
+    assertTrue("script 7 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 7676.0) ;
+    L.setTop(0) ;
+
+  }
+
+  public void testSyntax6()
+  {
+//      System.out.println ("Syntax6") ;
+//      assertTrue (null != Syntax.test_parser (new File ("test/ChunkSpy.lua"))) ;
   }
 
   public Test suite()
@@ -195,6 +205,10 @@ public class SyntaxTest extends TestCase
     suite.addTest(new SyntaxTest("testSyntax5")
         {
             public void runTest() { testSyntax5(); }
+        });
+    suite.addTest(new SyntaxTest("testSyntax6")
+        {
+            public void runTest() { testSyntax6(); }
         });
     return suite;
   }

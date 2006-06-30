@@ -18,6 +18,13 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Hashtable;
 
+// for testing only
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+
 /**
  * Syntax analyser.  Lexing, parsing, code generation.
  */
@@ -725,6 +732,35 @@ final class Syntax
   private void leavelevel()
   {
       L.nCcalls -- ;
+  }
+
+  static Proto test_parser (File infile)
+  {
+      String name = infile.getName() ;
+      InputStream in = null ;
+      Reader reader = null ;
+      try
+      {
+          in = new FileInputStream (infile) ;
+          Lua L = new Lua () ;
+          BaseLib.open (L) ;
+          reader = new InputStreamReader (in, "UTF-8") ;
+          Proto result = parser (L, reader, name) ;
+
+          LuaInternal.debug_compiler (L, result, false) ;
+          return result ;
+      }
+      catch (Exception e)
+      {
+          System.out.println ("test_parser Excp: "+e.getClass().getName()+": "+e.getMessage()) ;
+          e.printStackTrace();
+          return null ;
+      }
+      finally
+      {
+          if (reader != null)
+              try { reader.close () ; } catch (IOException io) {}
+      }
   }
 
   /** Equivalent to luaY_parser. */
@@ -2001,6 +2037,8 @@ System.out.println ("pushclosure 4") ;
       if (UPVAL_K(fs.upvalues[i]) == v.k &&
           UPVAL_INFO(fs.upvalues[i]) == v.info)
       {
+        if (!(name.equals (f.upvalues[i])))
+            System.out.println ("indexupvalue check failed for name='"+name+"' and index="+i+"  found '"+f.upvalues[i]+"'") ;
         lua_assert(name.equals (f.upvalues[i]), "indexupvalue()");
         return i;
       }
