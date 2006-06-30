@@ -918,7 +918,7 @@ final class Syntax
     // stat -> func | assignment
     LHS_assign v = new LHS_assign () ;
     primaryexp(v.v);
-    if (v.v.kind() == Expdesc.VCALL)      // stat -> func
+    if (v.v.k == Expdesc.VCALL)      // stat -> func
     {
       fs.setargc(v.v, 1); // call statement uses no results
     }
@@ -965,7 +965,8 @@ final class Syntax
   private void assignment (LHS_assign lh, int nvars) throws IOException
   {
     Expdesc e = new Expdesc () ;
-    if (Expdesc.VLOCAL <= lh.v.k && lh.v.k <= Expdesc.VINDEXED)
+    int kind = lh.v.k ;
+    if (!(Expdesc.VLOCAL <= kind && kind <= Expdesc.VINDEXED))
       xSyntaxerror ("syntax error");
     if (testnext(','))    /* assignment -> `,' primaryexp assignment */
     {
