@@ -89,29 +89,45 @@ public class MetaTest extends JiliTestCase
     nTrue("testmetanewindex2", 3);
   }
 
+  public void testmetacall()
+  {
+    nTrue("testmetacall", 3);
+  }
 
   public Test suite()
   {
     TestSuite suite = new TestSuite();
 
     suite.addTest(new MetaTest("testmetaindex0")
-    {
-        public void runTest() { testmetaindex0(); } });
+      {
+        public void runTest() { testmetaindex0(); }
+      });
     suite.addTest(new MetaTest("testmetaindex1")
-        {
-        public void runTest() { testmetaindex1(); } });
+      {
+        public void runTest() { testmetaindex1(); }
+      });
     suite.addTest(new MetaTest("testmetaindex2")
-        {
-        public void runTest() { testmetaindex2(); } });
+      {
+        public void runTest() { testmetaindex2(); }
+      });
     suite.addTest(new MetaTest("testmetanewindex0")
-        {
-        public void runTest() { testmetanewindex0(); } });
+      {
+        public void runTest() { testmetanewindex0(); }
+      });
     suite.addTest(new MetaTest("testmetanewindex1")
-        {
-        public void runTest() { testmetanewindex1(); } });
+      {
+        public void runTest() { testmetanewindex1(); }
+      });
     suite.addTest(new MetaTest("testmetanewindex2")
-        {
-        public void runTest() { testmetanewindex2(); } });
+      {
+        public void runTest() { testmetanewindex2(); }
+      });
+    /* :todo:
+    suite.addTest(new MetaTest("testmetacall")
+      {
+        public void runTest() { testmetacall(); }
+      });
+    */
     return suite;
   }
 }

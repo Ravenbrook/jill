@@ -103,3 +103,17 @@ function testmetanewindex2()
   t.foo = 'bar'
   return t.foo == nil, deepnewindex.foo == 'bar', a
 end
+-- test __call
+function testmetacall()
+  local foocalled, beforef, afterf
+  function around(f, g)
+    local t = {}
+    local mt = { __call = function()return g(f)end }
+    setmetatable(t, mt)
+    return t
+  end
+  function foo()foocalled = true end
+  function a(f)beforef = true f() afterf = true end
+  around(foo, a)()
+  return foocalled, beforef, afterf
+end
