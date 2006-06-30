@@ -117,3 +117,25 @@ function testmetacall()
   around(foo, a)()
   return foocalled, beforef, afterf
 end
+-- test __lt
+function testmetalt()
+  do
+    local mt = { __lt = function(t1, t2) return #t1 < #t2 end }
+    function addmt(t)
+      setmetatable(t, mt)
+      return t
+    end
+  end
+
+  local a = addmt{}
+  local b = addmt{'foo'}
+  local c = addmt{'bar'}
+  local d = addmt{a, b, c}
+
+  local t = { a < b, b < a, b < c, c < b, c < d, d < c }  
+  t[2] = not t[2]
+  t[3] = not t[3]
+  t[4] = not t[4]
+  t[6] = not t[6]
+  return unpack(t)
+end
