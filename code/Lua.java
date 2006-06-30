@@ -2859,10 +2859,13 @@ reentry:
    */
   private int vmPrecall(int func, int r)
   {
-    // :todo: metamethod for non-function values.
-    this.ci.setSavedpc(savedpc);
     Object faso;        // Function AS Object
     faso = stack.elementAt(func);
+    if (!isFunction(faso))
+    {
+      faso = tryfuncTM(func);
+    }
+    this.ci.setSavedpc(savedpc);
     if (faso instanceof LuaFunction)
     {
       LuaFunction f = (LuaFunction)faso;
@@ -3108,6 +3111,20 @@ reentry:
     }
     stack.setElementAt(s, idx);
     return true;
+  }
+
+  /**
+   * @param func  absolute stack index of the function object.
+   */
+  private Object tryfuncTM(int func)
+  {
+    Object tm = tagmethod(stack.elementAt(func), "__call");
+    if (!isFunction(tm))
+    {
+      gTypeerror(stack.elementAt(func), "call");
+    }
+    insert(tm, func);
+    return tm;
   }
 
   /** Lua's is False predicate. */

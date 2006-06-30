@@ -122,12 +122,10 @@ public class MetaTest extends JiliTestCase
       {
         public void runTest() { testmetanewindex2(); }
       });
-    /* :todo:
     suite.addTest(new MetaTest("testmetacall")
       {
         public void runTest() { testmetacall(); }
       });
-    */
     return suite;
   }
 }
