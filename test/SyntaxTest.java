@@ -147,11 +147,16 @@ public class SyntaxTest extends TestCase
     assertTrue("script 1 okay", 0 == dostring(L, "local a = { zong = 42, 100, ['foo'] = 7676 } ; print(a.zong) ; print(a) ; return a['foo']"));
     assertTrue("script 1 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 7676.0) ;
     L.setTop(0) ;
-    /*
-    assertTrue("script 2 okay", 0 == dostring(L, "local foo = function (a) end")) ;
+
+    assertTrue("script 2x okay", 0 == dostring(L, "return function (a, b, ...) local f = function (a) return a end ; local c = a*b ; return f(c),... end")) ;
+    assertTrue("script 2x okay", 0 == dostring(L, "local foo = function (a, b, ...) local c = a*b ; return c,... end")) ;
+
+    assertTrue("script 2 okay", 0 == dostring(L, "local foo; foo = function (a) return a end")) ;
     L.setTop(0) ;
+
     assertTrue("script 2 okay", 0 == dostring(L, "local foo = function (a) return a*a end ; return foo")) ;
     L.setTop(0) ;
+    /*
 
     assertTrue("script 2 okay", 0 == dostring(L, "local foo = function (a) return a*a end ; return foo(4)")) ;
     assertTrue("script 2 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 16.0) ;

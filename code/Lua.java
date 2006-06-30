@@ -1674,9 +1674,10 @@ public final class Lua
     gTypeerror(stack.elementAt(p1), "concatenate");
   }
 
-  static void gCheckcode(Proto p)
+  boolean gCheckcode(Proto p)
   {
     // :todo: implement me.
+    return true ;
   }
 
   private int gErrormsg(Object message)

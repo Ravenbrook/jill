@@ -111,10 +111,9 @@ final class Proto
     {
       throw new IllegalArgumentException();
     }
-    this.k = constant;
-    this.code = code;
-    this.p = proto;
-    this.sizep = proto.length ;
+    this.k = constant; sizek = k.length ;
+    this.code = code;  sizecode = code.length ;
+    this.p = proto;    this.sizep = proto.length ;
     this.nups = nups;
     this.numparams = numparams;
     this.is_vararg = is_vararg;
@@ -124,21 +123,17 @@ final class Proto
   /**
    * Blank Proto in preparation for compilation.
    */
-  Proto(String source)
+  Proto(String source, int maxstacksize)
   {
-    maxstacksize = 2;   // register 0/1 are always valid.
+      this.maxstacksize = maxstacksize;
+      //    maxstacksize = 2;   // register 0/1 are always valid.
     this.source = source;
-    this.k = ZERO_OBJECT_ARRAY;
-    this.code = ZERO_INT_ARRAY;
-    this.sizecode = 0 ;
-    this.p = ZERO_PROTO_ARRAY;
-    this.sizep = 0;
-    this.lineinfo = ZERO_INT_ARRAY;
-    this.sizelineinfo = 0;
-    this.locvars = ZERO_LOCVAR_ARRAY;
-    this.sizelocvars = 0 ;
-    this.upvalues = ZERO_STRING_ARRAY;
-    this.sizeupvalues = 0;
+    this.k = ZERO_OBJECT_ARRAY;        this.sizek = 0 ;
+    this.code = ZERO_INT_ARRAY;        this.sizecode = 0 ;
+    this.p = ZERO_PROTO_ARRAY;         this.sizep = 0;
+    this.lineinfo = ZERO_INT_ARRAY;    this.sizelineinfo = 0;
+    this.locvars = ZERO_LOCVAR_ARRAY;  this.sizelocvars = 0 ;
+    this.upvalues = ZERO_STRING_ARRAY; this.sizeupvalues = 0;
   }
 
   /**
@@ -147,12 +142,9 @@ final class Proto
    */
   void debug(int[] lineinfo, LocVar[] locvars, String[] upvalues)
   {
-    this.lineinfo = lineinfo;
-    this.sizelineinfo = lineinfo.length;
-    this.locvars = locvars;
-    this.sizelocvars = locvars.length;
-    this.upvalues = upvalues;
-    this.sizeupvalues = upvalues.length;
+    this.lineinfo = lineinfo;  sizelineinfo = lineinfo.length;
+    this.locvars = locvars;    sizelocvars = locvars.length;
+    this.upvalues = upvalues;  sizeupvalues = upvalues.length;
   }
 
   /** Gets source. */

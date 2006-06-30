@@ -118,12 +118,16 @@ final class Syntax
   /** FuncState for current (innermost) function being parsed. */
   FuncState fs;
   Lua L;
+
   /** input stream */
   private Reader z;
+
   /** Buffer for tokens. */
   StringBuffer buff = new StringBuffer();
+
   /** current source name */
-  private String source;
+  String source;
+
   /** locale decimal point. */
   private char decpoint = '.';
 
@@ -210,8 +214,6 @@ final class Syntax
     }
   }
 
-  /** Links new FuncState into this, and returns the old FuncState.
-   * Not really from llex.c. */
   FuncState linkfs(FuncState newfs)
   {
     FuncState oldfs = fs;
@@ -219,11 +221,21 @@ final class Syntax
     return oldfs;
   }
 
+
+  private void lua_assert (boolean b, String routine)
+  {
+    if (!b)
+    {
+      System.out.println ("lua_assert failure in "+routine) ;
+      xSyntaxerror ("lua_assert failure in "+routine) ;
+    }
+  }
+
   private int skip_sep () throws IOException
   {
     int count = 0;
     int s = current;
-    //lua_assert(s == '[' || s == ']');
+    lua_assert(s == '[' || s == ']', "skip_sep()");
     save_and_next();
     while (current == '=')
     {
@@ -653,10 +665,42 @@ final class Syntax
   private void close_func()
   {
     removevars(0);
-    fs.kRet(0, 0);
+    fs.kRet(0, 0);  // final return;
     fs.close();
+    System.out.println ("debug:") ;
+    debug_closures (fs) ;
+    System.out.println ("end debug:") ;
+    lua_assert (fs != fs.prev, "close_func()") ; // :todo: check this is a valid assertion to make
     fs = fs.prev;
   }
+
+    void debug_closures (FuncState fs)
+    {
+        debug_fs (fs) ;
+        if (fs.prev != null)
+            debug_closures (fs.prev) ;
+    }
+
+    void debug_fs (FuncState fs)
+    {
+        debug_proto (fs.f) ;
+    }
+
+    void debug_proto (Proto p)
+    {
+        System.out.println ("    Proto: "+p.source) ;
+        System.out.println ("      vararg = "+p.is_vararg) ;
+        System.out.println ("      sizecode = "+p.sizecode) ;
+        System.out.println ("      sizek = "+p.sizek) ;
+        System.out.println ("      sizep = "+p.sizep) ;
+        System.out.println ("      sizeupvalues = "+p.sizeupvalues) ;
+        System.out.println ("      linedefined = "+p.linedefined) ;
+        System.out.println ("      lastlinedefined = "+p.lastlinedefined) ;
+        System.out.println ("      CODE:") ;
+        for (int i = 0 ; i < p.sizecode ; i++)
+            System.out.println ("        "+i+": "+Integer.toHexString(p.code[i])) ;
+
+    }            
 
   private void codestring(Expdesc e, String s)
   {
@@ -687,17 +731,20 @@ final class Syntax
   static Proto parser(Lua L, Reader in, String name)
       throws IOException
   {
-    Syntax lexstate = new Syntax(L, in, name);
-    FuncState funcstate = new FuncState(lexstate);
-    funcstate.f.is_vararg = true;
-    lexstate.xNext();
-    lexstate.chunk();
-    lexstate.check(TK_EOS);
-    lexstate.close_func();
-    // assert funcstate.prev == NULL;
-    // assert funcstate.f.nups() == 0;
-    // assert fs == NULL;
-    return funcstate.f;
+    Syntax ls = new Syntax(L, in, name);
+    FuncState fs = new FuncState(ls);
+    fs.f.is_vararg = true;
+    ls.xNext();
+    System.out.println ("parser A") ;
+    ls.chunk();
+    System.out.println ("parser B") ;
+    ls.check(TK_EOS);
+    System.out.println ("parser C") ;
+    ls.close_func();
+    ls.lua_assert (fs.prev == null,"parser() 2") ;
+    ls.lua_assert (fs.f.nups == 0, "parser() 3") ;
+    ls.lua_assert (ls.fs == null,  "parser() 4") ;
+    return fs.f;
   }
 
   private void removevars(int tolevel)
@@ -774,15 +821,25 @@ final class Syntax
   {
     // chunk -> { stat [';'] }
     boolean islast = false;
+System.out.println ("chunk 1") ;
     enterlevel();
+System.out.println ("chunk 2") ;
     while (!islast && !block_follow(token))
     {
+System.out.println ("chunk loop 1") ;
       islast = statement();
+System.out.println ("chunk loop 2") ;
       testnext(';');
-      // assert :todo: fill in assert
+System.out.println ("chunk loop 3") ;
+      lua_assert (fs.f.maxstacksize >= fs.freereg &&
+                  fs.freereg >= fs.nactvar, 
+                  "chunk()");
       fs.freereg = fs.nactvar;
+System.out.println ("chunk loop 4") ;
     }
+System.out.println ("chunk 3") ;
     leavelevel();
+System.out.println ("chunk 4") ;
   }
 
   private void constructor(Expdesc t) throws IOException
@@ -797,7 +854,7 @@ final class Syntax
     checknext('{');
     do
     {
-      // lua_assert(cc.v.k == Expdesc.VVOID || cc.tostore > 0);
+      lua_assert(cc.v.k == Expdesc.VVOID || cc.tostore > 0, "constructor()");
       if (token == '}')
         break;
       closelistfield(cc);
@@ -1143,8 +1200,8 @@ final class Syntax
         fs.kSetmultret(e);
         if (e.k == Expdesc.VCALL && nret == 1)    /* tail call? */
         {
-          Lua.SET_OPCODE(fs.getcode(e), Lua.OP_TAILCALL);
-          //lua_assert(ARGA(fs.getcode(e)) == fs.nactvar);
+          fs.setcode(e, Lua.SET_OPCODE(fs.getcode(e), Lua.OP_TAILCALL));
+          lua_assert(Lua.ARGA(fs.getcode(e)) == fs.nactvar, "retstat()");
         }
         first = fs.nactvar;
         nret = Lua.MULTRET;  /* return all values */
@@ -1159,7 +1216,7 @@ final class Syntax
         {
           fs.kExp2nextreg(e);  /* values must go to the `stack' */
           first = fs.nactvar;  /* return all `active' values */
-          // lua_assert(nret == fs.freereg - first);
+          lua_assert(nret == fs.freereg - first, "retstat() 2");
         }
       }
     }
@@ -1218,6 +1275,7 @@ final class Syntax
 
   private boolean statement() throws IOException
   {
+ System.out.println ("statement "+token) ;
     int line = linenumber;
     switch (token)
     {
@@ -1392,7 +1450,7 @@ final class Syntax
     bl.upval = false ;
     bl.previous = fs.bl;
     fs.bl = bl;
-    // lua_assert(fs->freereg == fs->nactvar);
+    lua_assert(fs.freereg == fs.nactvar, "enterblock()");
   }
 
   private void leaveblock (FuncState fs)
@@ -1402,8 +1460,8 @@ final class Syntax
     removevars(bl.nactvar);
     if (bl.upval)
       fs.kCodeABC(Lua.OP_CLOSE, bl.nactvar, 0, 0);
-    // lua_assert(!bl->isbreakable || !bl->upval);  /* loops have no body */
-    // lua_assert(bl->nactvar == fs->nactvar);
+    lua_assert(!bl.isbreakable || !bl.upval, "leaveblock()");  /* loops have no body */
+    lua_assert(bl.nactvar == fs.nactvar, "leaveblock() 2");
     fs.freereg = fs.nactvar;  /* free registers */
     fs.kPatchtohere(bl.breaklist);
   }
@@ -1422,7 +1480,7 @@ final class Syntax
     BlockCnt bl = new BlockCnt () ;
     enterblock(fs, bl, false);
     chunk();
-    // lua_assert(bl.breaklist == FuncState.NO_JUMP);
+    lua_assert(bl.breaklist == FuncState.NO_JUMP, "block()");
     leaveblock(fs);
   }
 
@@ -1553,6 +1611,7 @@ final class Syntax
     open_func(new_fs);
     new_fs.f.linedefined = line;
     checknext('(');
+System.out.println ("body 1") ;
     if (needself)
     {
       new_localvarliteral("self", 0);
@@ -1564,6 +1623,7 @@ final class Syntax
     new_fs.f.lastlinedefined = linenumber;
     check_match(TK_END, TK_FUNCTION, line);
     close_func();
+System.out.println ("body 5") ;
     pushclosure(new_fs, e);
   }
 
@@ -1574,16 +1634,23 @@ final class Syntax
 
   private void pushclosure (FuncState func, Expdesc v)
   {
+System.out.println ("pushclosure 1") ;
     Proto f = fs.f;
     int oldsize = f.sizep;
     f.ensureProtos (L, fs.np) ;
-    f.p[fs.np++] = func.f;
+System.out.println ("pushclosure 2") ;
+    Proto ff = func.f ;
+    f.p[fs.np++] = ff;
     init_exp(v, Expdesc.VRELOCABLE, fs.kCodeABx(Lua.OP_CLOSURE, 0, fs.np-1));
-    for (int i=0; i<func.f.nups; i++)
+System.out.println ("pushclosure 3 "+ff.nups) ;
+    for (int i=0; i < ff.nups; i++)
     {
-      int o = (UPVAL_K(func.upvalues[i]) == Expdesc.VLOCAL) ? Lua.OP_MOVE : Lua.OP_GETUPVAL;
-      fs.kCodeABC(o, 0, UPVAL_INFO(func.upvalues[i]), 0);
+      int upvalue = func.upvalues[i] ;
+      int o = (UPVAL_K(upvalue) == Expdesc.VLOCAL) ? Lua.OP_MOVE : Lua.OP_GETUPVAL;
+System.out.println ("pushclosure loop "+o) ;
+      fs.kCodeABC(o, 0, UPVAL_INFO(upvalue), 0);
     }
+System.out.println ("pushclosure 4") ;
   }
 
   private boolean funcname (Expdesc v) throws IOException
@@ -1659,12 +1726,12 @@ final class Syntax
 
   private void open_func (FuncState fs)
   {
-    Proto f = new Proto (source);
+    Proto f = new Proto (source, 2);  /* registers 0/1 are always valid */
     fs.f = f;
-    fs.prev = this.fs;  /* linked list of funcstates */
+//    fs.prev = this.fs;  /* linked list of funcstates */
     fs.ls = this;
     fs.L = L;
-    this.fs = fs;
+//    this.fs = fs;
     fs.pc = 0;
     fs.lasttarget = -1;
     fs.jpc = FuncState.NO_JUMP;
@@ -1674,7 +1741,6 @@ final class Syntax
     fs.nlocvars = 0;
     fs.nactvar = 0;
     fs.bl = null;
-    f.maxstacksize = 2;  /* registers 0/1 are always valid */
     fs.h = new Hashtable () ;
   }
 
@@ -1902,7 +1968,7 @@ final class Syntax
 
   void xLookahead () throws IOException
   {
-    //lua_assert(ls->lookahead.token == TK_EOS);
+    lua_assert(lookahead == TK_EOS, "xLookahead()");
     lookahead = llex();
     lookaheadR = semR ;
     lookaheadS = semS ;
@@ -1935,7 +2001,7 @@ final class Syntax
       if (UPVAL_K(fs.upvalues[i]) == v.k &&
           UPVAL_INFO(fs.upvalues[i]) == v.info)
       {
-        //lua_assert(f.upvalues[i] == name);
+        lua_assert(name.equals (f.upvalues[i]), "indexupvalue()");
         return i;
       }
     }
@@ -1943,7 +2009,7 @@ final class Syntax
     yChecklimit(f.nups + 1, Lua.MAXUPVALUES, "upvalues");
     f.ensureUpvals (L, f.nups) ;
     f.upvalues[f.nups] = name;
-    //lua_assert(v.k == Expdesc.VLOCAL || v.k == Expdesc.VUPVAL);
+    lua_assert(v.k == Expdesc.VLOCAL || v.k == Expdesc.VUPVAL, "indexupvalue() 2");
     fs.upvalues[f.nups] = UPVAL_ENCODE(v.k, v.info) ;
     return f.nups++;
   }
@@ -1970,4 +2036,4 @@ final class ConsControl
   {
     this.t = t ;
   }
-};
+}

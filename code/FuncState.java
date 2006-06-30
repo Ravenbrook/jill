@@ -29,37 +29,52 @@ final class FuncState
 
   /** Proto object for this function. */
   Proto f;
+
   /**
    * Table to find (and reuse) elements in <var>f.k</var>.  Maps from
    * Object (a constant Lua value) to an index into <var>f.k</var>.
    */
-  Hashtable h;
+  Hashtable h = new Hashtable ();
+
   /** Enclosing function. */
   FuncState prev;
+
   /** Lexical state. */
   Syntax ls;
+
   /** Lua state. */
   Lua L;
+
   /** chain of current blocks */
-  BlockCnt bl;
+  BlockCnt bl = null;
+
   /** next position to code. */
-  int pc;
+  int pc = 0;
+
   /** pc of last jump target. */
-  int lasttarget;
+  int lasttarget = -1;
+
   /** List of pending jumps to <var>pc</var>. */
-  int jpc;
+  int jpc = NO_JUMP;
+
   /** First free register. */
-  int freereg;
+  int freereg = 0;
+
   /** number of elements in <var>k</var>. */
-  int nk;
+  int nk = 0;
+
   /** number of elements in <var>p</var>. */
-  int np;
+  int np = 0;
+
   /** number of elements in <var>locvars</var>. */
-  short nlocvars;
+  short nlocvars = 0;
+
   /** number of active local variables. */
-  short nactvar;
+  short nactvar = 0;
+
   /** upvalues as 8-bit k and 8-bit info */
   int [] upvalues = new int [Lua.MAXUPVALUES] ;
+
   /** declared-variable stack. */
   short[] actvar = new short[Lua.MAXVARS];
 
@@ -69,20 +84,10 @@ final class FuncState
    */
   FuncState(Syntax ls)
   {
-    f = new Proto(ls.source());
+    f = new Proto(ls.source(), 2);
     L = ls.L ;
     prev = ls.linkfs(this);
     this.ls = ls;
-    // pc = 0;
-    lasttarget = -1;
-    jpc = NO_JUMP;
-    // freereg = 0;
-    // nk = 0;
-    // np = 0;
-    // nlocvars = 0;
-    // nactvar = 0;
-    // bl = null;
-    h = new Hashtable();
   }
 
   /** Equivalent to <code>close_func</code> from <code>lparser.c</code>. */
@@ -94,8 +99,9 @@ final class FuncState
     f.closeP(np);
     f.closeLocvars(nlocvars);
     f.closeUpvalues();
-    Lua.gCheckcode(f);
-    // assert bl == null;
+    boolean checks = L.gCheckcode(f);
+    lua_assert (checks, "close()") ;
+    lua_assert (bl == null, "close() 2") ;
   }
 
   /** Equivalent to getlocvar from lparser.c.
@@ -284,7 +290,7 @@ final class FuncState
     switch (op)
     {
       case Syntax.OPR_AND:
-        // lua_assert(e1.t == NO_JUMP);  /* list must be closed */
+        lua_assert(e1.t == NO_JUMP, "kPosfix() and");  /* list must be closed */
         kDischargevars(e2);
         kConcat(e1.f, e2.f);
         e1.k = e2.k;
@@ -294,7 +300,7 @@ final class FuncState
         break;
 
       case Syntax.OPR_OR:
-        //lua_assert(e1.f == NO_JUMP);  /* list must be closed */
+        lua_assert(e1.f == NO_JUMP, "kPosfix() or");  /* list must be closed */
         kDischargevars(e2);
         kConcat(e1.t, e2.t);
         e1.k = e2.k;
@@ -307,7 +313,7 @@ final class FuncState
         kExp2val(e2);
         if (e2.k == Expdesc.VRELOCABLE && Lua.OPCODE(getcode(e2)) == Lua.OP_CONCAT)
         {
-          //lua_assert(e1.info == Lua.ARGB(getcode(e2))-1);
+          lua_assert(e1.info == Lua.ARGB(getcode(e2))-1, "kPosfix() concat");
           freeexp(e1);
           setcode(e2, Lua.SETARG_B(getcode(e2), e1.info));
           e1.k = e2.k; 
@@ -333,7 +339,7 @@ final class FuncState
       case Syntax.OPR_GT: codecomp(Lua.OP_LT, false, e1, e2); break;
       case Syntax.OPR_GE: codecomp(Lua.OP_LE, false, e1, e2); break;
       default: 
-          //lua_assert(false);
+        lua_assert(false, "kPosfix() def");
     }
   }
 
@@ -471,7 +477,7 @@ final class FuncState
       case Lua.OP_UNM: r = -v1; break;
       case Lua.OP_LEN: return false;  /* no constant folding for 'len' */
       default:
-          // lua_assert(false);
+          lua_assert(false, "constfolding");
           r = 0.0; break;
     }
     if (!(r == r)) // NaN test
@@ -509,7 +515,7 @@ final class FuncState
         break;
 
       default:
-        //lua_assert(false);  /* cannot happen */
+        lua_assert(false, "codenot()");  /* cannot happen */
         break;
     }
     /* interchange true and false lists */
@@ -708,7 +714,7 @@ final class FuncState
       kPatchtohere(list);
     else
     {
-      //lua_assert(target < fs->pc);
+      lua_assert(target < pc, "kPatchlist()");
       patchlistaux(list, target, Lua.NO_REG, target);
     }
   }
@@ -836,7 +842,7 @@ final class FuncState
   {
     int jmp = f.code[pc];
     int offset = dest-(pc+1);
-    // lua_assert(dest != NO_JUMP);
+    lua_assert(dest != NO_JUMP, "fixjump()");
     if (Math.abs(offset) > Lua.MAXARG_sBx)
       ls.xSyntaxerror("control structure too long");
     f.code[pc] = Lua.SETARG_sBx(jmp, offset);
@@ -892,7 +898,7 @@ final class FuncState
       }
       default:
       {
-        //lua_assert(0);  /* invalid var kind to store */
+        lua_assert(false, "kStorevar()");  /* invalid var kind to store */
         break;
       }
     }
@@ -1020,9 +1026,12 @@ final class FuncState
   private void invertjump (Expdesc e)
   {
     int pc = getjumpcontrol(e.info);
-    // lua_assert(testTMode(GET_OPCODE(*pc)) && GET_OPCODE(*pc) != Lua.OP_TESTSET && GET_OPCODE(*pc) != Lua.OP_TEST);
     int [] code = f.code ;
     int instr = code[pc] ;
+    lua_assert(testTMode(Lua.OPCODE(instr)) &&
+               Lua.OPCODE(instr) != Lua.OP_TESTSET &&
+               Lua.OPCODE(instr) != Lua.OP_TEST,
+               "invertjump()");
     code[pc] = Lua.SETARG_A(instr, (Lua.ARGA(instr) == 0 ? 1 : 0));
   }
 
@@ -1076,7 +1085,7 @@ final class FuncState
   {
     int c =  (nelems - 1) / Syntax.LFIELDS_PER_FLUSH + 1;
     int b = (tostore == Lua.MULTRET) ? 0 : tostore;
-    //lua_assert(tostore != 0);
+    lua_assert(tostore != 0, "kSetlist()");
     if (c <= Lua.MAXARG_C)
       kCodeABC(Lua.OP_SETLIST, base, b, c);
     else
@@ -1103,4 +1112,14 @@ final class FuncState
     e1.info = condjump(op, (cond ? 1 : 0), o1, o2);
     e1.k = Expdesc.VJMP;
   }
+
+  private void lua_assert (boolean b, String routine)
+  {
+    if (!b)
+    {
+      System.out.println ("lua_assert failure in "+routine) ;
+      ls.xSyntaxerror ("lua_assert failure in "+routine) ;
+    }
+  }
+
 }
