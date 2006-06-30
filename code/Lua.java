@@ -2738,7 +2738,6 @@ reentry:
   /** Equivalent of luaV_gettable. */
   private Object vmGettable(Object t, Object key)
   {
-    // :todo: metamethods
     Object tm;
     for (int loop = 0; loop < MAXTAGLOOP; ++loop)
     {
@@ -2919,9 +2918,33 @@ reentry:
   /** Equivalent of luaV_settable. */
   private void vmSettable(Object t, Object key, Object val)
   {
-    // :todo: metamethods
-    LuaTable h = (LuaTable)t;
-    h.put(key, val);
+   for (int loop = 0; loop < MAXTAGLOOP; ++loop)
+   {
+     Object tm;
+     if (t instanceof LuaTable) // 't' is a table
+     {
+       LuaTable h = (LuaTable)t;
+       Object o = h.get(key);
+       if (o != NIL ||  // result is no nil?
+           (tm = tagmethod(h, "__newindex")) == null)   // or no TM?
+        {
+          h.put(key, val);
+          return;
+        }
+        // else will try the tag method
+      }
+      else if ((tm = tagmethod(t, "__newindex")) == null)
+      {
+        gTypeerror(t, "index");
+      }
+      if (isFunction(tm))
+      {
+        callTM(tm, t, key, val);
+        return;
+      }
+      t = tm;     // else repeat with 'tm'
+    }
+    gRunerror("loop in settable");
   }
 
   private String vmTostring(Object o)
@@ -2967,6 +2990,15 @@ reentry:
       stack.setElementAt(NIL, fixed+i);
     }
     return base;
+  }
+
+  private void callTM(Object f, Object p1, Object p2, Object p3)
+  {
+    push(f);
+    push(p1);
+    push(p2);
+    push(p3);
+    vmCall(stack.size()-4, 0);
   }
 
   private Object callTMres(Object f, Object p1, Object p2)
