@@ -167,15 +167,17 @@ public class SyntaxTest extends TestCase
     L.setTop(0) ;
 
     assertTrue("script 7 okay", 0 == dostring(L, "local foo = function (a) return a*a end ; return foo(foo(4))")) ;
-    assertTrue("script 7 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 7676.0) ;
+    assertTrue("script 7 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 256.0) ;
     L.setTop(0) ;
 
   }
 
   public void testSyntax6()
   {
-//      System.out.println ("Syntax6") ;
-//      assertTrue (null != Syntax.test_parser (new File ("test/ChunkSpy.lua"))) ;
+    System.out.println ("Syntax6") ;
+    assertTrue (null != Syntax.test_parser (new File ("test/marktest2.lua"))) ;
+    assertTrue (null != Syntax.test_parser (new File ("test/MetaTest.lua"))) ;
+    assertTrue (null != Syntax.test_parser (new File ("test/ChunkSpy.lua"))) ;
   }
 
   public Test suite()
