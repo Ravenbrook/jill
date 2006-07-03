@@ -140,12 +140,10 @@ public class MetaTest extends JiliTestCase
       {
         public void runTest() { testmetalt(); }
       });
-    /* :todo:
     suite.addTest(new MetaTest("testmetale")
       {
         public void runTest() { testmetale(); }
       });
-    */
     return suite;
   }
 }

@@ -2825,8 +2825,17 @@ reentry:
     {
       return ((String)l).compareTo((String)r) <= 0;
     }
-    // :todo: metamethods
-    throw new IllegalArgumentException();
+    int res = call_orderTM(l, r, "__le");       // first try 'le'
+    if (res >= 0)
+    {
+      return res != 0;
+    }
+    res = call_orderTM(r, l, "__lt");   // else try 'lt'
+    if (res >= 0)
+    {
+      return res == 0;
+    }
+    return gOrdererror(l, r);
   }
 
   /**
