@@ -113,25 +113,47 @@ public class LuaTest extends JiliTestCase
     assertTrue("x = nil was okay", good);
   }
 
+  /**
+   * Test that a corner case of upvalues works.  This is indicative for
+   * Ravenbrook job001457.
+   */
+  public void testLua5()
+  {
+    Lua L = new Lua();
+    loadFile(L, "LuaTest5");
+    L.call(0,0);
+    assertTrue("result was true",
+      L.valueOfBoolean(true).equals(L.value(1)));
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
 
     suite.addTest(new LuaTest("testLua0")
-    {
-        public void runTest() { testLua0(); } });
+      {
+        public void runTest() { testLua0(); }
+      });
     suite.addTest(new LuaTest("testLua1")
-        {
-        public void runTest() { testLua1(); } });
+      {
+        public void runTest() { testLua1(); }
+      });
     suite.addTest(new LuaTest("testLua2")
-        {
-        public void runTest() { testLua2(); } });
+      {
+        public void runTest() { testLua2(); }
+      });
     suite.addTest(new LuaTest("testLua3")
-        {
-        public void runTest() { testLua3(); } });
+      {
+        public void runTest() { testLua3(); }
+      });
     suite.addTest(new LuaTest("testLua4")
-        {
-        public void runTest() { testLua4(); } });
+      {
+        public void runTest() { testLua4(); }
+      });
+    suite.addTest(new LuaTest("testLua5")
+      {
+        public void runTest() { testLua5(); }
+      });
     return suite;
   }
 }
