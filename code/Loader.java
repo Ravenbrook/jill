@@ -45,6 +45,11 @@ final class Loader
   private boolean bigendian;
   private InputStream in;
   private String name;
+
+  // auxiliary for reading ints/numbers
+  private byte [] intbuf = new byte [4] ;
+  private byte [] longbuf = new byte [8] ;
+
   /**
    * A new chunk loader.  The <code>InputStream</code> must be
    * positioned at the beginning of the <code>LUA_SIGNATURE</code> that
@@ -86,6 +91,7 @@ final class Loader
     return this.function(null);
   }
 
+
   /**
    * Primitive reader for undumping.
    * Reads exactly enough bytes from <code>this.in</code> to fill the
@@ -98,24 +104,22 @@ final class Loader
    */
   private void block(byte []b) throws IOException
   {
-    int n;
-
-    n = in.read(b);
+    int n = in.read(b);
     if (n != b.length)
-    {
       throw new EOFException();
-    }
   }
 
   /**
-   * Undumps a byte as an unsigned number in the range [0,255].  Returns
-   * a short to accommodate the range.
+   * Undumps a byte as an 8 bit unsigned number.  Returns
+   * an int to accommodate the range.
    */
-  private short byteLoad() throws IOException
+  private int byteLoad() throws IOException
   {
-    byte[] buf = new byte[1];
-    block(buf);
-    return (short)(buf[0] & 0xff);
+    int c = in.read () ;
+    if (c == -1)
+      throw new EOFException();
+    else
+      return c & 0xFF ;  // paranoia
   }
 
   /**
@@ -166,12 +170,11 @@ final class Loader
           break;
 
         case 1: // LUA_TBOOLEAN
-          short b = byteLoad();
+          int b = byteLoad();
           // assert b >= 0;
           if (b > 1)
-          {
             throw new IOException();
-          }
+
           k[i] = Lua.valueOfBoolean(b != 0);
           break;
 
@@ -371,22 +374,53 @@ final class Loader
   private int intLoad() throws IOException
   {
     // :int:size  Here we assume an int is 4 bytes.
-    byte[] buf = new byte[4];
-    block(buf);
+    block(intbuf);
 
     int i;
     // Caution: byte is signed so "&0xff" converts to unsigned value.
     if (bigendian)
     {
-      i = ((buf[0]&0xff) << 24) | ((buf[1]&0xff) << 16) |
-          ((buf[2]&0xff) << 8) | (buf[3]&0xff);
+      i = ((intbuf[0]&0xff) << 24) | ((intbuf[1]&0xff) << 16) |
+          ((intbuf[2]&0xff) << 8) | (intbuf[3]&0xff);
     }
     else
     {
-      i = ((buf[3]&0xff) << 24) | ((buf[2]&0xff) << 16) |
-          ((buf[1]&0xff) << 8) | (buf[0]&0xff);
+      i = ((intbuf[3]&0xff) << 24) | ((intbuf[2]&0xff) << 16) |
+          ((intbuf[1]&0xff) << 8) | (intbuf[0]&0xff);
     }
     return i;
+
+    /* minimum footprint version?
+    int result = 0 ;
+    for (int shift = 0 ; shift < 32 ; shift+=8)
+    {
+      int byt = byteLoad () ;
+      if (bigendian)
+        result = (result << 8) | byt ;
+      else
+        result |= byt << shift ;
+    }
+    return result ;
+    */
+
+    /* another version?
+    if (bigendian)
+    {
+      int result = byteLoad() << 24 ;
+      result |= byteLoad () << 16 ;
+      result |= byteLoad () << 8 ;
+      result |= byteLoad () ;
+      return result;
+    }
+    else
+    {
+      int result = byteLoad() ;
+      result |= byteLoad () << 8 ;
+      result |= byteLoad () << 16 ;
+      result |= byteLoad () << 24 ;
+      return result ;
+    }
+    */
   }
 
   /**
@@ -395,24 +429,16 @@ final class Loader
   private Object number() throws IOException
   {
     // :lua_Number:size  Here we assume that the size is 8.
-    byte[] buf = new byte[8];
-    block(buf);
+    block(longbuf);
     // Big-endian architectures store doubles with the sign bit first;
     // little-endian is the other way around.
     long l = 0;
-    if (bigendian)
+    for (int i=0; i<8; ++i)
     {
-      for (int i=0; i<buf.length; ++i)
-      {
-        l = (l << 8) | (buf[i]&0xff);
-      }
-    }
-    else
-    {
-      for (int i=0; i<buf.length; ++i)
-      {
-        l = (l >>> 8) | (((long)(buf[i]&0xff)) << 56);
-      }
+      if (bigendian)
+        l = (l << 8) | (longbuf[i]&0xff);
+      else
+        l = (l >>> 8) | (((long)(longbuf[i]&0xff)) << 56);
     }
     double d = Double.longBitsToDouble(l);
     return Lua.valueOfNumber(d);
@@ -448,7 +474,7 @@ final class Loader
   {
     // :size_t:size we assume that size_t is same size as int.
     int size = intLoad();
-    if (0 == size)
+    if (size == 0)
     {
       return null;
     }
@@ -456,9 +482,10 @@ final class Loader
     byte[] buf = new byte[size-1];
     block(buf);
     // Discard trailing NUL byte
-    block(new byte[1]);
+    if (in.read () == -1)
+      throw new EOFException() ;
 
-    return new String(buf);
+    return new String(buf, "UTF-8");
   }
 
   /**
