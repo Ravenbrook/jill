@@ -223,6 +223,7 @@
     </exec>
     <copy todir="test-compiled">
       <fileset dir="test">
+        <include name="*.lua" />
         <include name="*.luc" />
       </fileset>
     </copy>

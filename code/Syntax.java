@@ -19,11 +19,12 @@ import java.io.Reader;
 import java.util.Hashtable;
 
 // for testing only
+/*
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
+*/
 
 /**
  * Syntax analyser.  Lexing, parsing, code generation.
@@ -811,34 +812,36 @@ final class Syntax
       L.nCcalls -- ;
   }
 
+  /*
   static Proto test_parser (File infile)
   {
-      String name = infile.getName() ;
-      InputStream in = null ;
-      Reader reader = null ;
-      try
-      {
-          in = new FileInputStream (infile) ;
-          Lua L = new Lua () ;
-          BaseLib.open (L) ;
-          reader = new InputStreamReader (in, "UTF-8") ;
-          Proto result = parser (L, reader, name) ;
+    String name = infile.getName() ;
+    InputStream in = null ;
+    Reader reader = null ;
+    try
+    {
+      in = new FileInputStream (infile) ;
+      Lua L = new Lua () ;
+      BaseLib.open (L) ;
+      reader = new InputStreamReader (in, "UTF-8") ;
+      Proto result = parser (L, reader, name) ;
 
-          LuaInternal.debug_compiler (L, result, false) ;
-          return result ;
-      }
-      catch (Exception e)
-      {
-          System.out.println ("test_parser Excp: "+e.getClass().getName()+": "+e.getMessage()) ;
-          e.printStackTrace();
-          return null ;
-      }
-      finally
-      {
-          if (reader != null)
-              try { reader.close () ; } catch (IOException io) {}
-      }
+      LuaInternal.debug_compiler (L, result, false) ;
+      return result ;
+    }
+    catch (Exception e)
+    {
+      System.out.println ("test_parser Excp: "+e.getClass().getName()+": "+e.getMessage()) ;
+      e.printStackTrace();
+      return null ;
+    }
+    finally
+    {
+      if (reader != null)
+        try { reader.close () ; } catch (IOException io) {}
+    }
   }
+  */
 
   /** Equivalent to luaY_parser. */
   static Proto parser(Lua L, Reader in, String name)

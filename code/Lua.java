@@ -2790,7 +2790,6 @@ reentry:
     double p = 1.0 ;
     double result = 0.0 ;
     double half = 0.5 ;
-    //	System.out.println ("Trying to sqrt("+d+") using 1.0, adjust="+adjust) ;
     for (int i = 0 ; i < 53 ; i++)
     {
       double test = result + p ; 
@@ -2798,7 +2797,6 @@ reentry:
         result = test;
       p = p * half ;
     }
-    //	System.out.println ("got "+result) ;
     while (adjust > 0)
     {
       result *= 2.0 ;

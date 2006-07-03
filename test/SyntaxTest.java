@@ -11,7 +11,7 @@ import j2meunit.framework.TestSuite;
  * J2MEUnit tests for Jili's Syntax module.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
  */
-public class SyntaxTest extends TestCase
+public class SyntaxTest extends JiliTestCase
 {
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner SyntaxTest</code>
@@ -172,12 +172,31 @@ public class SyntaxTest extends TestCase
 
   }
 
+  public void describe_stack (Lua L)
+  {
+    System.out.println ("STACK:") ;
+    for (int i = 1 ; i <= L.getTop() ; i++)
+      System.out.println ("stack["+i+"] = "+L.value(i)) ;
+  }
+
   public void testSyntax6()
   {
     System.out.println ("Syntax6") ;
-    assertTrue (null != Syntax.test_parser (new File ("test/marktest2.lua"))) ;
-    assertTrue (null != Syntax.test_parser (new File ("test/MetaTest.lua"))) ;
-    assertTrue (null != Syntax.test_parser (new File ("test/ChunkSpy.lua"))) ;
+    Lua L = new Lua();
+    BaseLib.open(L);
+
+    L.setTop(0) ;
+    compileLoadFile(L, "marktest2");
+    //describe_stack(L) ;
+    assertTrue (L.value(1) instanceof LuaFunction) ;
+
+    L.setTop(0) ;
+    compileLoadFile(L, "MetaTest");
+    assertTrue (L.value(1) instanceof LuaFunction) ;
+
+    L.setTop(0) ;
+    compileLoadFile(L, "ChunkSpy");
+    assertTrue (L.value(1) instanceof LuaFunction) ;
   }
 
   public Test suite()
@@ -185,33 +204,33 @@ public class SyntaxTest extends TestCase
     TestSuite suite = new TestSuite();
 
     suite.addTest(new SyntaxTest("testSyntax0")
-        {
-            public void runTest() { testSyntax0(); } 
-        });
+    {
+      public void runTest() { testSyntax0(); } 
+    });
     suite.addTest(new SyntaxTest("testSyntax1")
-        {
-            public void runTest() { testSyntax1(); }
-        });
+    {
+      public void runTest() { testSyntax1(); } 
+    });
     suite.addTest(new SyntaxTest("testSyntax2")
-        {
-            public void runTest() { testSyntax2(); }
-        });
+    {
+      public void runTest() { testSyntax2(); } 
+    });
     suite.addTest(new SyntaxTest("testSyntax3")
-        {
-            public void runTest() { testSyntax3(); }
-        });
+    {
+      public void runTest() { testSyntax3(); } 
+    });
     suite.addTest(new SyntaxTest("testSyntax4")
-        {
-            public void runTest() { testSyntax4(); }
-        });
+    {
+      public void runTest() { testSyntax4(); } 
+    });
     suite.addTest(new SyntaxTest("testSyntax5")
-        {
-            public void runTest() { testSyntax5(); }
-        });
+    {
+      public void runTest() { testSyntax5(); } 
+    });
     suite.addTest(new SyntaxTest("testSyntax6")
-        {
-            public void runTest() { testSyntax6(); }
-        });
+    {
+      public void runTest() { testSyntax6(); } 
+    });
     return suite;
   }
 }

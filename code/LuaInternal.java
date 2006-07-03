@@ -21,9 +21,11 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 
 // these for compiler_debug only:
+/*
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.File;
+*/
 
 /**
  * Class used to implement internal callbacks.  Currently there is only
@@ -93,8 +95,8 @@ final class LuaInternal extends LuaJavaCallback
     {
       L.push("cannot read " + chunkname + ": " + e.toString());
       L.dThrow(Lua.ERRFILE);
+      return 0;
     }
-    return 0;
   }
 
 
@@ -102,7 +104,7 @@ final class LuaInternal extends LuaJavaCallback
   static int seq = 0 ;
   static void debug_compiler (Lua L, Proto p, boolean strip)
   {
-
+    /*
     OutputStream out = null ;
     try
     {
@@ -119,6 +121,6 @@ final class LuaInternal extends LuaJavaCallback
       if (out != null)
       { try { out.close () ; } catch (IOException io) {}}
     }
-
+    */
   }
 }

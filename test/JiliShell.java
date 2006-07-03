@@ -198,11 +198,11 @@ public class JiliShell extends MIDlet implements CommandListener
             return ;
         }
         String input = the_input_box.getString() ;
+        l.setTop(0) ;
         int res = l.doString (input) ;
         if (res == 0)
         {
             Object obj = l.value(1) ;
-            l.setTop (0) ;
             result = obj == null ? "NULL" :
                 describe (obj);
         }
@@ -218,6 +218,7 @@ public class JiliShell extends MIDlet implements CommandListener
             case Lua.ERRFILE:   result = result + " File error" ; break ;
             }
         }
+        l.setTop (0) ;
         the_output_screen.setString (result) ;
     }
 
