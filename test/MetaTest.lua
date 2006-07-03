@@ -139,3 +139,23 @@ function testmetalt()
   t[6] = not t[6]
   return unpack(t)
 end
+-- test __le
+function testmetale()
+  do
+    local mt = { __le = function(t1, t2) return #t1 <= #t2 end }
+    function addmt(t)
+      setmetatable(t, mt)
+      return t
+    end
+  end
+
+  local a = addmt{}
+  local b = addmt{'foo'}
+  local c = addmt{'bar'}
+  local d = addmt{a, b, c}
+
+  local t = { a <= b, b <= a, b <= c, c <= b, c <= d, d <= c }  
+  t[2] = not t[2]
+  t[6] = not t[6]
+  return unpack(t)
+end

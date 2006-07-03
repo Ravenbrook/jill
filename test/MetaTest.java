@@ -99,6 +99,11 @@ public class MetaTest extends JiliTestCase
     nTrue("testmetalt", 6);
   }
 
+  public void testmetale()
+  {
+    nTrue("testmetale", 6);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -135,6 +140,12 @@ public class MetaTest extends JiliTestCase
       {
         public void runTest() { testmetalt(); }
       });
+    /* :todo:
+    suite.addTest(new MetaTest("testmetale")
+      {
+        public void runTest() { testmetale(); }
+      });
+    */
     return suite;
   }
 }
