@@ -233,7 +233,7 @@ final class Syntax
   {
     if (!b)
     {
-      System.out.println ("lua_assert failure in "+routine) ;
+      //System.out.println ("lua_assert failure in "+routine) ;
       xSyntaxerror ("lua_assert failure in "+routine) ;
     }
   }
@@ -674,9 +674,11 @@ final class Syntax
     removevars(0);
     fs.kRet(0, 0);  // final return;
     fs.close();
+    /*
     System.out.println ("debug:") ;
     debug_closures (fs) ;
     System.out.println ("end debug:") ;
+    */
     lua_assert (fs != fs.prev, "close_func()") ; // :todo: check this is a valid assertion to make
     fs = fs.prev;
   }
@@ -690,10 +692,10 @@ final class Syntax
 
     void debug_fs (FuncState fs)
     {
-        debug_proto (fs.f) ;
+        debug_proto (fs.f, fs.pc) ;
     }
 
-    void debug_proto (Proto p)
+    void debug_proto (Proto p, int pc)
     {
         System.out.println ("    Proto: "+p.source) ;
         System.out.println ("      vararg = "+p.is_vararg) ;
@@ -704,10 +706,85 @@ final class Syntax
         System.out.println ("      linedefined = "+p.linedefined) ;
         System.out.println ("      lastlinedefined = "+p.lastlinedefined) ;
         System.out.println ("      CODE:") ;
-        for (int i = 0 ; i < p.sizecode ; i++)
-            System.out.println ("        "+i+": "+Integer.toHexString(p.code[i])) ;
+        for (int i = 0 ; i < pc ; i++)
+            debug_op (i, p.code[i]) ;
+    }
 
+    void debug_op (int pc, int instr)
+    {
+        System.out.print ("        "+pc+": ") ;
+        int op = instr & 0x3F ;  instr >>= 6 ;
+        int A  = instr & 0xFF ;  instr >>= 8 ;
+        int C  = instr & 0x1FF ; instr >>= 9 ;
+        int B  = instr & 0x1FF ;
+        int Bx = (B << 9) | C ;
+        int sBx = Bx-0x1FFFF ;
+        if (opcode_bx (op))
+            System.out.println (opcode_name (op)+"  "+A+"  ("+Bx+")   ("+sBx+")") ;
+        else
+            System.out.println (opcode_name (op)+"  "+A+"  "+B+"  "+C) ;
     }            
+
+    boolean opcode_bx (int op)
+    {
+      switch (op)
+      {
+      case Lua.OP_JMP:
+      case Lua.OP_FORLOOP:
+      case Lua.OP_FORPREP:
+      case Lua.OP_TFORLOOP:
+      case Lua.OP_GETGLOBAL:
+      case Lua.OP_CLOSURE:
+          return true;
+      default: return false ;
+      }
+    }
+
+    String opcode_name (int op)
+    {
+      switch (op)
+      {
+      case Lua.OP_MOVE: return "MOVE";
+      case Lua.OP_LOADK: return "LOADK";
+      case Lua.OP_LOADBOOL: return "LOADBOOL";
+      case Lua.OP_LOADNIL: return "LOADNIL";
+      case Lua.OP_GETUPVAL: return "GETUPVAL";
+      case Lua.OP_GETGLOBAL: return "GETGLOBAL";
+      case Lua.OP_GETTABLE: return "GETTABLE";
+      case Lua.OP_SETGLOBAL: return "SETGLOBAL";
+      case Lua.OP_SETUPVAL: return "SETUPVAL";
+      case Lua.OP_SETTABLE: return "SETTABLE";
+      case Lua.OP_NEWTABLE: return "NEWTABLE";
+      case Lua.OP_SELF: return "SELF";
+      case Lua.OP_ADD: return "ADD";
+      case Lua.OP_SUB: return "SUB";
+      case Lua.OP_MUL: return "MUL";
+      case Lua.OP_DIV: return "DIV";
+      case Lua.OP_MOD: return "MOD";
+      case Lua.OP_POW: return "POW";
+      case Lua.OP_UNM: return "UNM";
+      case Lua.OP_NOT: return "NOT";
+      case Lua.OP_LEN: return "LEN";
+      case Lua.OP_CONCAT: return "CONCAT";
+      case Lua.OP_JMP: return "JMP";
+      case Lua.OP_EQ: return "EQ";
+      case Lua.OP_LT: return "LT";
+      case Lua.OP_LE: return "LE";
+      case Lua.OP_TEST: return "TEST";
+      case Lua.OP_TESTSET: return "TESTSET";
+      case Lua.OP_CALL: return "CALL";
+      case Lua.OP_TAILCALL: return "TAILCALL";
+      case Lua.OP_RETURN: return "RETURN";
+      case Lua.OP_FORLOOP: return "FORLOOP";
+      case Lua.OP_FORPREP: return "FORPREP";
+      case Lua.OP_TFORLOOP: return "TFORLOOP";
+      case Lua.OP_SETLIST: return "SETLIST";
+      case Lua.OP_CLOSE: return "CLOSE";
+      case Lua.OP_CLOSURE: return "CLOSURE";
+      case Lua.OP_VARARG: return "VARARG";
+      default: return "??"+op;
+      }
+    }
 
   private void codestring(Expdesc e, String s)
   {
@@ -771,11 +848,8 @@ final class Syntax
     FuncState fs = new FuncState(ls);
     fs.f.is_vararg = true;
     ls.xNext();
-    System.out.println ("parser A") ;
     ls.chunk();
-    System.out.println ("parser B") ;
     ls.check(TK_EOS);
-    System.out.println ("parser C") ;
     ls.close_func();
     ls.lua_assert (fs.prev == null,"parser() 2") ;
     ls.lua_assert (fs.f.nups == 0, "parser() 3") ;
@@ -816,7 +890,7 @@ final class Syntax
         var.init(Expdesc.VLOCAL, v);
         if (!base)
         {
-          markupval(v);      // local will be used as an upval
+          markupval(fs, v);      // local will be used as an upval
         }
         return Expdesc.VLOCAL;
       }
@@ -826,7 +900,7 @@ final class Syntax
         {
           return Expdesc.VGLOBAL;
         }
-        var.upval(indexupvalue(n, var));       // else was LOCAL or UPVAL
+        var.upval(indexupvalue(fs, n, var));       // else was LOCAL or UPVAL
         return Expdesc.VUPVAL;
       }
     }
@@ -857,25 +931,17 @@ final class Syntax
   {
     // chunk -> { stat [';'] }
     boolean islast = false;
-System.out.println ("chunk 1") ;
     enterlevel();
-System.out.println ("chunk 2") ;
     while (!islast && !block_follow(token))
     {
-System.out.println ("chunk loop 1") ;
       islast = statement();
-System.out.println ("chunk loop 2") ;
       testnext(';');
-System.out.println ("chunk loop 3") ;
       lua_assert (fs.f.maxstacksize >= fs.freereg &&
                   fs.freereg >= fs.nactvar, 
                   "chunk()");
       fs.freereg = fs.nactvar;
-System.out.println ("chunk loop 4") ;
     }
-System.out.println ("chunk 3") ;
     leavelevel();
-System.out.println ("chunk 4") ;
   }
 
   private void constructor(Expdesc t) throws IOException
@@ -1311,7 +1377,6 @@ System.out.println ("chunk 4") ;
 
   private boolean statement() throws IOException
   {
- System.out.println ("statement "+token) ;
     int line = linenumber;
     switch (token)
     {
@@ -1496,7 +1561,7 @@ System.out.println ("chunk 4") ;
     removevars(bl.nactvar);
     if (bl.upval)
       fs.kCodeABC(Lua.OP_CLOSE, bl.nactvar, 0, 0);
-    lua_assert(!bl.isbreakable || !bl.upval, "leaveblock()");  /* loops have no body */
+    lua_assert((!bl.isbreakable) || (!bl.upval), "leaveblock()");  /* loops have no body */
     lua_assert(bl.nactvar == fs.nactvar, "leaveblock() 2");
     fs.freereg = fs.nactvar;  /* free registers */
     fs.kPatchtohere(bl.breaklist);
@@ -1646,8 +1711,8 @@ System.out.println ("chunk 4") ;
     FuncState new_fs = new FuncState (this);
     open_func(new_fs);
     new_fs.f.linedefined = line;
+new_fs.f.source = null ;
     checknext('(');
-System.out.println ("body 1") ;
     if (needself)
     {
       new_localvarliteral("self", 0);
@@ -1659,34 +1724,31 @@ System.out.println ("body 1") ;
     new_fs.f.lastlinedefined = linenumber;
     check_match(TK_END, TK_FUNCTION, line);
     close_func();
-System.out.println ("body 5") ;
     pushclosure(new_fs, e);
   }
 
-  static int UPVAL_K (int upvaldesc)    { return (upvaldesc >> 8) & 0xFF ; }
-  static int UPVAL_INFO (int upvaldesc) { return upvaldesc & 0xFF ; }
-  static int UPVAL_ENCODE (int k, int info) { return ((k & 0xFF) << 8) | (info & 0xFF) ; }
+  private int UPVAL_K (int upvaldesc)    { return (upvaldesc >> 8) & 0xFF ; }
+  private int UPVAL_INFO (int upvaldesc) { return upvaldesc & 0xFF ; }
+  private int UPVAL_ENCODE (int k, int info)
+  {
+    lua_assert ((k & 0xFF) == k && (info & 0xFF) == info, "UPVAL_ENCODE()") ;
+    return ((k & 0xFF) << 8) | (info & 0xFF) ;
+  }
 
 
   private void pushclosure (FuncState func, Expdesc v)
   {
-System.out.println ("pushclosure 1") ;
     Proto f = fs.f;
-    int oldsize = f.sizep;
     f.ensureProtos (L, fs.np) ;
-System.out.println ("pushclosure 2") ;
     Proto ff = func.f ;
     f.p[fs.np++] = ff;
     init_exp(v, Expdesc.VRELOCABLE, fs.kCodeABx(Lua.OP_CLOSURE, 0, fs.np-1));
-System.out.println ("pushclosure 3 "+ff.nups) ;
     for (int i=0; i < ff.nups; i++)
     {
       int upvalue = func.upvalues[i] ;
       int o = (UPVAL_K(upvalue) == Expdesc.VLOCAL) ? Lua.OP_MOVE : Lua.OP_GETUPVAL;
-System.out.println ("pushclosure loop "+o) ;
       fs.kCodeABC(o, 0, UPVAL_INFO(upvalue), 0);
     }
-System.out.println ("pushclosure 4") ;
   }
 
   private boolean funcname (Expdesc v) throws IOException
@@ -1717,7 +1779,6 @@ System.out.println ("pushclosure 4") ;
   private void repeatstat (int line) throws IOException
   {
     /* repeatstat -> REPEAT block UNTIL cond */
-    int condexit;
     int repeat_init = fs.kGetlabel();
     BlockCnt bl1 = new BlockCnt ();
     BlockCnt bl2 = new BlockCnt ();
@@ -1726,7 +1787,7 @@ System.out.println ("pushclosure 4") ;
     xNext();  /* skip REPEAT */
     chunk();
     check_match(TK_UNTIL, TK_REPEAT, line);
-    condexit = cond();  /* read condition (inside scope block) */
+    int condexit = cond();  /* read condition (inside scope block) */
     if (!bl2.upval)    /* no upvalues? */
     {
       leaveblock(fs);  /* finish scope */
@@ -1906,19 +1967,20 @@ System.out.println ("pushclosure 4") ;
     int flist = test_then_block();  /* IF cond THEN block */
     while (token == TK_ELSEIF)
     {
-      fs.kConcat(escapelist, fs.kJump());
+      escapelist = fs.kConcat(escapelist, fs.kJump());
       fs.kPatchtohere(flist);
       flist = test_then_block();  /* ELSEIF cond THEN block */
     }
     if (token == TK_ELSE)
     {
-      fs.kConcat(escapelist, fs.kJump());
+      escapelist = fs.kConcat(escapelist, fs.kJump());
       fs.kPatchtohere(flist);
       xNext();  /* skip ELSE (after patch, for correct line info) */
       block();  /* `else' part */
     }
     else
-      fs.kConcat(escapelist, flist);
+      escapelist = fs.kConcat(escapelist, flist);
+
     fs.kPatchtohere(escapelist);
     check_match(TK_END, TK_IF, line);
   }
@@ -2018,7 +2080,7 @@ System.out.println ("pushclosure 4") ;
     cc.tostore++;
   }
 
-  private void markupval (int level)
+  private void markupval (FuncState fs, int level)
   {
     BlockCnt bl = fs.bl;
     while (bl != null && bl.nactvar > level) 
@@ -2027,18 +2089,15 @@ System.out.println ("pushclosure 4") ;
       bl.upval = true;
   }
 
-  private int indexupvalue (String name, Expdesc v)
+  private int indexupvalue (FuncState fs, String name, Expdesc v)
   {
-    int i;
     Proto f = fs.f;
     int oldsize = f.sizeupvalues;
-    for (i=0; i<f.nups; i++)
+    for (int i=0; i<f.nups; i++)
     {
-      if (UPVAL_K(fs.upvalues[i]) == v.k &&
-          UPVAL_INFO(fs.upvalues[i]) == v.info)
+      int entry = fs.upvalues[i] ;
+      if (UPVAL_K(entry) == v.k && UPVAL_INFO(entry) == v.info)
       {
-        if (!(name.equals (f.upvalues[i])))
-            System.out.println ("indexupvalue check failed for name='"+name+"' and index="+i+"  found '"+f.upvalues[i]+"'") ;
         lua_assert(name.equals (f.upvalues[i]), "indexupvalue()");
         return i;
       }

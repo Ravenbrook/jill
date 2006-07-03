@@ -84,7 +84,7 @@ final class FuncState
    */
   FuncState(Syntax ls)
   {
-    f = new Proto(ls.source(), 2);
+    f = new Proto(ls.source, 2); // default value for maxstacksize=2
     L = ls.L ;
     prev = ls.linkfs(this);
     this.ls = ls;
@@ -170,15 +170,15 @@ final class FuncState
         e.setKind(Expdesc.VNONRELOC);
         break;
       case Expdesc.VUPVAL:
-        e.reloc(kCodeABC(Lua.OP_GETUPVAL, 0, e.info(), 0));
+        e.reloc(kCodeABC(Lua.OP_GETUPVAL, 0, e.info, 0));
         break;
       case Expdesc.VGLOBAL:
-        e.reloc(kCodeABx(Lua.OP_GETGLOBAL, 0, e.info()));
+        e.reloc(kCodeABx(Lua.OP_GETGLOBAL, 0, e.info));
         break;
       case Expdesc.VINDEXED:
         freereg(e.aux());
         freereg(e.info());
-        e.reloc(kCodeABC(Lua.OP_GETTABLE, 0, e.info(), e.aux()));
+        e.reloc(kCodeABC(Lua.OP_GETTABLE, 0, e.info, e.aux));
         break;
       case Expdesc.VVARARG:
       case Expdesc.VCALL:
@@ -193,20 +193,20 @@ final class FuncState
   int kExp2anyreg(Expdesc e)
   {
     kDischargevars(e);
-    if (e.kind() == Expdesc.VNONRELOC)
+    if (e.k == Expdesc.VNONRELOC)
     {
       if (!e.hasjumps())
       {
-        return e.info();
+        return e.info;
       }
-      if (e.info() >= nactvar)          // reg is not a local?
+      if (e.info >= nactvar)          // reg is not a local?
       {
-        exp2reg(e, e.info());   // put value on it
-        return e.info();
+        exp2reg(e, e.info);   // put value on it
+        return e.info;
       }
     }
     kExp2nextreg(e);    // default
-    return e.info();
+    return e.info;
   }
 
   /** Equivalent to luaK_exp2nextreg. */
@@ -292,7 +292,7 @@ final class FuncState
       case Syntax.OPR_AND:
         lua_assert(e1.t == NO_JUMP, "kPosfix() and");  /* list must be closed */
         kDischargevars(e2);
-        kConcat(e1.f, e2.f);
+        e1.f = kConcat(e1.f, e2.f);
         e1.k = e2.k;
         e1.info = e2.info;
         e1.aux = e2.aux;
@@ -302,7 +302,7 @@ final class FuncState
       case Syntax.OPR_OR:
         lua_assert(e1.f == NO_JUMP, "kPosfix() or");  /* list must be closed */
         kDischargevars(e2);
-        kConcat(e1.t, e2.t);
+        e1.t = kConcat(e1.t, e2.t);
         e1.k = e2.k;
         e1.info = e2.info;
         e1.aux = e2.aux;
@@ -588,11 +588,10 @@ final class FuncState
     discharge2reg(e, reg);
     if (e.k == Expdesc.VJMP)
     {
-      kConcat(e.t, e.info);  /* put this jump in `t' list */
+      e.t = kConcat(e.t, e.info);  /* put this jump in `t' list */
     }
     if (e.hasjumps())
     {
-
       int p_f = NO_JUMP;  /* position of an eventual LOAD false */
       int p_t = NO_JUMP;  /* position of an eventual LOAD true */
       if (need_value(e.t) || need_value(e.f))
@@ -635,7 +634,7 @@ final class FuncState
   {
     if (e.kind() == Expdesc.VNONRELOC)
     {
-      freereg(e.info());
+      freereg(e.info);
     }
   }
 
@@ -666,31 +665,29 @@ final class FuncState
     for (int i=nactvar-1; i >= 0; i--)
     {
       if (n.equals (getlocvar(i).varname))
-      {
         return i;
-      }
     }
     return -1;  // not found
   }
 
   void setarga(Expdesc e, int a)
   {
-   int pc = e.info();
-   int[] code = f.code();
+   int pc = e.info;
+   int[] code = f.code;
    code[pc] = Lua.SETARG_A(code[pc], a);
   }
 
   void setargb(Expdesc e, int b)
   {
-    int pc = e.info();
-    int[] code = f.code();
+    int pc = e.info;
+    int[] code = f.code;
     code[pc] = Lua.SETARG_B(code[pc], b);
   }
 
   void setargc(Expdesc e, int c)
   {
-    int pc = e.info();
-    int[] code = f.code();
+    int pc = e.info;
+    int[] code = f.code;
     code[pc] = Lua.SETARG_C(code[pc], c);
   }
 
@@ -1000,7 +997,7 @@ final class FuncState
         pc = jumponcond(e, true);
         break;
     }
-    kConcat(e.t, pc);  /* insert last jump in `t' list */
+    e.t = kConcat(e.t, pc);  /* insert last jump in `t' list */
     kPatchtohere(e.f);
     e.f = NO_JUMP;
   }
