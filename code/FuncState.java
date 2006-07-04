@@ -34,7 +34,7 @@ final class FuncState
    * Table to find (and reuse) elements in <var>f.k</var>.  Maps from
    * Object (a constant Lua value) to an index into <var>f.k</var>.
    */
-  Hashtable h = new Hashtable ();
+  Hashtable h = new Hashtable();
 
   /** Enclosing function. */
   FuncState prev;
@@ -100,8 +100,8 @@ final class FuncState
     f.closeLocvars(nlocvars);
     f.closeUpvalues();
     boolean checks = L.gCheckcode(f);
-    lua_assert (checks, "close()") ;
-    lua_assert (bl == null, "close() 2") ;
+    lua_assert(checks, "close()") ;
+    lua_assert(bl == null, "close() 2") ;
   }
 
   /** Equivalent to getlocvar from lparser.c.
@@ -422,7 +422,7 @@ final class FuncState
     return addk(s);
   }
 
-  static Object fake_nil = new Object () ;
+  static Object fake_nil = new Object() ;
 
   private int addk(Object o)
   {
@@ -454,7 +454,7 @@ final class FuncState
     }
   }
 
-  private boolean constfolding (int op, Expdesc e1, Expdesc e2)
+  private boolean constfolding(int op, Expdesc e1, Expdesc e2)
   {
     double v1, v2, r;
     if (!isnumeral(e1) || !isnumeral(e2))
@@ -527,7 +527,7 @@ final class FuncState
     removevalues(e.t);
   }
 
-  private void removevalues (int list)
+  private void removevalues(int list)
   {
     for (; list != NO_JUMP; list = getjump(list))
       patchtestreg(list, Lua.NO_REG);
@@ -578,7 +578,7 @@ final class FuncState
         return ;
 
       default:
-        lua_assert (false, "discharge2reg()") ;
+        lua_assert(false, "discharge2reg()") ;
     }
     e.nonreloc(reg);
   }
@@ -608,7 +608,7 @@ final class FuncState
     e.init(Expdesc.VNONRELOC, reg);
   }
 
-  private int code_label (int A, int b, int jump)
+  private int code_label(int A, int b, int jump)
   {
     kGetlabel();  /* those instructions may be jump targets */
     return kCodeABC(Lua.OP_LOADBOOL, A, b, jump);
@@ -618,7 +618,7 @@ final class FuncState
 ** check whether list has any jump that do not produce a value
 ** (or produce an inverted value)
 */
-  private boolean need_value (int list)
+  private boolean need_value(int list)
   {
     for (; list != NO_JUMP; list = getjump(list))
     {
@@ -652,7 +652,7 @@ final class FuncState
     return f.code[e.info];
   }
 
-  void setcode (Expdesc e, int code)
+  void setcode(Expdesc e, int code)
   {
     f.code[e.info] = code ;
   }
@@ -664,7 +664,7 @@ final class FuncState
     // caution: descending loop (in emulation of PUC-Rio).
     for (int i=nactvar-1; i >= 0; i--)
     {
-      if (n.equals (getlocvar(i).varname))
+      if (n.equals(getlocvar(i).varname))
         return i;
     }
     return -1;  // not found
@@ -692,7 +692,7 @@ final class FuncState
   }
 
   /** Equivalent to <code>luaK_getlabel</code>. */
-  int kGetlabel ()
+  int kGetlabel()
   {
     lasttarget = pc ;
     return pc;
@@ -700,7 +700,7 @@ final class FuncState
 
   /** Equivalent to <code>luaK_concat</code>. */
   /** l1 was an int*, now passing back as result */
-  int kConcat (int l1, int l2)
+  int kConcat(int l1, int l2)
   {
     if (l2 == NO_JUMP)
       return l1;
@@ -718,7 +718,7 @@ final class FuncState
   }
 
   /** Equivalent to <code>luaK_patchlist</code>. */
-  void kPatchlist (int list, int target)
+  void kPatchlist(int list, int target)
   {
     if (target == pc)
       kPatchtohere(list);
@@ -729,7 +729,7 @@ final class FuncState
     }
   }
 
-  private void patchlistaux (int list, int vtarget, int reg,
+  private void patchlistaux(int list, int vtarget, int reg,
                              int dtarget)
   {
     while (list != NO_JUMP)
@@ -743,7 +743,7 @@ final class FuncState
     }
   }
 
-  private boolean patchtestreg (int node, int reg)
+  private boolean patchtestreg(int node, int reg)
   {
     int i = getjumpcontrol(node);
     int [] code = f.code ;
@@ -758,7 +758,7 @@ final class FuncState
     return true;
   }
 
-  private int getjumpcontrol (int pc)
+  private int getjumpcontrol(int pc)
   {
     int [] code = f.code ;
     if (pc >= 1 && testTMode(Lua.OPCODE(code[pc-1])))
@@ -836,19 +836,19 @@ final class FuncState
       };
 
   private int getOpMode(int m) { return pOpmodes[m] & 3 ; }
-  private int getBMode (int m) { return (pOpmodes[m] >> 4) & 3 ; }
-  private int getCMode (int m) { return (pOpmodes[m] >> 2) & 3 ; }
-  private boolean testAMode (int m) { return (pOpmodes[m] & (1<<6)) != 0 ; }
-  private boolean testTMode (int m) { return (pOpmodes[m] & (1<<7)) != 0 ; }
+  private int getBMode(int m) { return (pOpmodes[m] >> 4) & 3 ; }
+  private int getCMode(int m) { return (pOpmodes[m] >> 2) & 3 ; }
+  private boolean testAMode(int m) { return (pOpmodes[m] & (1<<6)) != 0 ; }
+  private boolean testTMode(int m) { return (pOpmodes[m] & (1<<7)) != 0 ; }
 
   /** Equivalent to <code>luaK_patchtohere</code>. */
-  void kPatchtohere (int list)
+  void kPatchtohere(int list)
   {
     kGetlabel();
     jpc = kConcat(jpc, list);
   }
 
-  private void fixjump (int pc, int dest)
+  private void fixjump(int pc, int dest)
   {
     int jmp = f.code[pc];
     int offset = dest-(pc+1);
@@ -858,7 +858,7 @@ final class FuncState
     f.code[pc] = Lua.SETARG_sBx(jmp, offset);
   }
 
-  private int getjump (int pc)
+  private int getjump(int pc)
   {
     int offset = Lua.ARGsBx(f.code[pc]);
     if (offset == NO_JUMP)  /* point to itself represents end of list */
@@ -868,7 +868,7 @@ final class FuncState
   }
 
   /** Equivalent to <code>luaK_jump</code>. */
-  int kJump ()
+  int kJump()
   {
     int old_jpc = jpc;  /* save list of jumps to here */
     jpc = NO_JUMP;
@@ -878,7 +878,7 @@ final class FuncState
   }
 
   /** Equivalent to <code>luaK_storevar</code>. */
-  void kStorevar (Expdesc var, Expdesc ex)
+  void kStorevar(Expdesc var, Expdesc ex)
   {
     switch (var.k)
     {
@@ -916,14 +916,14 @@ final class FuncState
   }
 
   /** Equivalent to <code>luaK_indexed</code>. */
-  void kIndexed (Expdesc t, Expdesc k)
+  void kIndexed(Expdesc t, Expdesc k)
   {
     t.aux = kExp2RK(k);
     t.k = Expdesc.VINDEXED;
   }
 
   /** Equivalent to <code>luaK_exp2RK</code>. */
-  int kExp2RK (Expdesc e)
+  int kExp2RK(Expdesc e)
   {
     kExp2val(e);
     switch (e.k)
@@ -954,7 +954,7 @@ final class FuncState
   }
 
   /** Equivalent to <code>luaK_exp2val</code>. */
-  void kExp2val (Expdesc e)
+  void kExp2val(Expdesc e)
   {
     if (e.hasjumps())
         kExp2anyreg(e);
@@ -963,18 +963,18 @@ final class FuncState
   }
 
   /** TODO: int may become boolean or Boolean */
-  private int boolK (boolean b)
+  private int boolK(boolean b)
   {
     return addk(Lua.valueOfBoolean(b));
   }
 
-  private int nilK ()
+  private int nilK()
   {
     return addk(Lua.NIL);
   }
 
   /** Equivalent to <code>luaK_goiffalse</code>. */
-  void kGoiffalse (Expdesc e)
+  void kGoiffalse(Expdesc e)
   {
     int pc;  /* pc of last jump */
     kDischargevars(e);
@@ -1003,7 +1003,7 @@ final class FuncState
   }
 
   /** Equivalent to <code>luaK_goiftrue</code>. */
-  void kGoiftrue (Expdesc e)
+  void kGoiftrue(Expdesc e)
   {
     int pc;  /* pc of last jump */
     kDischargevars(e);
@@ -1033,7 +1033,7 @@ final class FuncState
     e.t = NO_JUMP;
   }
 
-  private void invertjump (Expdesc e)
+  private void invertjump(Expdesc e)
   {
     int pc = getjumpcontrol(e.info);
     int [] code = f.code ;
@@ -1046,7 +1046,7 @@ final class FuncState
   }
 
 
-  private int jumponcond (Expdesc e, boolean cond)
+  private int jumponcond(Expdesc e, boolean cond)
   {
     if (e.k == Expdesc.VRELOCABLE)
     {
@@ -1063,13 +1063,13 @@ final class FuncState
     return condjump(Lua.OP_TESTSET, Lua.NO_REG, e.info, cond ? 1 : 0);
   }
 
-  private int condjump (int op, int A, int B, int C)
+  private int condjump(int op, int A, int B, int C)
   {
     kCodeABC(op, A, B, C);
     return kJump();
   }
 
-  private void discharge2anyreg (Expdesc e)
+  private void discharge2anyreg(Expdesc e)
   {
     if (e.k != Expdesc.VNONRELOC)
     {
@@ -1079,7 +1079,7 @@ final class FuncState
   }
 
 
-  void kSelf (Expdesc e, Expdesc key)
+  void kSelf(Expdesc e, Expdesc key)
   {
     kExp2anyreg(e);
     freeexp(e);
@@ -1091,7 +1091,7 @@ final class FuncState
     e.k = Expdesc.VNONRELOC;
   }
 
-  void kSetlist (int base, int nelems, int tostore)
+  void kSetlist(int base, int nelems, int tostore)
   {
     int c =  (nelems - 1) / Syntax.LFIELDS_PER_FLUSH + 1;
     int b = (tostore == Lua.MULTRET) ? 0 : tostore;
@@ -1107,7 +1107,7 @@ final class FuncState
   }
 
 
-  void codecomp (int op, boolean cond, Expdesc e1, Expdesc e2)
+  void codecomp(int op, boolean cond, Expdesc e1, Expdesc e2)
   {
     int o1 = kExp2RK(e1);
     int o2 = kExp2RK(e2);
@@ -1123,12 +1123,12 @@ final class FuncState
     e1.k = Expdesc.VJMP;
   }
 
-  private void lua_assert (boolean b, String routine)
+  private void lua_assert(boolean b, String routine)
   {
     if (!b)
     {
-      System.out.println ("lua_assert failure in "+routine) ;
-      ls.xSyntaxerror ("lua_assert failure in "+routine) ;
+      System.out.println("lua_assert failure in "+routine) ;
+      ls.xSyntaxerror("lua_assert failure in "+routine) ;
     }
   }
 

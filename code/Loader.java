@@ -115,7 +115,7 @@ final class Loader
    */
   private int byteLoad() throws IOException
   {
-    int c = in.read () ;
+    int c = in.read() ;
     if (c == -1)
       throw new EOFException();
     else
@@ -482,7 +482,7 @@ final class Loader
     byte[] buf = new byte[size-1];
     block(buf);
     // Discard trailing NUL byte
-    if (in.read () == -1)
+    if (in.read() == -1)
       throw new EOFException() ;
 
     return new String(buf, "UTF-8");

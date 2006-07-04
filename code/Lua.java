@@ -2384,13 +2384,13 @@ reentry:
             rc = RK(k, ARGC(i));
             if (rb instanceof Double && rc instanceof Double)
             {
-              double result = iNumpow (((Double)rb).doubleValue(),
+              double result = iNumpow(((Double)rb).doubleValue(),
                                       ((Double)rc).doubleValue());
               stack.setElementAt(valueOfNumber(result), base+a);
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
-              double result = iNumpow (NUMOP[0], NUMOP[1]);
+              double result = iNumpow(NUMOP[0], NUMOP[1]);
               stack.setElementAt(valueOfNumber(result), base+a);
             }
             else
@@ -2739,7 +2739,7 @@ reentry:
     } /* reentry: while */
   }
 
-  double iNumpow (double a, double b)
+  double iNumpow(double a, double b)
   {
     // :todo: this needs proper checking for boundary cases
     boolean invert = b < 0.0 ;
@@ -2755,7 +2755,7 @@ reentry:
       ipow >>= 1 ;
       t = t*t ;
     }
-    t = sqrt (a) ;
+    t = sqrt(a) ;
     double half = 0.5 ;
     while (b > 0.0)
     {
@@ -2773,7 +2773,7 @@ reentry:
   }
 
   /** helper function for iNumpow() */
-  private double sqrt (double d)
+  private double sqrt(double d)
   {
     if (d == 0.0)
       return d;
@@ -3254,9 +3254,9 @@ reentry:
 
   /** corresponds to ldump's luaU_dump method, but with data gone and writer
       replaced by OutputStream */
-  int uDump (Proto f, OutputStream writer, boolean strip) throws IOException
+  int uDump(Proto f, OutputStream writer, boolean strip) throws IOException
   {
-    DumpState D = new DumpState (this, new DataOutputStream(writer), strip) ;
+    DumpState D = new DumpState(this, new DataOutputStream(writer), strip) ;
     D.DumpHeader();
     D.DumpFunction(f, null);
     D.writer.flush();
@@ -3274,14 +3274,14 @@ final class DumpState
   boolean littleEndian = true ;
 
   // :TODO: Lua interface is for a writer interface, not a stream
-  DumpState (Lua L, DataOutputStream writer, boolean strip)
+  DumpState(Lua L, DataOutputStream writer, boolean strip)
   {
     //    this.L = L;
     this.writer = writer ;
     this.strip = strip ;
   }
 
-  DumpState (Lua L, DataOutputStream writer, boolean strip, boolean littleEndian)
+  DumpState(Lua L, DataOutputStream writer, boolean strip, boolean littleEndian)
   {
       this (L, writer, strip);
       this.littleEndian = littleEndian ;
@@ -3298,39 +3298,39 @@ final class DumpState
 
   void DumpHeader() throws IOException
   {
-    writer.write (header, 0, 6) ;
-    writer.writeByte (littleEndian ? 0x01 : 0x00) ;
-    writer.write (header, 7, 5) ;
+    writer.write(header, 0, 6) ;
+    writer.writeByte(littleEndian ? 0x01 : 0x00) ;
+    writer.write(header, 7, 5) ;
   }
 
 
-  private void DumpInt (int i) throws IOException
+  private void DumpInt(int i) throws IOException
   {
     if (littleEndian)
     {
-      writer.writeByte (i) ;
-      writer.writeByte (i >>> 8) ;
-      writer.writeByte (i >>> 16) ;
-      writer.writeByte (i >>> 24) ;
+      writer.writeByte(i) ;
+      writer.writeByte(i >>> 8) ;
+      writer.writeByte(i >>> 16) ;
+      writer.writeByte(i >>> 24) ;
     }
     else
-      writer.writeInt (i) ;// big-endian version
+      writer.writeInt(i) ;// big-endian version
   }
 
-  private void DumpNumber (double d) throws IOException
+  private void DumpNumber(double d) throws IOException
   {
     if (littleEndian)
     {
       ByteArrayOutputStream sos = new ByteArrayOutputStream() ;
-      DataOutputStream dos = new DataOutputStream (sos) ;
-      dos.writeDouble (d) ;
-      dos.flush () ;
-      byte [] bytes = sos.toByteArray () ;
+      DataOutputStream dos = new DataOutputStream(sos) ;
+      dos.writeDouble(d) ;
+      dos.flush() ;
+      byte [] bytes = sos.toByteArray() ;
       for (int i = 7 ; i >= 0 ; i--)
-        writer.writeByte (bytes[i]) ;
+        writer.writeByte(bytes[i]) ;
     }
     else
-      writer.writeDouble (d) ;
+      writer.writeDouble(d) ;
   }
 
   void DumpFunction(Proto f, String p) throws IOException
@@ -3353,7 +3353,7 @@ final class DumpState
     int [] code = f.code ;
     DumpInt(n);
     for (int i = 0 ; i < n ; i++)
-      DumpInt (code[i]) ;
+      DumpInt(code[i]) ;
   }
 
   private void DumpConstants(Proto f) throws IOException
@@ -3366,22 +3366,22 @@ final class DumpState
       Object o = k[i] ;
       if (o == null)
       {
-        writer.writeByte (Lua.TNIL) ;
+        writer.writeByte(Lua.TNIL) ;
       }
       else if (o instanceof Boolean)
       {
-        writer.writeByte (Lua.TBOOLEAN) ;
-        writer.writeBoolean (((Boolean)o).booleanValue()) ;
+        writer.writeByte(Lua.TBOOLEAN) ;
+        writer.writeBoolean(((Boolean)o).booleanValue()) ;
       }
       else if (o instanceof Double)
       {
-        writer.writeByte (Lua.TNUMBER) ;
-        DumpNumber (((Double)o).doubleValue()) ;
+        writer.writeByte(Lua.TNUMBER) ;
+        DumpNumber(((Double)o).doubleValue()) ;
       }
       else if (o instanceof String)
       {
-        writer.writeByte (Lua.TSTRING) ;
-        DumpString ((String)o) ;
+        writer.writeByte(Lua.TSTRING) ;
+        DumpString((String)o) ;
       }
       else
       {
@@ -3389,11 +3389,11 @@ final class DumpState
       }
     }
     n = f.sizep ;
-    DumpInt (n) ;
+    DumpInt(n) ;
     for (int i = 0 ; i < n ; i++)
     {
       Proto subfunc = f.p[i] ;
-      DumpFunction (subfunc, f.source) ;
+      DumpFunction(subfunc, f.source) ;
     }
   }
 
@@ -3409,9 +3409,9 @@ final class DumpState
       {
         byte [] contents = s.getBytes("UTF-8") ;
         int size = contents.length ;
-        DumpInt (size+1) ;
-        writer.write (contents, 0, size) ;
-        writer.writeByte (0) ;
+        DumpInt(size+1) ;
+        writer.write(contents, 0, size) ;
+        writer.writeByte(0) ;
       }
       catch (UnsupportedEncodingException uee)
       {
@@ -3424,19 +3424,19 @@ final class DumpState
   {
     if (strip)
     {
-      DumpInt (0) ;
-      DumpInt (0) ;
-      DumpInt (0) ;
+      DumpInt(0) ;
+      DumpInt(0) ;
+      DumpInt(0) ;
       return ;
     }
 
     int n = f.sizelineinfo;
-    DumpInt (n);
+    DumpInt(n);
     for (int i=0; i<n; i++)
-      DumpInt (f.lineinfo[i]) ;
+      DumpInt(f.lineinfo[i]) ;
 
     n = f.sizelocvars;
-    DumpInt (n);
+    DumpInt(n);
     for (int i=0; i<n; i++)
     {
       LocVar locvar = f.locvars[i] ;

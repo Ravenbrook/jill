@@ -230,16 +230,16 @@ final class Syntax
   }
 
 
-  private void lua_assert (boolean b, String routine)
+  private void lua_assert(boolean b, String routine)
   {
     if (!b)
     {
       //System.out.println ("lua_assert failure in "+routine) ;
-      xSyntaxerror ("lua_assert failure in "+routine) ;
+      xSyntaxerror("lua_assert failure in "+routine) ;
     }
   }
 
-  private int skip_sep () throws IOException
+  private int skip_sep() throws IOException
   {
     int count = 0;
     int s = current;
@@ -253,7 +253,7 @@ final class Syntax
     return (current == s) ? count : (-count) - 1;
   }
 
-  private void read_long_string (boolean is_string, int sep) throws IOException
+  private void read_long_string(boolean is_string, int sep) throws IOException
   {
     int cont = 0;
     save_and_next();  /* skip 2nd `[' */
@@ -362,7 +362,7 @@ final class Syntax
           { return '<' ; }
           else
           {
-            next () ;
+            next() ;
             return TK_LE ;
           }             
         case '>':
@@ -371,7 +371,7 @@ final class Syntax
           { return '>' ; }
           else
           {
-            next () ;
+            next() ;
             return TK_GE ;
           }             
         case '~':
@@ -680,53 +680,53 @@ final class Syntax
     debug_closures (fs) ;
     System.out.println ("end debug:") ;
     */
-    lua_assert (fs != fs.prev, "close_func()") ; // :todo: check this is a valid assertion to make
+    lua_assert(fs != fs.prev, "close_func()") ; // :todo: check this is a valid assertion to make
     fs = fs.prev;
   }
 
-    void debug_closures (FuncState fs)
+    void debug_closures(FuncState fs)
     {
-        debug_fs (fs) ;
+        debug_fs(fs) ;
         if (fs.prev != null)
-            debug_closures (fs.prev) ;
+            debug_closures(fs.prev) ;
     }
 
-    void debug_fs (FuncState fs)
+    void debug_fs(FuncState fs)
     {
-        debug_proto (fs.f, fs.pc) ;
+        debug_proto(fs.f, fs.pc) ;
     }
 
-    void debug_proto (Proto p, int pc)
+    void debug_proto(Proto p, int pc)
     {
-        System.out.println ("    Proto: "+p.source) ;
-        System.out.println ("      vararg = "+p.is_vararg) ;
-        System.out.println ("      sizecode = "+p.sizecode) ;
-        System.out.println ("      sizek = "+p.sizek) ;
-        System.out.println ("      sizep = "+p.sizep) ;
-        System.out.println ("      sizeupvalues = "+p.sizeupvalues) ;
-        System.out.println ("      linedefined = "+p.linedefined) ;
-        System.out.println ("      lastlinedefined = "+p.lastlinedefined) ;
-        System.out.println ("      CODE:") ;
+        System.out.println("    Proto: "+p.source) ;
+        System.out.println("      vararg = "+p.is_vararg) ;
+        System.out.println("      sizecode = "+p.sizecode) ;
+        System.out.println("      sizek = "+p.sizek) ;
+        System.out.println("      sizep = "+p.sizep) ;
+        System.out.println("      sizeupvalues = "+p.sizeupvalues) ;
+        System.out.println("      linedefined = "+p.linedefined) ;
+        System.out.println("      lastlinedefined = "+p.lastlinedefined) ;
+        System.out.println("      CODE:") ;
         for (int i = 0 ; i < pc ; i++)
-            debug_op (i, p.code[i]) ;
+            debug_op(i, p.code[i]) ;
     }
 
-    void debug_op (int pc, int instr)
+    void debug_op(int pc, int instr)
     {
-        System.out.print ("        "+pc+": ") ;
+        System.out.print("        "+pc+": ") ;
         int op = instr & 0x3F ;  instr >>= 6 ;
         int A  = instr & 0xFF ;  instr >>= 8 ;
         int C  = instr & 0x1FF ; instr >>= 9 ;
         int B  = instr & 0x1FF ;
         int Bx = (B << 9) | C ;
         int sBx = Bx-0x1FFFF ;
-        if (opcode_bx (op))
+        if (opcode_bx(op))
             System.out.println(opcode_name(op)+"  "+A+"  ("+Bx+")   ("+sBx+")") ;
         else
             System.out.println(opcode_name(op)+"  "+A+"  "+B+"  "+C) ;
     }            
 
-    boolean opcode_bx (int op)
+    boolean opcode_bx(int op)
     {
       switch (op)
       {
@@ -741,7 +741,7 @@ final class Syntax
       }
     }
 
-    String opcode_name (int op)
+    String opcode_name(int op)
     {
       switch (op)
       {
@@ -854,9 +854,9 @@ final class Syntax
     ls.chunk();
     ls.check(TK_EOS);
     ls.close_func();
-    ls.lua_assert (fs.prev == null,"parser() 2") ;
-    ls.lua_assert (fs.f.nups == 0, "parser() 3") ;
-    ls.lua_assert (ls.fs == null,  "parser() 4") ;
+    ls.lua_assert(fs.prev == null,"parser() 2") ;
+    ls.lua_assert(fs.f.nups == 0, "parser() 3") ;
+    ls.lua_assert(ls.fs == null,  "parser() 4") ;
     return fs.f;
   }
 
@@ -939,7 +939,7 @@ final class Syntax
     {
       islast = statement();
       testnext(';');
-      lua_assert (fs.f.maxstacksize >= fs.freereg &&
+      lua_assert(fs.f.maxstacksize >= fs.freereg &&
                   fs.freereg >= fs.nactvar, 
                   "chunk()");
       fs.freereg = fs.nactvar;
@@ -989,7 +989,7 @@ final class Syntax
     code[pc] = Lua.SETARG_C(code[pc], oInt2fb(cc.nh)); /* set initial table size */
   }
 
-  private int oInt2fb (int x)
+  private int oInt2fb(int x)
   {
     int e = 0;  /* exponent */
     while (x < 0 || x >= 16)
@@ -1000,7 +1000,7 @@ final class Syntax
     return (x < 8) ? x : (((e+1) << 3) | (x - 8));
   }
 
-  private void recfield (ConsControl cc) throws IOException
+  private void recfield(ConsControl cc) throws IOException
   {
     /* recfield -> (NAME | `['exp1`]') = exp1 */
     int reg = fs.freereg;
@@ -1021,7 +1021,7 @@ final class Syntax
     fs.freereg = reg;  /* free registers */
   }
 
-  private void lastlistfield (ConsControl cc)
+  private void lastlistfield(ConsControl cc)
   {
     if (cc.tostore == 0)
       return;
@@ -1042,7 +1042,7 @@ final class Syntax
   // from lopcodes.h
   static final int LFIELDS_PER_FLUSH = 50 ;
 
-  private void closelistfield (ConsControl cc)
+  private void closelistfield(ConsControl cc)
   {
     if (cc.v.k == Expdesc.VVOID)
       return;  /* there is no list item */
@@ -1078,7 +1078,7 @@ final class Syntax
   private void exprstat() throws IOException
   {
     // stat -> func | assignment
-    LHS_assign v = new LHS_assign () ;
+    LHS_assign v = new LHS_assign() ;
     primaryexp(v.v);
     if (v.v.k == Expdesc.VCALL)      // stat -> func
     {
@@ -1097,7 +1097,7 @@ final class Syntax
 ** local value in a safe place and use this safe copy in the previous
 ** assignment.
 */
-  private void check_conflict (LHS_assign lh, Expdesc v)
+  private void check_conflict(LHS_assign lh, Expdesc v)
   {
     int extra = fs.freereg;  /* eventual position to save local variable */
     boolean conflict = false ;
@@ -1124,15 +1124,15 @@ final class Syntax
     }
   }
 
-  private void assignment (LHS_assign lh, int nvars) throws IOException
+  private void assignment(LHS_assign lh, int nvars) throws IOException
   {
-    Expdesc e = new Expdesc () ;
+    Expdesc e = new Expdesc() ;
     int kind = lh.v.k ;
     if (!(Expdesc.VLOCAL <= kind && kind <= Expdesc.VINDEXED))
-      xSyntaxerror ("syntax error");
+      xSyntaxerror("syntax error");
     if (testnext(','))    /* assignment -> `,' primaryexp assignment */
     {
-      LHS_assign nv = new LHS_assign (lh) ;
+      LHS_assign nv = new LHS_assign(lh) ;
       primaryexp(nv.v);
       if (nv.v.k == Expdesc.VLOCAL)
         check_conflict(lh, nv.v);
@@ -1546,7 +1546,7 @@ final class Syntax
     return op;
   }
 
-  private void enterblock (FuncState fs, BlockCnt bl, boolean isbreakable)
+  private void enterblock(FuncState fs, BlockCnt bl, boolean isbreakable)
   {
     bl.breaklist = FuncState.NO_JUMP ;
     bl.isbreakable = isbreakable ;
@@ -1557,7 +1557,7 @@ final class Syntax
     lua_assert(fs.freereg == fs.nactvar, "enterblock()");
   }
 
-  private void leaveblock (FuncState fs)
+  private void leaveblock(FuncState fs)
   {
     BlockCnt bl = fs.bl;
     fs.bl = bl.previous;
@@ -1578,17 +1578,17 @@ final class Syntax
 */
 
 
-  private void block () throws IOException
+  private void block() throws IOException
   {
     /* block -> chunk */
-    BlockCnt bl = new BlockCnt () ;
+    BlockCnt bl = new BlockCnt() ;
     enterblock(fs, bl, false);
     chunk();
     lua_assert(bl.breaklist == FuncState.NO_JUMP, "block()");
     leaveblock(fs);
   }
 
-  private void breakstat ()
+  private void breakstat()
   {
     BlockCnt bl = fs.bl;
     boolean upval = false;
@@ -1604,11 +1604,11 @@ final class Syntax
     bl.breaklist = fs.kConcat(bl.breaklist, fs.kJump());
   }
     
-  private void funcstat (int line) throws IOException
+  private void funcstat(int line) throws IOException
   {
     /* funcstat -> FUNCTION funcname body */
-    Expdesc b = new Expdesc () ;
-    Expdesc v = new Expdesc () ;
+    Expdesc b = new Expdesc() ;
+    Expdesc v = new Expdesc() ;
     xNext();  /* skip FUNCTION */
     boolean needself = funcname(v);
     body(b, needself, line);
@@ -1616,13 +1616,13 @@ final class Syntax
     fs.kFixline(line);  /* definition `happens' in the first line */
   }
 
-  private void checknext (int c) throws IOException
+  private void checknext(int c) throws IOException
   {
     check(c);
     xNext();
   }
 
-  private void parlist () throws IOException
+  private void parlist() throws IOException
   {
     /* parlist -> [ param { `,' param } ] */
     Proto f = fs.f;
@@ -1661,7 +1661,7 @@ final class Syntax
     return fstate.f.locvars [fstate.actvar[i]] ;
   }
 
-  private void adjustlocalvars (int nvars)
+  private void adjustlocalvars(int nvars)
   {
     fs.nactvar += nvars;
     for (; nvars != 0; nvars--)
@@ -1675,7 +1675,7 @@ final class Syntax
     new_localvar(v, n) ;
   }
 
-  private void errorlimit (int limit, String what)
+  private void errorlimit(int limit, String what)
   {
     String msg = fs.f.linedefined == 0 ?
       "main function has more than "+limit+" "+what :
@@ -1690,7 +1690,7 @@ final class Syntax
       errorlimit(l,m);
   }
 
-  private void new_localvar (String name, int n)
+  private void new_localvar(String name, int n)
   {
     yChecklimit(fs.nactvar+n+1, Lua.MAXVARS, "local variables");
     fs.actvar[fs.nactvar+n] = (short)registerlocalvar(name);
@@ -1699,19 +1699,19 @@ final class Syntax
   /** I think this is a C thing not Lua */
   static final int SHRT_MAX = (1<<15)-1 ;
 
-  private int registerlocalvar (String varname)
+  private int registerlocalvar(String varname)
   {
     Proto f = fs.f;
-    f.ensureLocvars (L, fs.nlocvars, SHRT_MAX) ;
+    f.ensureLocvars(L, fs.nlocvars, SHRT_MAX) ;
     f.locvars[fs.nlocvars].varname = varname;
     return fs.nlocvars++;
   }
 
 
-  private void body (Expdesc e, boolean needself, int line) throws IOException
+  private void body(Expdesc e, boolean needself, int line) throws IOException
   {
     /* body ->  `(' parlist `)' chunk END */
-    FuncState new_fs = new FuncState (this);
+    FuncState new_fs = new FuncState(this);
     open_func(new_fs);
     new_fs.f.linedefined = line;
 new_fs.f.source = null ;
@@ -1730,19 +1730,19 @@ new_fs.f.source = null ;
     pushclosure(new_fs, e);
   }
 
-  private int UPVAL_K (int upvaldesc)    { return (upvaldesc >> 8) & 0xFF ; }
-  private int UPVAL_INFO (int upvaldesc) { return upvaldesc & 0xFF ; }
-  private int UPVAL_ENCODE (int k, int info)
+  private int UPVAL_K(int upvaldesc)    { return (upvaldesc >> 8) & 0xFF ; }
+  private int UPVAL_INFO(int upvaldesc) { return upvaldesc & 0xFF ; }
+  private int UPVAL_ENCODE(int k, int info)
   {
-    lua_assert ((k & 0xFF) == k && (info & 0xFF) == info, "UPVAL_ENCODE()") ;
+    lua_assert((k & 0xFF) == k && (info & 0xFF) == info, "UPVAL_ENCODE()") ;
     return ((k & 0xFF) << 8) | (info & 0xFF) ;
   }
 
 
-  private void pushclosure (FuncState func, Expdesc v)
+  private void pushclosure(FuncState func, Expdesc v)
   {
     Proto f = fs.f;
-    f.ensureProtos (L, fs.np) ;
+    f.ensureProtos(L, fs.np) ;
     Proto ff = func.f ;
     f.p[fs.np++] = ff;
     init_exp(v, Expdesc.VRELOCABLE, fs.kCodeABx(Lua.OP_CLOSURE, 0, fs.np-1));
@@ -1754,7 +1754,7 @@ new_fs.f.source = null ;
     }
   }
 
-  private boolean funcname (Expdesc v) throws IOException
+  private boolean funcname(Expdesc v) throws IOException
   {
     /* funcname -> NAME {field} [`:' NAME] */
     boolean needself = false;
@@ -1769,22 +1769,22 @@ new_fs.f.source = null ;
     return needself;
   }
 
-  private void field (Expdesc v) throws IOException
+  private void field(Expdesc v) throws IOException
   {
     /* field -> ['.' | ':'] NAME */
-    Expdesc key = new Expdesc () ;
+    Expdesc key = new Expdesc() ;
     fs.kExp2anyreg(v);
     xNext();  /* skip the dot or colon */
     checkname(key);
     fs.kIndexed(v, key);
   }
 
-  private void repeatstat (int line) throws IOException
+  private void repeatstat(int line) throws IOException
   {
     /* repeatstat -> REPEAT block UNTIL cond */
     int repeat_init = fs.kGetlabel();
-    BlockCnt bl1 = new BlockCnt ();
-    BlockCnt bl2 = new BlockCnt ();
+    BlockCnt bl1 = new BlockCnt();
+    BlockCnt bl2 = new BlockCnt();
     enterblock(fs, bl1, true);  /* loop block */
     enterblock(fs, bl2, false);  /* scope block */
     xNext();  /* skip REPEAT */
@@ -1806,10 +1806,10 @@ new_fs.f.source = null ;
     leaveblock(fs);  /* finish loop */
   }
 
-  private int cond () throws IOException
+  private int cond() throws IOException
   {
     /* cond -> exp */
-    Expdesc v = new Expdesc () ;
+    Expdesc v = new Expdesc() ;
     expr(v);  /* read condition */
     if (v.k == Expdesc.VNIL)
       v.k = Expdesc.VFALSE;  /* `falses' are all equal here */
@@ -1817,16 +1817,16 @@ new_fs.f.source = null ;
     return v.f;
   }
 
-  private void init_exp (Expdesc e, int k, int i)
+  private void init_exp(Expdesc e, int k, int i)
   {
     e.f = e.t = FuncState.NO_JUMP;
     e.k = k;
     e.info = i;
   }
 
-  private void open_func (FuncState fs)
+  private void open_func(FuncState fs)
   {
-    Proto f = new Proto (source, 2);  /* registers 0/1 are always valid */
+    Proto f = new Proto(source, 2);  /* registers 0/1 are always valid */
     fs.f = f;
 //    fs.prev = this.fs;  /* linked list of funcstates */
     fs.ls = this;
@@ -1841,10 +1841,10 @@ new_fs.f.source = null ;
     fs.nlocvars = 0;
     fs.nactvar = 0;
     fs.bl = null;
-    fs.h = new Hashtable () ;
+    fs.h = new Hashtable() ;
   }
 
-  private void localstat () throws IOException
+  private void localstat() throws IOException
   {
     /* stat -> LOCAL NAME {`,' NAME} [`=' explist1] */
     int nvars = 0;
@@ -1867,10 +1867,10 @@ new_fs.f.source = null ;
     adjustlocalvars(nvars);
   }
 
-  private void forstat (int line) throws IOException
+  private void forstat(int line) throws IOException
   {
     /* forstat -> FOR (fornum | forlist) END */
-    BlockCnt bl = new BlockCnt () ;
+    BlockCnt bl = new BlockCnt() ;
     enterblock(fs, bl, true);  /* scope for loop and control variables */
     xNext();  /* skip `for' */
     String varname = str_checkname();  /* first variable name */
@@ -1890,7 +1890,7 @@ new_fs.f.source = null ;
     leaveblock(fs);  /* loop scope (`break' jumps to this point) */
   }
 
-  private void fornum (String varname, int line) throws IOException
+  private void fornum(String varname, int line) throws IOException
   {
     /* fornum -> NAME = exp1,exp1[,exp1] forbody */
     int base = fs.freereg;
@@ -1912,9 +1912,9 @@ new_fs.f.source = null ;
     forbody(base, line, 1, true);
   }
 
-  private int exp1 () throws IOException
+  private int exp1() throws IOException
   {
-    Expdesc e = new Expdesc ();
+    Expdesc e = new Expdesc();
     expr(e);
     int k = e.k;
     fs.kExp2nextreg(e);
@@ -1922,10 +1922,10 @@ new_fs.f.source = null ;
   }
 
 
-  private void forlist (String indexname) throws IOException
+  private void forlist(String indexname) throws IOException
   {
     /* forlist -> NAME {,NAME} IN explist1 forbody */
-    Expdesc e = new Expdesc () ;
+    Expdesc e = new Expdesc() ;
     int nvars = 0;
     int base = fs.freereg;
     /* create control variables */
@@ -1943,10 +1943,10 @@ new_fs.f.source = null ;
     forbody(base, line, nvars - 3, false);
   }
 
-  private void forbody (int base, int line, int nvars, boolean isnum) throws IOException
+  private void forbody(int base, int line, int nvars, boolean isnum) throws IOException
   {
     /* forbody -> DO block */
-    BlockCnt bl = new BlockCnt () ;
+    BlockCnt bl = new BlockCnt() ;
     adjustlocalvars(3);  /* control variables */
     checknext(TK_DO);
     int prep = isnum ? fs.kCodeAsBx(Lua.OP_FORPREP, base, FuncState.NO_JUMP) : fs.kJump();
@@ -1963,7 +1963,7 @@ new_fs.f.source = null ;
     fs.kPatchlist((isnum ? endfor : fs.kJump()), prep + 1);
   }
 
-  private void ifstat (int line) throws IOException
+  private void ifstat(int line) throws IOException
   {
     /* ifstat -> IF cond THEN block {ELSEIF cond THEN block} [ELSE block] END */
     int escapelist = FuncState.NO_JUMP;
@@ -1988,7 +1988,7 @@ new_fs.f.source = null ;
     check_match(TK_END, TK_IF, line);
   }
 
-  private int test_then_block () throws IOException
+  private int test_then_block() throws IOException
   {
     /* test_then_block -> [IF | ELSEIF] cond THEN block */
     xNext();  /* skip IF or ELSEIF */
@@ -1998,10 +1998,10 @@ new_fs.f.source = null ;
     return condexit;
   }
 
-  private void whilestat (int line) throws IOException
+  private void whilestat(int line) throws IOException
   {
     /* whilestat -> WHILE cond DO block END */
-    BlockCnt bl = new BlockCnt () ;
+    BlockCnt bl = new BlockCnt() ;
     xNext();  /* skip WHILE */
     int whileinit = fs.kGetlabel();
     int condexit = cond();
@@ -2019,7 +2019,7 @@ new_fs.f.source = null ;
     return k == Expdesc.VCALL || k == Expdesc.VVARARG ;
   }
 
-  private void adjust_assign (int nvars, int nexps, Expdesc e)
+  private void adjust_assign(int nvars, int nexps, Expdesc e)
   {
     int extra = nvars - nexps;
     if (hasmultret(e.k))
@@ -2044,10 +2044,10 @@ new_fs.f.source = null ;
     }
   }
 
-  private void localfunc () throws IOException
+  private void localfunc() throws IOException
   {
-    Expdesc v = new Expdesc ();
-    Expdesc b = new Expdesc ();
+    Expdesc v = new Expdesc();
+    Expdesc b = new Expdesc();
     new_localvar(str_checkname(), 0);
     init_exp(v, Expdesc.VLOCAL, fs.freereg);
     fs.kReserveregs(1);
@@ -2058,7 +2058,7 @@ new_fs.f.source = null ;
     fs.getlocvar(fs.nactvar - 1).startpc = fs.pc;
   }
 
-  private void yindex (Expdesc v) throws IOException
+  private void yindex(Expdesc v) throws IOException
   {
     /* index -> '[' expr ']' */
     xNext();  /* skip the '[' */
@@ -2067,7 +2067,7 @@ new_fs.f.source = null ;
     checknext(']');
   }
 
-  void xLookahead () throws IOException
+  void xLookahead() throws IOException
   {
     lua_assert(lookahead == TK_EOS, "xLookahead()");
     lookahead = llex();
@@ -2075,7 +2075,7 @@ new_fs.f.source = null ;
     lookaheadS = semS ;
   }
 
-  private void listfield (ConsControl cc) throws IOException
+  private void listfield(ConsControl cc) throws IOException
   {
     expr(cc.v);
     yChecklimit(cc.na, Lua.MAXARG_Bx, "items in a constructor");
@@ -2083,7 +2083,7 @@ new_fs.f.source = null ;
     cc.tostore++;
   }
 
-  private void markupval (FuncState fs, int level)
+  private void markupval(FuncState fs, int level)
   {
     BlockCnt bl = fs.bl;
     while (bl != null && bl.nactvar > level) 
@@ -2092,7 +2092,7 @@ new_fs.f.source = null ;
       bl.upval = true;
   }
 
-  private int indexupvalue (FuncState fs, String name, Expdesc v)
+  private int indexupvalue(FuncState fs, String name, Expdesc v)
   {
     Proto f = fs.f;
     int oldsize = f.sizeupvalues;
@@ -2101,13 +2101,13 @@ new_fs.f.source = null ;
       int entry = fs.upvalues[i] ;
       if (UPVAL_K(entry) == v.k && UPVAL_INFO(entry) == v.info)
       {
-        lua_assert(name.equals (f.upvalues[i]), "indexupvalue()");
+        lua_assert(name.equals(f.upvalues[i]), "indexupvalue()");
         return i;
       }
     }
     /* new one */
     yChecklimit(f.nups + 1, Lua.MAXUPVALUES, "upvalues");
-    f.ensureUpvals (L, f.nups) ;
+    f.ensureUpvals(L, f.nups) ;
     f.upvalues[f.nups] = name;
     lua_assert(v.k == Expdesc.VLOCAL || v.k == Expdesc.VUPVAL, "indexupvalue() 2");
     fs.upvalues[f.nups] = UPVAL_ENCODE(v.k, v.info) ;
@@ -2118,10 +2118,10 @@ new_fs.f.source = null ;
 final class LHS_assign
 {
   LHS_assign prev ;
-  Expdesc v = new Expdesc () ;
+  Expdesc v = new Expdesc() ;
 
-  LHS_assign () {}
-  LHS_assign (LHS_assign prev) { this.prev = prev ; }
+  LHS_assign() {}
+  LHS_assign(LHS_assign prev) { this.prev = prev ; }
 }
 
 final class ConsControl
@@ -2132,7 +2132,7 @@ final class ConsControl
   int na;  /* total number of array elements */
   int tostore;  /* number of array elements pending to be stored */
 
-  ConsControl (Expdesc t)
+  ConsControl(Expdesc t)
   {
     this.t = t ;
   }

@@ -210,7 +210,7 @@ final class Proto
   /** Append instruction. */
   void codeAppend(Lua L, int pc, int instruction, int line)
   {
-    ensureCode (L, pc);
+    ensureCode(L, pc);
     code[pc] = instruction;
 
     /** TODO: errorcase */
@@ -223,7 +223,7 @@ final class Proto
     lineinfo[pc] = line;
   }
 
-  void ensureLocvars (Lua L, int atleast, int limit)
+  void ensureLocvars(Lua L, int atleast, int limit)
   {
     if (atleast + 1 > sizelocvars)
     {
@@ -235,13 +235,13 @@ final class Proto
       LocVar [] newlocvars = new LocVar [newsize] ;
       System.arraycopy(locvars, 0, newlocvars, 0, sizelocvars) ;
       for (int i = sizelocvars ; i < newsize ; i++)
-        newlocvars[i] = new LocVar () ;
+        newlocvars[i] = new LocVar() ;
       locvars = newlocvars ;
       sizelocvars = newsize ;
     }
   }
 
-  void ensureProtos (Lua L, int atleast)
+  void ensureProtos(Lua L, int atleast)
   {
     if (atleast + 1 > sizep)
     {
@@ -257,7 +257,7 @@ final class Proto
     }
   }
 
-  void ensureUpvals (Lua L, int atleast)
+  void ensureUpvals(Lua L, int atleast)
   {
     if (atleast + 1 > sizeupvalues)
     {
@@ -271,7 +271,7 @@ final class Proto
     }
   }
 
-  void ensureCode (Lua L, int atleast)
+  void ensureCode(Lua L, int atleast)
   {
     if (atleast + 1 > sizecode)
     {

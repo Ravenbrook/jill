@@ -20,7 +20,7 @@ final class LocVar
   int startpc;
   int endpc;
 
-  LocVar () {}
+  LocVar() {}
 
   LocVar(String varname, int startpc, int endpc)
   {
