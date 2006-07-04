@@ -2135,9 +2135,12 @@ public final class Lua
    * Primitive for testing Lua equality of two values.  Equivalent of
    * PUC-Rio's equalobj macro.  Note that using null to model nil
    * complicates this test, maybe we should use a nonce object.
+   * In the loosest sense, this is the equivalent of
+   * <code>luaV_equalval</code>.
    */
   private boolean vmEqual(Object a, Object b)
   {
+    // :todo: consider if (a == b) return true;
     if (NIL == a)
     {
       return NIL == b;
@@ -2156,8 +2159,19 @@ public final class Lua
     {
       return false;
     }
-    // Same class, but different objects.  Resort to metamethods.
-    // :todo: metamethods.
+    // Same class, but different objects.
+    if (a instanceof LuaJavaCallback ||
+        a instanceof LuaTable)
+    {
+      // Resort to metamethods.
+      Object tm = get_compTM(getMetatable(a), getMetatable(b), "__eq");
+      if (null == tm)     // no TM?
+      {
+        return false;
+      }
+      Object res = callTMres(tm, a, b);   // call TM
+      return !isFalse(res);
+    }
     return false;
   }
 
@@ -3138,6 +3152,37 @@ reentry:
     Object res = stack.lastElement();
     pop(1);
     return res;
+  }
+
+  private Object get_compTM(LuaTable mt1, LuaTable mt2, String event)
+  {
+    if (mt1 == null)
+    {
+      return null;
+    }
+    Object tm1 = mt1.get(event);
+    if (isNil(tm1))
+    {
+      return null;      // no metamethod
+    }
+    if (mt1 == mt2)
+    {
+      return tm1;       // same metatables => same metamethods
+    }
+    if (mt2 == null)
+    {
+      return null;
+    }
+    Object tm2 = mt2.get(event);
+    if (isNil(tm2))
+    {
+      return null;      // no metamethod
+    }
+    if (oRawequal(tm1, tm2))    // same metamethods?
+    {
+      return tm1;
+    }
+    return null;
   }
 
   /**
