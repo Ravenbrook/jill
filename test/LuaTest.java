@@ -121,7 +121,7 @@ public class LuaTest extends JiliTestCase
   {
     Lua L = new Lua();
     loadFile(L, "LuaTest5");
-    L.call(0,0);
+    L.call(0, 1);
     assertTrue("result was true",
       L.valueOfBoolean(true).equals(L.value(1)));
   }
