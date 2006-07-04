@@ -2572,13 +2572,13 @@ reentry:
           }
           case OP_RETURN:
           {
+            fClose(base);
             int b = ARGB(i);
             if (b != 0)
             {
               int top = a + b - 1;
               stack.setSize(base + top);
             }
-            fClose(base);
             savedpc = pc;
             // 'adjust' replaces aliased 'b' in PUC-Rio code.
             boolean adjust = vmPoscall(base+a);
