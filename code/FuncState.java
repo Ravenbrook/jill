@@ -239,7 +239,7 @@ final class FuncState
       kExp2nextreg(v);  /* operand must be on the `stack' */
       break;
     default:
-      if (!isnumeral(v)) 
+      if (!isnumeral(v))
         kExp2RK(v);
       break;
     }
@@ -316,7 +316,7 @@ final class FuncState
           lua_assert(e1.info == Lua.ARGB(getcode(e2))-1, "kPosfix() concat");
           freeexp(e1);
           setcode(e2, Lua.SETARG_B(getcode(e2), e1.info));
-          e1.k = e2.k; 
+          e1.k = e2.k;
           e1.info = e2.info;
         }
         else
@@ -338,7 +338,7 @@ final class FuncState
       case Syntax.OPR_LE: codecomp(Lua.OP_LE, true,  e1, e2); break;
       case Syntax.OPR_GT: codecomp(Lua.OP_LT, false, e1, e2); break;
       case Syntax.OPR_GE: codecomp(Lua.OP_LE, false, e1, e2); break;
-      default: 
+      default:
         lua_assert(false, "kPosfix() def");
     }
   }
@@ -467,7 +467,7 @@ final class FuncState
       case Lua.OP_SUB: r = v1 - v2; break;
       case Lua.OP_MUL: r = v1 * v2; break;
       case Lua.OP_DIV:
-          if (v2 == 0.0) 
+          if (v2 == 0.0)
             return false;  /* do not attempt to divide by 0 */
           r = v1 / v2;
           break;
@@ -624,7 +624,7 @@ final class FuncState
     {
       int i = getjumpcontrol(list);
       int instr = f.code[i] ;
-      if (Lua.OPCODE(instr) != Lua.OP_TESTSET) 
+      if (Lua.OPCODE(instr) != Lua.OP_TESTSET)
         return true;
     }
     return false;  /* not found */

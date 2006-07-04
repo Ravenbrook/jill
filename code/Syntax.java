@@ -288,7 +288,7 @@ final class Syntax
           if (is_string) save_and_next();
           else next();
       }
-    } 
+    }
     if (is_string)
     {
       String rawtoken = buff.toString();
@@ -364,7 +364,7 @@ final class Syntax
           {
             next() ;
             return TK_LE ;
-          }             
+          }
         case '>':
           next() ;
           if (current != '=')
@@ -373,7 +373,7 @@ final class Syntax
           {
             next() ;
             return TK_GE ;
-          }             
+          }
         case '~':
           next();
           if (current != '=')
@@ -598,8 +598,8 @@ final class Syntax
       tokenS = lookaheadS;
       lookahead = TK_EOS;       // and discharge it.
     }
-     else
-     {
+    else
+    {
       token = llex();
       tokenR = semR;
       tokenS = semS;
@@ -724,7 +724,7 @@ final class Syntax
             System.out.println(opcode_name(op)+"  "+A+"  ("+Bx+")   ("+sBx+")") ;
         else
             System.out.println(opcode_name(op)+"  "+A+"  "+B+"  "+C) ;
-    }            
+    }
 
     boolean opcode_bx(int op)
     {
@@ -940,7 +940,7 @@ final class Syntax
       islast = statement();
       testnext(';');
       lua_assert(fs.f.maxstacksize >= fs.freereg &&
-                  fs.freereg >= fs.nactvar, 
+                  fs.freereg >= fs.nactvar,
                   "chunk()");
       fs.freereg = fs.nactvar;
     }
@@ -1350,7 +1350,7 @@ final class Syntax
       case TK_TRUE:
         init_exp(v, Expdesc.VTRUE, 0);
         break;
-  
+
       case TK_FALSE:
         init_exp(v, Expdesc.VFALSE, 0);
         break;
@@ -1603,7 +1603,7 @@ final class Syntax
       fs.kCodeABC(Lua.OP_CLOSE, bl.nactvar, 0, 0);
     bl.breaklist = fs.kConcat(bl.breaklist, fs.kJump());
   }
-    
+
   private void funcstat(int line) throws IOException
   {
     /* funcstat -> FUNCTION funcname body */
@@ -1956,7 +1956,7 @@ new_fs.f.source = null ;
     block();
     leaveblock(fs);  /* end of scope for declared variables */
     fs.kPatchtohere(prep);
-    int endfor = isnum ? 
+    int endfor = isnum ?
         fs.kCodeAsBx(Lua.OP_FORLOOP, base, FuncState.NO_JUMP) :
         fs.kCodeABC(Lua.OP_TFORLOOP, base, 0, nvars);
     fs.kFixline(line);  /* pretend that `OP_FOR' starts the loop */
@@ -2086,7 +2086,7 @@ new_fs.f.source = null ;
   private void markupval(FuncState fs, int level)
   {
     BlockCnt bl = fs.bl;
-    while (bl != null && bl.nactvar > level) 
+    while (bl != null && bl.nactvar > level)
       bl = bl.previous;
     if (bl != null)
       bl.upval = true;

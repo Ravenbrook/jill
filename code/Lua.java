@@ -2792,7 +2792,7 @@ reentry:
     double half = 0.5 ;
     for (int i = 0 ; i < 53 ; i++)
     {
-      double test = result + p ; 
+      double test = result + p ;
       if (test*test <= d)
         result = test;
       p = p * half ;
@@ -3447,7 +3447,7 @@ final class DumpState
 
     n = f.sizeupvalues;
     DumpInt(n);
-    for (int i=0; i<n; i++) 
+    for (int i=0; i<n; i++)
       DumpString(f.upvalues[i]);
   }
 
