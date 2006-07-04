@@ -104,6 +104,56 @@ public class MetaTest extends JiliTestCase
     nTrue("testmetale", 6);
   }
 
+  public void testmetaadd()
+  {
+    nTrue("testmetaadd", 2);
+  }
+
+  public void testmetasub()
+  {
+    nTrue("testmetasub", 2);
+  }
+
+  public void testmetamul()
+  {
+    nTrue("testmetamul", 2);
+  }
+
+  public void testmetadiv()
+  {
+    nTrue("testmetadiv", 2);
+  }
+
+  public void testmetamod()
+  {
+    nTrue("testmetamod", 2);
+  }
+
+  public void testmetapow()
+  {
+    nTrue("testmetapow", 2);
+  }
+
+  public void testmetaconcat()
+  {
+    nTrue("testmetaconcat", 2);
+  }
+
+  public void testmetaunm()
+  {
+    nTrue("testmetaunm", 2);
+  }
+
+  public void testmetaeq()
+  {
+    nTrue("testmetaeq", 3);
+  }
+
+  public void testmetalen()
+  {
+    // :todo: implement me
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -144,6 +194,48 @@ public class MetaTest extends JiliTestCase
       {
         public void runTest() { testmetale(); }
       });
+    /* :todo:
+    suite.addTest(new MetaTest("testmetaadd")
+      {
+        public void runTest() { testmetaadd(); }
+      });
+    suite.addTest(new MetaTest("testmetasub")
+      {
+        public void runTest() { testmetasub(); }
+      });
+    suite.addTest(new MetaTest("testmetamul")
+      {
+        public void runTest() { testmetamul(); }
+      });
+    suite.addTest(new MetaTest("testmetadiv")
+      {
+        public void runTest() { testmetadiv(); }
+      });
+    suite.addTest(new MetaTest("testmetamod")
+      {
+        public void runTest() { testmetamod(); }
+      });
+    suite.addTest(new MetaTest("testmetapow")
+      {
+        public void runTest() { testmetapow(); }
+      });
+    suite.addTest(new MetaTest("testmetaconcat")
+      {
+        public void runTest() { testmetaconcat(); }
+      });
+    suite.addTest(new MetaTest("testmetaunm")
+      {
+        public void runTest() { testmetaunm(); }
+      });
+    suite.addTest(new MetaTest("testmetaeq")
+      {
+        public void runTest() { testmetaeq(); }
+      });
+    suite.addTest(new MetaTest("testmetalen")
+      {
+        public void runTest() { testmetalen(); }
+      });
+    */
     return suite;
   }
 }

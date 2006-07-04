@@ -159,3 +159,83 @@ function testmetale()
   t[6] = not t[6]
   return unpack(t)
 end
+-- test __len
+-- Assumes that numbers have been given a metatable and that this
+-- metatable is accessible via getmetatable(0).
+function testmetalen()
+  local mt = getmetatable(0)
+  mt.__len = function(x) return #(x..'') end
+  return #3 == 1, #333 == 3, #1001 == 4
+end
+-- test __unm
+function testmetaunm()
+  local mt = { __unm = function(x) return x.unm end }
+  local t = {}
+  setmetatable(t, mt)
+  local a = -t
+  t.unm = 7
+  local b = -t
+  return a == nil, b == 7
+end
+
+-- create a metatable with lots of binary metamethods
+do
+  -- Adds a binary metamethod for the operator op, to the table t.
+  local function mm(op, t)
+    t['__'..op] = function(x, y) return x.x .. op .. y.x end
+  end
+  local mt = {}
+  mm('add', mt)
+  mm('sub', mt)
+  mm('mul', mt)
+  mm('div', mt)
+  mm('mod', mt)
+  mm('pow', mt)
+  mm('concat', mt)
+  binarymt = mt
+end
+
+local t = { x = 1 }
+local u = { x = 2 }
+setmetatable(t, binarymt)
+setmetatable(u, binarymt)
+
+-- test __add
+function testmetaadd()
+  return t+u == '1add2', u+t == '2add1'
+end
+-- test __sub
+function testmetasub()
+  return t-u == '1sub2', u-t == '2sub1'
+end
+-- test __mul
+function testmetamul()
+  return t*u == '1mul2', u*t == '2mul1'
+end
+-- test __div
+function testmetadiv()
+  return t/u == '1div2', u/t == '2div1'
+end
+-- test __mod
+function testmetamod()
+  return t%u == '1mod2', u%t == '2mod1'
+end
+-- test __pow
+function testmetapow()
+  return t^u == '1pow2', u^t == '2pow1'
+end
+-- test __concat
+function testmetaconcat()
+  return t..u == '1concat2', u..t == '2concat1'
+end
+-- test __eq
+function testmetaeq()
+  local mt = { __eq = function(x, y) return #x == #y end }
+  local t = {}
+  local u = {'foo'}
+  local v = {'bar'}
+  setmetatable(t, mt)
+  setmetatable(u, mt)
+  setmetatable(v, mt)
+  return t == t, t ~= u, u == v
+end
