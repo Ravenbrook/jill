@@ -721,9 +721,9 @@ final class Syntax
         int Bx = (B << 9) | C ;
         int sBx = Bx-0x1FFFF ;
         if (opcode_bx (op))
-            System.out.println (opcode_name (op)+"  "+A+"  ("+Bx+")   ("+sBx+")") ;
+            System.out.println(opcode_name(op)+"  "+A+"  ("+Bx+")   ("+sBx+")") ;
         else
-            System.out.println (opcode_name (op)+"  "+A+"  "+B+"  "+C) ;
+            System.out.println(opcode_name(op)+"  "+A+"  "+B+"  "+C) ;
     }            
 
     boolean opcode_bx (int op)

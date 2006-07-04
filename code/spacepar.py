@@ -4,6 +4,8 @@
 # Tool to analyse and correct all the errors of the form
 # "'(' is preceded with whitespace" produced by the Checkstyle tool.
 # it does this by processing the style.txt file output by Checkstyle.
+# Currently falls over (with an assert) if a line of source has more
+# than one violation.
 
 import re
 import sys
@@ -45,7 +47,7 @@ def doit(inp) :
       assert m != None
       filename = m.group(1)
       lineno = int(m.group(2))
-      # The colum number is, by inspection of a typical line from
+      # The column number is, by inspection of a typical line from
       # style.txt, the column number of the '(' character, starting from
       # 1 being the leftmost column.
       columnno = int(m.group(3))
@@ -55,7 +57,8 @@ def doit(inp) :
         if fi.lineno() >= lineno :
           break
         sys.stdout.write(x)
-      assert fi.lineno() == lineno
+      assert fi.lineno() == lineno, (filename + ' ' + str(fi.lineno()) +
+          ' ' + str(lineno))
       old = x
       firstpart = x[0:columnno-1]
       lastpart = x[columnno-1:]
