@@ -2103,9 +2103,10 @@ public final class Lua
       int n = 2;  // number of elements handled in this pass (at least 2)
       if (!tostring(top-2)|| !tostring(top-1))
       {
-        // :todo: try metamethods
-        gConcaterror(top-2, top-1);
-        throw new IllegalArgumentException();
+        if (!call_binTM(top-2, top-1, top-2, "__concat"))
+        {
+          gConcaterror(top-2, top-1);
+        }
       }
       else if (((String)stack.elementAt(top-1)).length() > 0)
       {
@@ -3079,6 +3080,27 @@ reentry:
     return base;
   }
 
+  /**
+   * @param p1  left hand operand.  Absolate stack index.
+   * @param p2  right hand operand.  Absolute stack index.
+   * @param res absolute stack index of result.
+   * @return false if no tagmethod, true otherwise
+   */
+  private boolean call_binTM(int p1, int p2, int res, String event)
+  {
+    Object tm = tagmethod(value(p1), event);    // try first operand
+    if (isNil(tm))
+    {
+      tm = tagmethod(value(p2), event); // try second operand
+    }
+    if (!isFunction(tm))
+    {
+      return false;
+    }
+    stack.setElementAt(callTMres(tm, value(p1), value(p2)), res);
+    return true;
+  }
+    
   /**
    * @return -1 if no tagmethod, 0 false, 1 true
    */

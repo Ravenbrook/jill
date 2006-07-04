@@ -219,10 +219,6 @@ public class MetaTest extends JiliTestCase
       {
         public void runTest() { testmetapow(); }
       });
-    suite.addTest(new MetaTest("testmetaconcat")
-      {
-        public void runTest() { testmetaconcat(); }
-      });
     suite.addTest(new MetaTest("testmetaunm")
       {
         public void runTest() { testmetaunm(); }
@@ -236,6 +232,10 @@ public class MetaTest extends JiliTestCase
         public void runTest() { testmetalen(); }
       });
     */
+    suite.addTest(new MetaTest("testmetaconcat")
+      {
+        public void runTest() { testmetaconcat(); }
+      });
     return suite;
   }
 }
