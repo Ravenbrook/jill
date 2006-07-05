@@ -220,7 +220,6 @@ public class MetaTest extends JiliTestCase
       {
         public void runTest() { testmetaadd(); }
       });
-    /* :todo:
     suite.addTest(new MetaTest("testmetasub")
       {
         public void runTest() { testmetasub(); }
@@ -241,6 +240,7 @@ public class MetaTest extends JiliTestCase
       {
         public void runTest() { testmetapow(); }
       });
+    /* :todo:
     suite.addTest(new MetaTest("testmetaunm")
       {
         public void runTest() { testmetaunm(); }

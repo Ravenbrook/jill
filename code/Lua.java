@@ -2336,10 +2336,10 @@ reentry:
               double difference = NUMOP[0] - NUMOP[1];
               stack.setElementAt(valueOfNumber(difference), base+a);
             }
-            else
+            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
+                "__sub"))
             {
-              // :todo: use metamethod
-              throw new IllegalArgumentException();
+              gAritherror(base+ARGB(i), base+ARGC(i));
             }
             continue;
           case OP_MUL:
@@ -2356,10 +2356,10 @@ reentry:
               double product = NUMOP[0] * NUMOP[1];
               stack.setElementAt(valueOfNumber(product), base+a);
             }
-            else
+            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
+                "__mul"))
             {
-              // :todo: use metamethod
-              throw new IllegalArgumentException();
+              gAritherror(base+ARGB(i), base+ARGC(i));
             }
             continue;
           case OP_DIV:
@@ -2376,10 +2376,10 @@ reentry:
               double quotient = NUMOP[0] / NUMOP[1];
               stack.setElementAt(valueOfNumber(quotient), base+a);
             }
-            else
+            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
+                "__div"))
             {
-              // :todo: use metamethod
-              throw new IllegalArgumentException();
+              gAritherror(base+ARGB(i), base+ARGC(i));
             }
             continue;
           case OP_MOD:
@@ -2397,10 +2397,10 @@ reentry:
               double modulus = modulus(NUMOP[0], NUMOP[1]);
               stack.setElementAt(valueOfNumber(modulus), base+a);
             }
-            else
+            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
+                "__mod"))
             {
-              // :todo: use metamethod
-              throw new IllegalArgumentException();
+              gAritherror(base+ARGB(i), base+ARGC(i));
             }
             continue;
           case OP_POW:
@@ -2418,10 +2418,10 @@ reentry:
               double result = iNumpow(NUMOP[0], NUMOP[1]);
               stack.setElementAt(valueOfNumber(result), base+a);
             }
-            else
+            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
+                "__pow"))
             {
-              // :todo: use metamethod
-              throw new IllegalArgumentException();
+              gAritherror(base+ARGB(i), base+ARGC(i));
             }
             continue;
           case OP_UNM:
