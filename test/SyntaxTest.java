@@ -306,29 +306,14 @@ public class SyntaxTest extends JiliTestCase
     BaseLib.open(L);
 
     L.setTop(0) ;
-    assertTrue("closures 1 okay", 0 == dostring(L,
-        "local b = 7 \n"+
-        "local a = function (x) "+
-        "  local res,ires = {},0 ;"+
-        "  while x<b do "+
-        "    local s = x*b ;"+
-        "    function blah () s = s+1 ; return s end "+
-        "    res[ires] = blah ; ires = ires+1;"+
-        "    x = x+1 ;"+
-        "  end;"+
-        "  return res;"+
-        "end;"+
-        "return a(4)"
-        ));
+    L.loadFile("SyntaxTest10.luc");
+    L.call(0, 1);
     Object res = L.value(1) ;
     assertTrue("closures 1 result test", res instanceof LuaTable) ;
     int size = ((LuaTable) res).size () ;
     assertTrue("closures 1 result test#2", size == 2) ;
     
-
-    
     L.setTop(0) ;
-
   }
 
   boolean double_equal (Object o, double d)
