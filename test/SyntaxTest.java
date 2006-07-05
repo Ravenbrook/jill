@@ -1,6 +1,7 @@
 // $Header$
 
 import java.io.File ;
+import java.util.Hashtable;
 
 // For j2meunit see http://j2meunit.sourceforge.net/
 import j2meunit.framework.Test;
@@ -199,6 +200,77 @@ public class SyntaxTest extends JiliTestCase
     assertTrue (L.value(1) instanceof LuaFunction) ;
   }
 
+  public void testSyntax7()
+  {
+    System.out.println ("Syntax7") ;
+    Lua L = new Lua();
+    BaseLib.open(L);
+
+    assertTrue("if 1 okay", 0 == dostring(L,
+        "local a, b = 2, 5 ; if a+3 == b then return a*b-(b/a) else return false end"
+        ));
+    assertTrue("if 1 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 7.5) ;
+    L.setTop(0) ;
+
+    assertTrue("if 2 okay", 0 == dostring(L,
+        "local a,b,c=true,false,nil if b or c then return -2 elseif a and not b then return 42.0 else return -1 end"
+        ));
+    assertTrue("if 2 result test", L.value(1) instanceof Double && ((Double)L.value(1)).doubleValue() == 42.0) ;
+    L.setTop(0) ;
+
+    assertTrue("if 3 okay", 0 == dostring(L,
+        "local a = 1 local b if a then b = a*a else b = a+a end if b == 1 then return true else return nil end"
+        ));
+    assertTrue("if 3 result test", L.value(1) instanceof Boolean && ((Boolean)L.value(1)).booleanValue()) ;
+    L.setTop(0) ;
+
+    assertTrue("if 4 okay", 0 == dostring(L,
+        "local a,b,c,d,e,f = false, true, 7, nil, nil, true ;"+
+        "if (a or (b and c) and (d or not e) and f) then return 'succeed' else return nil end"
+        ));
+    assertTrue("if 4 result test", L.value(1) instanceof String && "succeed".equals (L.value(1)));
+    L.setTop(0) ;
+
+  }
+
+  public void testSyntax8()
+  {
+    System.out.println ("Syntax8") ;
+    Lua L = new Lua();
+    BaseLib.open(L);
+
+    L.setTop(0) ;
+    assertTrue("table 1 okay", 0 == dostring(L,
+        "local t = {} ; t.foo = 45 ; t[1] = 17 ; t[3] = 1 ; t[1] = 'laa' ; return t"
+        ));
+    Object res = L.value(1) ;
+    assertTrue("table 1 result test", res instanceof Hashtable &&
+               ((Hashtable)res).size() == 3 &&
+               double_equal (((Hashtable)res).get("foo"), 45) &&
+               double_equal (((Hashtable)res).get(new Double (3.0)), 1.0) &&
+               "laa".equals (((Hashtable)res).get(new Double (1.0)))) ;
+    
+    L.setTop(0) ;
+    assertTrue("table 2 okay", 0 == dostring(L,
+        "local t = {} ; t.foo = 45 ; t[1] = 17 ; t[2], t[3] = 2, 1 ; t[1] = 'laa' ; t['foo'] = t t[3] = t[3] + #t; return t"
+        ));
+    res = L.value(1) ;
+    assertTrue("table 2 result test", res instanceof Hashtable &&
+               ((Hashtable)res).size() == 4 &&
+               ((Hashtable)res).get("foo") == res &&
+               double_equal (((Hashtable)res).get(new Double (3.0)), 4.0) &&
+               "laa".equals (((Hashtable)res).get(new Double (1.0)))) ;
+    
+    L.setTop(0) ;
+
+  }
+
+  boolean double_equal (Object o, double d)
+  {
+    return o instanceof Double &&
+      ((Double) o).doubleValue() == d ;
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -230,6 +302,14 @@ public class SyntaxTest extends JiliTestCase
     suite.addTest(new SyntaxTest("testSyntax6")
     {
       public void runTest() { testSyntax6(); } 
+    });
+    suite.addTest(new SyntaxTest("testSyntax7")
+    {
+      public void runTest() { testSyntax7(); } 
+    });
+    suite.addTest(new SyntaxTest("testSyntax8")
+    {
+      public void runTest() { testSyntax8(); } 
     });
     return suite;
   }
