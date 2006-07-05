@@ -2773,6 +2773,8 @@ reentry:
     // :todo: this needs proper checking for boundary cases
     boolean invert = b < 0.0 ;
     if (invert) b = -b ;
+    if (a == 0.0)
+      return invert ? a/a : a ;
     double result = 1.0 ;
     int ipow = (int) b ;
     b -= ipow ;
@@ -2784,19 +2786,24 @@ reentry:
       ipow >>= 1 ;
       t = t*t ;
     }
-    t = sqrt(a) ;
-    double half = 0.5 ;
-    while (b > 0.0)
+    if (b != 0.0) // integer only case, save doing unnecessary work
     {
-      if (b >= half)
+      if (a < 0.0)  // doesn't work if a negative (complex result!)
+        return a/0.0 ;
+      t = sqrt(Math.abs(a)) ;
+      double half = 0.5 ;
+      while (b > 0.0)
       {
-        result = result * t ;
-        b -= half ;
+        if (b >= half)
+        {
+          result = result * t ;
+          b -= half ;
+        }
+        b = b+b ;
+        t = sqrt(t) ;
+        if (t == 1.0)
+          break ;
       }
-      b = b+b ;
-      t = sqrt(t) ;
-      if (t == 1.0)
-        break ;
     }
     return invert ?  1.0 / result : result ;
   }
