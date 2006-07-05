@@ -27,16 +27,13 @@ public class MetaTest extends JiliTestCase
   }
 
   /**
-   * Opens the base library into a fresh Lua state, calls a global
-   * function, and returns the Lua state.
+   * Takes a Lua state, calls a global function, and returns the Lua state.
    * @param name  name of function to call.
    * @param n     number of results expected from function.
    */
-  private Lua luaGlobal(String name, int n)
+  private Lua luaGlobal(Lua L, String name, int n)
   {
     // :todo: push into superclass
-    Lua L = new Lua();
-    BaseLib.open(L);
     loadFile(L, "MetaTest");
     L.call(0, 0);
     System.out.println(name);
@@ -46,17 +43,36 @@ public class MetaTest extends JiliTestCase
   }
 
   /**
+   * Opens the base library into a fresh Lua state, then calls {@link
+   * MetaTest#luaGlobal(Lua, String, int)}.
+   */
+  private Lua luaGlobal(String name, int n)
+  {
+    Lua L = new Lua();
+    BaseLib.open(L);
+    return luaGlobal(L, name, n);
+  }
+
+  /**
+   * Checks that <var>n</var> results are all true.
+   */
+  private void nTrue(Lua L, int n)
+  {
+    for (int i=1; i<=n; ++i)
+    {
+      assertTrue("Result " + i + " is true",
+	  L.valueOfBoolean(true).equals(L.value(i)));
+    }
+  }
+
+  /**
    * Calls a global lua function and checks that <var>n</var> results
    * are all true.
    */
   private void nTrue(String name, int n)
   {
     Lua L = luaGlobal(name, n);
-    for (int i=1; i<=n; ++i)
-    {
-      assertTrue("Result " + i + " is true",
-	  L.valueOfBoolean(true).equals(L.value(i)));
-    }
+    nTrue(L, n);
   }
 
   public void testmetaindex0()
@@ -151,7 +167,13 @@ public class MetaTest extends JiliTestCase
 
   public void testmetalen()
   {
-    // :todo: implement me
+    System.out.println("testmetalen");
+    Lua L = new Lua();
+    BaseLib.open(L);
+    LuaTable mt = new LuaTable();
+    L.setMetatable(L.valueOfNumber(0), mt);
+    int n = 3;
+    nTrue(luaGlobal(L, "testmetalen", n), n);
   }
 
   public Test suite()
@@ -223,11 +245,11 @@ public class MetaTest extends JiliTestCase
       {
         public void runTest() { testmetaunm(); }
       });
+    */
     suite.addTest(new MetaTest("testmetalen")
       {
         public void runTest() { testmetalen(); }
       });
-    */
     suite.addTest(new MetaTest("testmetaconcat")
       {
         public void runTest() { testmetaconcat(); }

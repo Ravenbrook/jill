@@ -2453,8 +2453,12 @@ reentry:
               stack.setElementAt(new Double(s.length()), base+a);
               continue;
             }
-            // :todo: metamethod
-            throw new IllegalArgumentException();
+            savedpc = pc; // Protect
+            if (!call_binTM(base+ARGB(i), base+ARGB(i), base+a, "__len"))
+            {
+              gTypeerror(rb, "get length of");
+            }
+            continue;
           case OP_CONCAT:
           {
             int b = ARGB(i);
