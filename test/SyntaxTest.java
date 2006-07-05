@@ -1,6 +1,8 @@
 // $Header$
 
 import java.io.File ;
+import java.io.FileOutputStream ;
+import java.io.IOException ;
 import java.util.Hashtable;
 
 // For j2meunit see http://j2meunit.sourceforge.net/
@@ -265,6 +267,70 @@ public class SyntaxTest extends JiliTestCase
 
   }
 
+  public void testSyntax9()
+  {
+    System.out.println ("Syntax9") ;
+    Lua L = new Lua();
+    BaseLib.open(L);
+
+    L.setTop(0) ;
+    assertTrue("loop 1 okay", 0 == dostring(L,
+        "local a = 0 ; for i = 1, 10 do if i == 7 then break end ; a = a+10 end ; return a"
+        ));
+    Object res = L.value(1) ;
+    assertTrue("loop 1 result test", res instanceof Double && ((Double)L.value(1)).doubleValue() == 60.0) ;
+
+    L.setTop(0) ;
+    assertTrue("loop 2 okay", 0 == dostring(L,
+        "local a,i = 0,100 ; repeat if i == 7 then break end ; a,i = a+10,i-1 until i == 0 ; return a"
+        ));
+    res = L.value(1) ;
+    assertTrue("loop 2 result test", res instanceof Double && ((Double)L.value(1)).doubleValue() == 930.0) ;
+
+    L.setTop(0) ;
+    assertTrue("loop 3 okay", 0 == dostring(L,
+        "local a,i = 1,1 ; while i < 100 do i=i*1.8213 local z = 4 ; repeat a = a + 1/256 ; z = z-1 ; if z == 2 then break end until z <= 0;  a = a+a end ; return a ;"
+        ));
+    res = L.value(1) ;
+    // does 8 outer loops and 2 inner ones... 256 +255/64
+    assertTrue("loop 3 result test", res instanceof Double && ((Double)L.value(1)).doubleValue() == 259.984375) ;
+
+    L.setTop(0) ;
+
+  }
+
+  public void testSyntax10()
+  {
+    System.out.println ("Syntax10");
+    Lua L = new Lua();
+    BaseLib.open(L);
+
+    L.setTop(0) ;
+    assertTrue("closures 1 okay", 0 == dostring(L,
+        "local b = 7 \n"+
+        "local a = function (x) "+
+        "  local res,ires = {},0 ;"+
+        "  while x<b do "+
+        "    local s = x*b ;"+
+        "    function blah () s = s+1 ; return s end "+
+        "    res[ires] = blah ; ires = ires+1;"+
+        "    x = x+1 ;"+
+        "  end;"+
+        "  return res;"+
+        "end;"+
+        "return a(4)"
+        ));
+    Object res = L.value(1) ;
+    assertTrue("closures 1 result test", res instanceof LuaTable) ;
+    int size = ((LuaTable) res).size () ;
+    assertTrue("closures 1 result test#2", size == 2) ;
+    
+
+    
+    L.setTop(0) ;
+
+  }
+
   boolean double_equal (Object o, double d)
   {
     return o instanceof Double &&
@@ -310,6 +376,14 @@ public class SyntaxTest extends JiliTestCase
     suite.addTest(new SyntaxTest("testSyntax8")
     {
       public void runTest() { testSyntax8(); } 
+    });
+    suite.addTest(new SyntaxTest("testSyntax9")
+    {
+      public void runTest() { testSyntax9(); } 
+    });
+    suite.addTest(new SyntaxTest("testSyntax10")
+    {
+      public void runTest() { testSyntax10(); } 
     });
     return suite;
   }
