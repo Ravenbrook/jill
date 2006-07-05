@@ -18,13 +18,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Hashtable;
 
-// for testing only
-/*
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-*/
 
 /**
  * Syntax analyser.  Lexing, parsing, code generation.
@@ -221,14 +214,6 @@ final class Syntax
       xSyntaxerror("chunk has too many lines");
     }
   }
-
-  FuncState linkfs(FuncState newfs)
-  {
-    FuncState oldfs = fs;
-    fs = newfs;
-    return oldfs;
-  }
-
 
   private void lua_assert(boolean b, String routine)
   {
@@ -463,10 +448,9 @@ final class Syntax
       save_and_next();
     }
     // :todo: consider doing PUC-Rio's decimal point tricks.
-    String s = buff.toString();
     try
     {
-      semR = Double.parseDouble(s);
+      semR = Double.parseDouble(buff.toString());
       return;
     }
     catch (NumberFormatException e)
@@ -675,71 +659,10 @@ final class Syntax
     removevars(0);
     fs.kRet(0, 0);  // final return;
     fs.close();
-    /*
-    System.out.println ("debug:") ;
-    debug_closures (fs) ;
-    System.out.println ("end debug:") ;
-    */
     lua_assert(fs != fs.prev, "close_func()") ; // :todo: check this is a valid assertion to make
     fs = fs.prev;
   }
 
-    void debug_closures(FuncState fs)
-    {
-        debug_fs(fs) ;
-        if (fs.prev != null)
-            debug_closures(fs.prev) ;
-    }
-
-    void debug_fs(FuncState fs)
-    {
-        debug_proto(fs.f, fs.pc) ;
-    }
-
-    void debug_proto(Proto p, int pc)
-    {
-        System.out.println("    Proto: "+p.source) ;
-        System.out.println("      vararg = "+p.is_vararg) ;
-        System.out.println("      sizecode = "+p.sizecode) ;
-        System.out.println("      sizek = "+p.sizek) ;
-        System.out.println("      sizep = "+p.sizep) ;
-        System.out.println("      sizeupvalues = "+p.sizeupvalues) ;
-        System.out.println("      linedefined = "+p.linedefined) ;
-        System.out.println("      lastlinedefined = "+p.lastlinedefined) ;
-        System.out.println("      CODE:") ;
-        for (int i = 0 ; i < pc ; i++)
-            debug_op(i, p.code[i]) ;
-    }
-
-    void debug_op(int pc, int instr)
-    {
-        System.out.print("        "+pc+": ") ;
-        int op = instr & 0x3F ;  instr >>= 6 ;
-        int A  = instr & 0xFF ;  instr >>= 8 ;
-        int C  = instr & 0x1FF ; instr >>= 9 ;
-        int B  = instr & 0x1FF ;
-        int Bx = (B << 9) | C ;
-        int sBx = Bx-0x1FFFF ;
-        if (opcode_bx(op))
-            System.out.println(opcode_name(op)+"  "+A+"  ("+Bx+")   ("+sBx+")") ;
-        else
-            System.out.println(opcode_name(op)+"  "+A+"  "+B+"  "+C) ;
-    }
-
-    boolean opcode_bx(int op)
-    {
-      switch (op)
-      {
-      case Lua.OP_JMP:
-      case Lua.OP_FORLOOP:
-      case Lua.OP_FORPREP:
-      case Lua.OP_TFORLOOP:
-      case Lua.OP_GETGLOBAL:
-      case Lua.OP_CLOSURE:
-          return true;
-      default: return false ;
-      }
-    }
 
     String opcode_name(int op)
     {
@@ -812,36 +735,7 @@ final class Syntax
       L.nCcalls -- ;
   }
 
-  /*
-  static Proto test_parser (File infile)
-  {
-    String name = infile.getName() ;
-    InputStream in = null ;
-    Reader reader = null ;
-    try
-    {
-      in = new FileInputStream (infile) ;
-      Lua L = new Lua () ;
-      BaseLib.open (L) ;
-      reader = new InputStreamReader (in, "UTF-8") ;
-      Proto result = parser (L, reader, name) ;
 
-      LuaInternal.debug_compiler (L, result, false) ;
-      return result ;
-    }
-    catch (Exception e)
-    {
-      System.out.println ("test_parser Excp: "+e.getClass().getName()+": "+e.getMessage()) ;
-      e.printStackTrace();
-      return null ;
-    }
-    finally
-    {
-      if (reader != null)
-        try { reader.close () ; } catch (IOException io) {}
-    }
-  }
-  */
 
   /** Equivalent to luaY_parser. */
   static Proto parser(Lua L, Reader in, String name)
@@ -849,6 +743,7 @@ final class Syntax
   {
     Syntax ls = new Syntax(L, in, name);
     FuncState fs = new FuncState(ls);
+    ls.open_func(fs);
     fs.f.is_vararg = true;
     ls.xNext();
     ls.chunk();
@@ -1039,16 +934,13 @@ final class Syntax
     }
   }
 
-  // from lopcodes.h
-  static final int LFIELDS_PER_FLUSH = 50 ;
-
   private void closelistfield(ConsControl cc)
   {
     if (cc.v.k == Expdesc.VVOID)
       return;  /* there is no list item */
     fs.kExp2nextreg(cc.v);
     cc.v.k = Expdesc.VVOID;
-    if (cc.tostore == LFIELDS_PER_FLUSH)
+    if (cc.tostore == Lua.LFIELDS_PER_FLUSH)
     {
       fs.kSetlist(cc.t.info, cc.na, cc.tostore);  /* flush */
       cc.tostore = 0;  /* no more items pending */
@@ -1091,12 +983,12 @@ final class Syntax
     }
   }
 
-/*
-** check whether, in an assignment to a local variable, the local variable
-** is needed in a previous assignment (to a table). If so, save original
-** local value in a safe place and use this safe copy in the previous
-** assignment.
-*/
+  /*
+  ** check whether, in an assignment to a local variable, the local variable
+  ** is needed in a previous assignment (to a table). If so, save original
+  ** local value in a safe place and use this safe copy in the previous
+  ** assignment.
+  */
   private void check_conflict(LHS_assign lh, Expdesc v)
   {
     int extra = fs.freereg;  /* eventual position to save local variable */
@@ -1358,7 +1250,6 @@ final class Syntax
       case TK_DOTS:  /* vararg */
         if (!fs.f.is_vararg)
           xSyntaxerror("cannot use \"...\" outside a vararg function");
-        // fs.f.is_vararg &= ~VARARG_NEEDSARG;  /* don't need 'arg' */
         init_exp(v, Expdesc.VVARARG, fs.kCodeABC(Lua.OP_VARARG, 0, 1, 0));
         break;
 
@@ -1714,7 +1605,7 @@ final class Syntax
     FuncState new_fs = new FuncState(this);
     open_func(new_fs);
     new_fs.f.linedefined = line;
-new_fs.f.source = null ;
+    new_fs.f.source = null ;
     checknext('(');
     if (needself)
     {
@@ -1828,20 +1719,11 @@ new_fs.f.source = null ;
   {
     Proto f = new Proto(source, 2);  /* registers 0/1 are always valid */
     fs.f = f;
-//    fs.prev = this.fs;  /* linked list of funcstates */
     fs.ls = this;
     fs.L = L;
-//    this.fs = fs;
-    fs.pc = 0;
-    fs.lasttarget = -1;
-    fs.jpc = FuncState.NO_JUMP;
-    fs.freereg = 0;
-    fs.nk = 0;
-    fs.np = 0;
-    fs.nlocvars = 0;
-    fs.nactvar = 0;
-    fs.bl = null;
-    fs.h = new Hashtable() ;
+
+    fs.prev = this.fs;  /* linked list of funcstates */
+    this.fs = fs;
   }
 
   private void localstat() throws IOException
@@ -2125,7 +2007,7 @@ final class LHS_assign
 }
 
 final class ConsControl
-  {
+{
   Expdesc v = new Expdesc() ;  /* last list item read */
   Expdesc t;  /* table descriptor */
   int nh;  /* total number of `record' elements */

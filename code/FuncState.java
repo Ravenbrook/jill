@@ -86,8 +86,8 @@ final class FuncState
   {
     f = new Proto(ls.source, 2); // default value for maxstacksize=2
     L = ls.L ;
-    prev = ls.linkfs(this);
     this.ls = ls;
+    //    prev = ls.linkfs(this);
   }
 
   /** Equivalent to <code>close_func</code> from <code>lparser.c</code>. */
@@ -422,7 +422,7 @@ final class FuncState
     return addk(s);
   }
 
-  static Object fake_nil = new Object() ;
+  private final static Object fake_nil = new Object() ;
 
   private int addk(Object o)
   {
@@ -483,7 +483,7 @@ final class FuncState
           lua_assert(false, "constfolding");
           r = 0.0; break;
     }
-    if (!(r == r)) // NaN test
+    if (Double.isNaN(r))
       return false;  /* do not attempt to produce NaN */
     e1.nval = r;
     return true;
@@ -1093,7 +1093,7 @@ final class FuncState
 
   void kSetlist(int base, int nelems, int tostore)
   {
-    int c =  (nelems - 1) / Syntax.LFIELDS_PER_FLUSH + 1;
+    int c =  (nelems - 1) / Lua.LFIELDS_PER_FLUSH + 1;
     int b = (tostore == Lua.MULTRET) ? 0 : tostore;
     lua_assert(tostore != 0, "kSetlist()");
     if (c <= Lua.MAXARG_C)

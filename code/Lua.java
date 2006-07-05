@@ -98,7 +98,7 @@ public final class Lua
   private Vector openupval = new Vector();
 
   /** Number of list items to accumuate before a SETLIST instruction. */
-  private static final int LFIELDS_PER_FLUSH = 50;
+  static final int LFIELDS_PER_FLUSH = 50;
 
   /** Limit for table tag-method chains (to avoid loops) */
   private static final int MAXTAGLOOP = 100;
