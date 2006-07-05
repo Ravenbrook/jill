@@ -2436,10 +2436,10 @@ reentry:
             {
               stack.setElementAt(valueOfNumber(-NUMOP[0]), base+a);
             }
-            else
+            else if (!call_binTM(base+ARGB(i), base+ARGB(i), base+a,
+                "__unm"))
             {
-              // :todo: metamethod
-              throw new IllegalArgumentException();
+              gAritherror(base+ARGB(i), base+ARGB(i));
             }
             continue;
           }

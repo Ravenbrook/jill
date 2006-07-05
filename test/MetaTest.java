@@ -240,12 +240,10 @@ public class MetaTest extends JiliTestCase
       {
         public void runTest() { testmetapow(); }
       });
-    /* :todo:
     suite.addTest(new MetaTest("testmetaunm")
       {
         public void runTest() { testmetaunm(); }
       });
-    */
     suite.addTest(new MetaTest("testmetalen")
       {
         public void runTest() { testmetalen(); }
