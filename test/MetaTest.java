@@ -216,11 +216,11 @@ public class MetaTest extends JiliTestCase
       {
         public void runTest() { testmetale(); }
       });
-    /* :todo:
     suite.addTest(new MetaTest("testmetaadd")
       {
         public void runTest() { testmetaadd(); }
       });
+    /* :todo:
     suite.addTest(new MetaTest("testmetasub")
       {
         public void runTest() { testmetasub(); }

@@ -1663,6 +1663,16 @@ public final class Lua
 
   // Methods equivalent to the file ldebug.c.  Prefixed with g.
 
+  /** p1 and p2 are absolute stack indexes.  Corrupts NUMOP[0]. */
+  private void gAritherror(int p1, int p2)
+  {
+    if (!tonumber(value(p1), NUMOP))
+    {
+      p2 = p1;  // first operand is wrong
+    }
+    gTypeerror(value(p2), "perform arithmetic on");
+  }
+
   /** p1 and p2 are absolute stack indexes. */
   private void gConcaterror(int p1, int p2)
   {
@@ -2306,10 +2316,10 @@ reentry:
               double sum = NUMOP[0] + NUMOP[1];
               stack.setElementAt(valueOfNumber(sum), base+a);
             }
-            else
+            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
+                "__add"))
             {
-              // :todo: use metamethod
-              throw new IllegalArgumentException();
+              gAritherror(base+ARGB(i), base+ARGC(i));
             }
             continue;
           case OP_SUB:
@@ -3217,6 +3227,7 @@ reentry:
    * Convert to number.  Returns true if the argument o was converted to
    * a number.  Converted number is placed in <var>out[0]</var>.  Returns
    * false if the argument <var>o</var> could not be converted to a number.
+   * Overloaded.
    */
   private static boolean tonumber(Object o, double[] out)
   {
@@ -3241,7 +3252,7 @@ reentry:
    * the specified stack slot was converted to a number.  False
    * otherwise.  Note that this actually modifies the element stored at
    * <var>idx</var> in the stack (in faithful emulation of the PUC-Rio
-   * code).  Corrupts <code>NUMOP[0]</code>.
+   * code).  Corrupts <code>NUMOP[0]</code>.  Overloaded.
    * @param idx  absolute stack slot.
    */
   private boolean tonumber(int idx)
@@ -3254,7 +3265,11 @@ reentry:
     return false;
   }
 
-  /** Convert a pair of operands for an arithmetic opcode. */
+  /**
+   * Convert a pair of operands for an arithmetic opcode.  Stores
+   * converted results in <code>out[0]</code> and <code>out[1]</code>.
+   * @return true if and only if both values converted to number.
+   */
   private static boolean toNumberPair(Object x, Object y, double[] out)
   {
     if (tonumber(y, out))
