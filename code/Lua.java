@@ -2774,7 +2774,7 @@ reentry:
     boolean invert = b < 0.0 ;
     if (invert) b = -b ;
     if (a == 0.0)
-      return invert ? a/a : a ;
+      return invert ? Double.NaN : a ;
     double result = 1.0 ;
     int ipow = (int) b ;
     b -= ipow ;
@@ -2789,8 +2789,8 @@ reentry:
     if (b != 0.0) // integer only case, save doing unnecessary work
     {
       if (a < 0.0)  // doesn't work if a negative (complex result!)
-        return a/0.0 ;
-      t = sqrt(Math.abs(a)) ;
+        return Double.NaN ;
+      t = Math.sqrt(a) ;
       double half = 0.5 ;
       while (b > 0.0)
       {
@@ -2800,7 +2800,7 @@ reentry:
           b -= half ;
         }
         b = b+b ;
-        t = sqrt(t) ;
+        t = Math.sqrt(t) ;
         if (t == 1.0)
           break ;
       }
@@ -2808,7 +2808,7 @@ reentry:
     return invert ?  1.0 / result : result ;
   }
 
-  /** helper function for iNumpow() */
+  /** helper function for iNumpow()
   private double sqrt(double d)
   {
     if (d == 0.0)
@@ -2840,6 +2840,7 @@ reentry:
     }
     return recip ? 1.0 / result : result ;
   }
+  */
 
 
   /** Equivalent of luaV_gettable. */
