@@ -119,19 +119,51 @@ In general you need some way of building and running JME applications.
 <ul>
 
 <li>
-Java SDK.  Versions of 1.4.2, and 1.5.0_06 have been used.  The BlackBerry
+<p>
+Java SDK.
+</p>
+<p>Versions of Sun's 1.4.2, 1.5.0_06, 1.5.0_07 have been used.  The BlackBerry
 JDE 4.1 claims to require Java SDK 1.5.  On Windows Sun's Java SDK has
 been used, on Mac OS X the Java SDK supplied by Apple with Developer
 Tools has been used.
+</p>
+<p>
+On Windows, download Sun's 1.5 Java SDK (without NetBeans as it is not
+necessary) from the usual place,
+<a
+href="http://java.sun.com/javase/downloads/">http://java.sun.com/javase/downloads/</a>,
+and install according to Sun's instructions.  Note that the external
+version number is JDK 5.0.
+</p>
+
+<p>
+Ant requires access to various JDK tools.  It is recommended that
+<code>JAVA_HOME</code> is set appropriately.
+</p>
+
 </li>
 
 <li>
-Ant.  Version 1.6.5 is used, but it should be possible to use older (and
-newer?) versions as well.  The environment variable ANT_HOME may need to
+<p>
+Ant.
+</p>
+
+<p>
+Version 1.6.5 is used, but it should be possible to use older (and
+newer?) versions as well.  The environment variable
+<code>ANT_HOME</code> may need to
 be set.  On Mac OS X 10.4 (and I think 10.3) the Ant that comes with the
 Developer Tools can be used (a link to it is created in
 <code>/usr/bin/ant</code>, so your <code>PATH</code> should not need
 changing).  It is recommended that Ant be on your <code>PATH</code>.
+</p>
+
+<p>
+Ant is available in the project import directory:
+<code>import/2005-06-02/ant/</code> or can be downloaded from <a
+href="http://ant.apache.org/">http://ant.apache.org/</a>.
+Ant can be "installed" by unzipping to
+any directory.
 </li>
 
 <li>
@@ -150,7 +182,10 @@ files can be found.  If you place them somewhere else, you can set
 </p>
 <p>
 <code>build.xml</code> currently requires that the tools it needs are
-found on your <code>PATH</code>.
+found on your <code>PATH</code>.  In particular, if using the BlackBerry
+JDE then its bin directory, typically <code>c:\Program Files\Research
+in Motion\BlackBerry JDE 4.1.0\bin</code>, should be on your
+<code>PATH</code>.
 </p>
 <dl>
   <dt>mpowerplayer</dt>
@@ -164,6 +199,12 @@ found on your <code>PATH</code>.
   <code>/Users/drj/info.ravenbrook.com/project/jili/master/build.xml:172:
   Execute failed: java.io.IOException:
   /usr/local/mpp-sdk/osx/preverify/preverify: cannot execute</code>.
+  </dd>
+
+  <dt>BlackBerry JDE</dt>
+  <dd>The BlackBerry JDE is downloaded from <a
+  href="http://www.blackberry.com/developers/downloads/index.shtml">http://www.blackberry.com/developers/downloads/index.shtml</a>
+  and installed according to the instructions.
   </dd>
 </dl>
 </li>
@@ -240,6 +281,14 @@ different platforms, via NFS or Samba or similar, is not recommended.
   </p>
   </dd>
 
+<dt>sun-wtk</dt>
+  <dd>
+  <p>
+  Defaults to <code>/home/markt/software/javas/j2me-2.2</code> (!).
+  This is currently only intended to be used on MarkT's laptop.
+  </p>
+  </dd>
+
 <dt>j2meunit</dt>
   <dd>
   <p>
@@ -285,8 +334,8 @@ different platforms, via NFS or Samba or similar, is not recommended.
   <dl>
   <dt>mpp</dt><dd>mpowerplayer.  The default on Mac OS X.</dd>
   <dt>rim</dt><dd>RIM BlackBerry JDE.  The default on Windows.</dd>
-  <dt>sjwt</dt><dd>Sun Java Wireless Toolkit.  Not actually used, but
-  likely in the future.</dd>
+  <dt>sun-wtk</dt><dd>Sun Java Wireless Toolkit.  The default on Linux
+  (actually, any Unix that's not Mac OS X).</dd>
   </dl>
 
   <p>
