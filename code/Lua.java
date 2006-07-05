@@ -1439,14 +1439,14 @@ public final class Lua
   }
 
   /**
-   * Provide {@link java.ioReader} interface over a <code>String</code>.
+   * Provide {@link java.io.Reader} interface over a <code>String</code>.
    * Equivalent of {@link java.io.StringReader#StringReader} from J2SE.
    * The ability to convert a <code>String</code> to a
    * <code>Reader</code> is required internally,
    * to provide the Lua function <code>loadstring</code>; exposed
    * externally as a convenience.
    * @param s  the string from which to read.
-   * @return a {@link java.ioReader} that reads successive chars from <var>s</var>.
+   * @return a {@link java.io.Reader} that reads successive chars from <var>s</var>.
    */
   public static Reader stringReader(String s)
   {
