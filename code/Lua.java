@@ -2575,7 +2575,7 @@ reentry:
                 CallInfo ci = (CallInfo)civ.elementAt(civ.size()-2);
                 int func = ci.function();
                 int pfunc = this.ci.function();
-                fClose(base);
+                fClose(ci.base());
                 base = func + (this.ci.base() - pfunc);
                 int aux;        // loop index is used after loop ends
                 for (aux=0; pfunc+aux < stack.size(); ++aux)
