@@ -191,6 +191,11 @@
       basedir="preverified"
       manifest="test/metest-manifest"
       />
+    <jar
+      destfile="bin/jilishell.jar"
+      basedir="preverified"
+      manifest="test/jilishell-manifest"
+      />
   </target>
 
   <!-- Runs preverifier on compiled/ and test-compiled/ directories -->
