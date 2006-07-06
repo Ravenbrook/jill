@@ -123,19 +123,20 @@ standards.
   <dd>Same.  Or maybe unnecesssary.</dd>
 
   <dt>lua_close</dt>
-  <dd>No equivalent.</dd>
+  <dd>Provided, but does nothing (would call GC metamethods if they were
+  supported).</dd>
 
   <dt>lua_concat</dt>
   <dd>Same.</dd>
 
   <dt>lua_cpcall</dt>
-  <dd>To be decided.</dd>
+  <dd>To be decided.  An equivalent shall be provided.</dd>
 
   <dt>lua_createtable</dt>
   <dd>Use constructor of <code>LuaTable</code>.</dd>
 
   <dt>lua_dump</dt>
-  <dd>To be decided.  May never exist.</dd>
+  <dd>Same.</dd>
 
   <dt>lua_equal</dt>
   <dd>Same.</dd>
@@ -231,7 +232,7 @@ standards.
   <dd>Modelled by <code>java.lang.Double</code>.</dd>
 
   <dt>lua_objlen</dt>
-  <dd>Same.</dd>
+  <dd>Same except that it returns 0 for userdata.</dd>
 
   <dt>lua_pcall</dt>
   <dd>To Be Decided.</dd>

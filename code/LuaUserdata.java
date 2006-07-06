@@ -72,7 +72,7 @@ public final class LuaUserdata
    * Getter for environment.
    * @return The environment.
    */
-  Object getEnv()
+  LuaTable getEnv()
   {
     return env;
   }

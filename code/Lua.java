@@ -269,6 +269,14 @@ public final class Lua
   }
 
   /**
+   * Closes a Lua state.  In this implementation, this method does
+   * nothing.
+   */
+  public void close()
+  {
+  }
+
+  /**
    * Concatenate values (usually strings) on the stack.
    * <var>n</var> values from the top of the stack are concatenated, as
    * strings, and replaced with the resulting string.
@@ -286,6 +294,46 @@ public final class Lua
     {
       push("");
     } // else n == 1; nothing to do
+  }
+
+  /**
+   * Creates a new empty table and returns it.
+   * @param narr  number of array elements to pre-allocate.
+   * @param nrec  number of non-array elements to pre-allocate.
+   * @return a fresh table.
+   * @see newTable
+   */
+  public LuaTable createTable(int narr, int nrec)
+  {
+    return new LuaTable(narr, nrec);
+  }
+
+  /**
+   * Dumps a function as a binary chunk.
+   * @param function  the Lua function to dump.
+   * @param writer    the stream that receives the dumped binary.
+   * @throws IOException when writer does.
+   */
+  public static void dump(Object function, OutputStream writer)
+      throws IOException
+  {
+    if (!(function instanceof LuaFunction)) {
+      throw new IOException("Cannot dump " + typeName(type(function)));
+    }
+    LuaFunction f = (LuaFunction)function;
+    uDump(f.proto(), writer, false);
+  }
+
+  /**
+   * Tests for equality according to the semantics of Lua's
+   * <code>==</code> operator (so may call metamethods).
+   * @param o1  a Lua value.
+   * @param o2  another Lua value.
+   * @return true when equal.
+   */
+  public boolean equal(Object o1, Object o2)
+  {
+    return vmEqual(o1, o2);
   }
 
   /**
@@ -329,6 +377,39 @@ public final class Lua
         return 0;
     }
     return 0;
+  }
+
+  /**
+   * Returns the environment table of the Lua value.
+   * @param o  the Lua value.
+   * @return its environment table.
+   */
+  public LuaTable getFenv(Object o)
+  {
+    if (o instanceof LuaFunction)
+    {
+      LuaFunction f = (LuaFunction)o;
+      return f.getEnv();
+    }
+    if (o instanceof LuaJavaCallback)
+    {
+      LuaJavaCallback f = (LuaJavaCallback)o;
+      // :todo: implement this case.
+      return null;
+    }
+
+    if (o instanceof LuaUserdata)
+    {
+      LuaUserdata u = (LuaUserdata)o;
+      return u.getEnv();
+    }
+
+    if (false)
+    {
+      // :todo: implement TTHREAD case;
+      return null;
+    }
+    return null;
   }
 
   /**
@@ -387,6 +468,17 @@ public final class Lua
       mt = metatable[type(o)];
     }
     return mt;
+  }
+
+  /**
+   * Indexes into a table and returns the value.
+   * @param t  the Lua value to index.
+   * @param k  the key whose value to return.
+   * @return the value t[k].
+   */
+  public Object getTable(Object t, Object k)
+  {
+    return vmGettable(t, k);
   }
 
   /**
@@ -539,6 +631,18 @@ public final class Lua
   }
 
   /**
+   * Compares two Lua values according to the semantics of Lua's
+   * <code>&lt;</code> operator, so may call metamethods.
+   * @param o1  the left-hand operand.
+   * @param o2  the right-hand operand.
+   * @param true when <code>o1 < o2</code>.
+   */
+  public boolean lessThan(Object o1, Object o2)
+  {
+    return vmLessthan(o1, o2);
+  }
+
+  /**
    * <p>
    * Loads a Lua chunk in binary or source form.
    * Comparable to C's lua_load.  If the chunk is determined to be
@@ -634,6 +738,52 @@ public final class Lua
     // protocol error which we could potentially diagnose.
     return false;
   }
+
+  /**
+   * Creates a new empty table and returns it.
+   * @see createTable
+   */
+  public LuaTable newTable()
+  {
+    return new LuaTable();
+  }
+
+  /**
+   * Wraps an arbitrary Java reference in a Lua userdata and returns it.
+   * @param ref  the Java reference to wrap.
+   * @return the new LuaUserdata.
+   */
+  public LuaUserdata newUserdata(Object ref)
+  {
+    return new LuaUserdata(ref);
+  }
+
+  /**
+   * Return the <em>length</em> of a Lua value.  For strings this is
+   * the string length; for tables, this is result of the <code>#</code>
+   * operator; for other values it is 0.
+   * @param o  a Lua value.
+   * @return its length.
+   */
+  public static int objLen(Object o)
+  {
+    if (o instanceof String)
+    {
+      String s = (String)o;
+      return s.length();
+    }
+    if (o instanceof LuaTable)
+    {
+      LuaTable t = (LuaTable)o;
+      return t.getn();
+    }
+    if (o instanceof Double)
+    {
+      return vmTostring(o).length();
+    }
+    return 0;
+  }
+
 
   /**
    * Protected {@link Lua#call}.
@@ -740,6 +890,15 @@ public final class Lua
   }
 
   /**
+   * Push string onto the stack.
+   * @param s  the string to push.
+   */
+  public void pushString(String s)
+  {
+    push(s);
+  }
+
+  /**
    * Copies a stack element onto the top of the stack.
    * Equivalent to <code>L.push(L.value(idx))</code>.
    * @param idx  stack index of value to push.
@@ -798,6 +957,19 @@ public final class Lua
     }
     LuaTable table = (LuaTable)t;
     table.put(k, v);
+  }
+
+  /**
+   * Sets an element in an array, without using metamethods.
+   * @param t  the array (table).
+   * @param i  the index of the element to set.
+   * @param v  the new value to be stored at index <var>i</var>.
+   */
+  public void rawSetI(Object t, int i, Object v)
+  {
+    apiCheck(t instanceof LuaTable);
+    LuaTable h = (LuaTable)t;
+    h.putnum(i, v);
   }
 
   /**
@@ -896,6 +1068,17 @@ public final class Lua
   }
 
   /**
+   * Does the equivalent of <code>t[k] = v</code>.
+   * @param t  the table to modify.
+   * @param k  the index to modify.
+   * @param v  the new value at index <var>k</code>.
+   */
+  public void setTable(Object t, Object k, Object v)
+  {
+    vmSettable(t, k, v);
+  }
+
+  /**
    * Set the stack top.
    * @param n  the desired size of the stack (in elements).
    */
@@ -981,7 +1164,7 @@ public final class Lua
    * @param o  the Lua value whose type to return.
    * @return  the Lua type from an enumeration.
    */
-  public int type(Object o)
+  public static int type(Object o)
   {
     if (o == NIL)
     {
@@ -1020,7 +1203,7 @@ public final class Lua
    * @param type  a Lua type from, for example, {@link Lua#type}.
    * @return  the type's name.
    */
-  public String typeName(int type)
+  public static String typeName(int type)
   {
     if (TNONE == type)
     {
@@ -2143,8 +2326,8 @@ public final class Lua
 
   /**
    * Primitive for testing Lua equality of two values.  Equivalent of
-   * PUC-Rio's equalobj macro.  Note that using null to model nil
-   * complicates this test, maybe we should use a nonce object.
+   * PUC-Rio's <code>equalobj</code> macro.  Note that using null to
+   * model nil complicates this test, maybe we should use a nonce object.
    * In the loosest sense, this is the equivalent of
    * <code>luaV_equalval</code>.
    */
@@ -3071,7 +3254,7 @@ reentry:
     gRunerror("loop in settable");
   }
 
-  private String vmTostring(Object o)
+  private static String vmTostring(Object o)
   {
     if (o instanceof String)
     {
@@ -3346,39 +3529,40 @@ reentry:
   }
 
 
-  /** corresponds to ldump's luaU_dump method, but with data gone and writer
-      replaced by OutputStream */
-  int uDump(Proto f, OutputStream writer, boolean strip) throws IOException
+  /**
+   * Corresponds to ldump's luaU_dump method, but with data gone and writer
+   * replaced by OutputStream.
+   */
+  static int uDump(Proto f, OutputStream writer, boolean strip)
+      throws IOException
   {
-    DumpState D = new DumpState(this, new DataOutputStream(writer), strip) ;
-    D.DumpHeader();
-    D.DumpFunction(f, null);
-    D.writer.flush();
-    return D.status;
+    DumpState d = new DumpState(new DataOutputStream(writer), strip) ;
+    d.DumpHeader();
+    d.DumpFunction(f, null);
+    d.writer.flush();
+    return d.status;
   }
 
 }
 
 final class DumpState
 {
-  //  Lua L; // not needed?
   DataOutputStream writer;
   boolean strip;
   int status;
   boolean littleEndian = true ;
 
   // :TODO: Lua interface is for a writer interface, not a stream
-  DumpState(Lua L, DataOutputStream writer, boolean strip)
+  DumpState(DataOutputStream writer, boolean strip)
   {
-    //    this.L = L;
     this.writer = writer ;
     this.strip = strip ;
   }
 
-  DumpState(Lua L, DataOutputStream writer, boolean strip, boolean littleEndian)
+  DumpState(DataOutputStream writer, boolean strip, boolean littleEndian)
   {
-      this (L, writer, strip);
-      this.littleEndian = littleEndian ;
+    this(writer, strip);
+    this.littleEndian = littleEndian ;
   }
 
 
