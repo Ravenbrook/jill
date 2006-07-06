@@ -215,6 +215,7 @@ final class Syntax
     }
   }
 
+  // :todo: consider removing or macroising.
   private void lua_assert(boolean b, String routine)
   {
     if (!b)
@@ -250,8 +251,9 @@ final class Syntax
       switch (current)
       {
         case EOZ:
-          xLexerror(is_string ? "unfinished long string" : "unfinished long comment",
-                    TK_EOS);
+          xLexerror(is_string ? "unfinished long string" :
+                                "unfinished long comment",
+              TK_EOS);
           break;  /* to avoid warnings */
         case ']':
           if (skip_sep() == sep)
@@ -307,11 +309,11 @@ final class Syntax
           if (current == '[')
           {
             int sep = skip_sep();
-            buff.setLength(0) ; // buff.zResetbuffer();  /* `skip_sep' may dirty the buffer */
+            buff.setLength(0) ; /* `skip_sep' may dirty the buffer */
             if (sep >= 0)
             {
               read_long_string(false, sep);  /* long comment */
-              buff.setLength(0) ; //buff.zResetbuffer();
+              buff.setLength(0) ;
               continue;
             }
           }
@@ -375,9 +377,20 @@ final class Syntax
         case '.':
           save_and_next();
           if (check_next("."))
-          { return check_next(".") ? TK_DOTS : TK_CONCAT ; }
+          { 
+            if (check_next("."))
+            {
+              return TK_DOTS;
+            }
+            else
+            {
+              return TK_CONCAT ;
+            }
+          }
           else if (!isdigit(current))
-          { return '.'; }
+          {
+            return '.';
+          }
           else
           {
             read_numeral();
@@ -1575,7 +1588,7 @@ final class Syntax
   }
 
 
-  private void yChecklimit(int v,int l, String m)
+  private void yChecklimit(int v, int l, String m)
   {
     if (v > l)
       errorlimit(l,m);
@@ -1587,13 +1600,10 @@ final class Syntax
     fs.actvar[fs.nactvar+n] = (short)registerlocalvar(name);
   }
 
-  /** I think this is a C thing not Lua */
-  static final int SHRT_MAX = (1<<15)-1 ;
-
   private int registerlocalvar(String varname)
   {
     Proto f = fs.f;
-    f.ensureLocvars(L, fs.nlocvars, SHRT_MAX) ;
+    f.ensureLocvars(L, fs.nlocvars, Short.MAX_VALUE) ;
     f.locvars[fs.nlocvars].varname = varname;
     return fs.nlocvars++;
   }
@@ -1646,7 +1656,8 @@ final class Syntax
     for (int i=0; i < ff.nups; i++)
     {
       int upvalue = func.upvalues[i] ;
-      int o = (UPVAL_K(upvalue) == Expdesc.VLOCAL) ? Lua.OP_MOVE : Lua.OP_GETUPVAL;
+      int o = (UPVAL_K(upvalue) == Expdesc.VLOCAL) ? Lua.OP_MOVE :
+                                                     Lua.OP_GETUPVAL;
       fs.kCodeABC(o, 0, UPVAL_INFO(upvalue), 0);
     }
   }
@@ -1831,7 +1842,8 @@ final class Syntax
     forbody(base, line, nvars - 3, false);
   }
 
-  private void forbody(int base, int line, int nvars, boolean isnum) throws IOException
+  private void forbody(int base, int line, int nvars, boolean isnum)
+      throws IOException
   {
     /* forbody -> DO block */
     BlockCnt bl = new BlockCnt() ;

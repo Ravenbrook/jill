@@ -23,7 +23,7 @@ import java.util.Enumeration;
 import java.util.Stack;
 import java.util.Vector;
 
-// hopefully these only needed during testing:
+// Required by little-endian support in class DumpState
 import java.io.ByteArrayOutputStream;
 
 /**
@@ -3030,41 +3030,6 @@ reentry:
     return invert ?  1.0 / result : result ;
   }
 
-  /** helper function for iNumpow()
-  private double sqrt(double d)
-  {
-    if (d == 0.0)
-      return d;
-    boolean recip = d < 1.0 ;
-    if (recip)
-      d = 1.0 / d ;
-    int adjust = 0 ;
-    double four = 4.0 ;
-    while (d >= four)
-    {
-      d /= four ;
-      adjust += 1 ;
-    }
-    double p = 1.0 ;
-    double result = 0.0 ;
-    double half = 0.5 ;
-    for (int i = 0 ; i < 53 ; i++)
-    {
-      double test = result + p ;
-      if (test*test <= d)
-        result = test;
-      p = p * half ;
-    }
-    while (adjust > 0)
-    {
-      result *= 2.0 ;
-      adjust -= 1 ;
-    }
-    return recip ? 1.0 / result : result ;
-  }
-  */
-
-
   /** Equivalent of luaV_gettable. */
   private Object vmGettable(Object t, Object key)
   {
@@ -3340,7 +3305,7 @@ reentry:
   }
 
   /**
-   * @param p1  left hand operand.  Absolate stack index.
+   * @param p1  left hand operand.  Absolute stack index.
    * @param p2  right hand operand.  Absolute stack index.
    * @param res absolute stack index of result.
    * @return false if no tagmethod, true otherwise
@@ -3620,7 +3585,6 @@ final class DumpState
     writer.write(header, 7, 5) ;
   }
 
-
   private void DumpInt(int i) throws IOException
   {
     if (littleEndian)
@@ -3761,5 +3725,4 @@ final class DumpState
     for (int i=0; i<n; i++)
       DumpString(f.upvalues[i]);
   }
-
 }

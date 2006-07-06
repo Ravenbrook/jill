@@ -19,13 +19,6 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.Reader;
 
-// these for compiler_debug only:
-/*
-import java.io.FileOutputStream;
-import java.io.OutputStream;
-import java.io.File;
-*/
-
 /**
  * Class used to implement internal callbacks.  Currently there is only
  * one callback used, one that parses or loads a Lua chunk into binary
