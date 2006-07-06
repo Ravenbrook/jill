@@ -14,11 +14,11 @@
  */
 
 /**
- * Equivalent to struct lua_Debug.  This implementatino is incomplete
+ * Equivalent to struct lua_Debug.  This implementation is incomplete
  * because it is not intended to form part of the public API.  It has
  * only been implemented to the extent necessary for internal use.
  */
-public final class Debug
+final class Debug
 {
   // private, not public accessors defined
   private int i_ci;
