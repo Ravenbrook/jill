@@ -973,6 +973,17 @@ public final class Lua
   }
 
   /**
+   * Register a {@link LuaJavaCallback} as the new value of the global
+   * <var>name</var>.
+   * @param name  the name of the global.
+   * @param f     the LuaJavaCallback to register.
+   */
+  public void register(String name, LuaJavaCallback f)
+  {
+    setGlobal(name, f);
+  }
+
+  /**
    * Set the environment for a function, thread, or userdata.
    * @param o      Object whose environment will be set.
    * @param table  Environment table to use.
@@ -1141,6 +1152,22 @@ public final class Lua
   public String toString(Object o)
   {
     return vmTostring(o);
+  }
+
+  /**
+   * Convert to userdata or <code>null</code>.  If value is a {@link
+   * LuaUserdata} then it is returned, otherwise, <code>null</code> is
+   * returned.
+   * @param o  Lua value.
+   * @return  value as userdata or <code>null</code>.
+   */
+  public LuaUserdata toUserdata(Object o)
+  {
+    if (o instanceof LuaUserdata)
+    {
+      return (LuaUserdata)o;
+    }
+    return null;
   }
 
   /**
