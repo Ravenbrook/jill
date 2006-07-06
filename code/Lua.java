@@ -244,27 +244,24 @@ public final class Lua
    * {@link Lua#push pushed} onto the stack; the first argument is pushed
    * directly after the function,
    * then the following arguments are pushed in order (direct
-   * order).  The parameter <var>n</var> specifies the number of
+   * order).  The parameter <var>nargs</var> specifies the number of
    * arguments (which may be 0).
    *
    * When the function returns the function value on the stack and all
    * the arguments are removed from the stack and replaced with the
    * results of the function, adjusted to the number specified by
-   * <var>r</var>.  So the first result from the function call will be
-   * at the same index where the function was immediately prior to
+   * <var>nresults</var>.  So the first result from the function call will
+   * be at the same index where the function was immediately prior to
    * calling this method.
    *
-   * @param n  The number of arguments in this function call.
-   * @param r  The number of results required.
+   * @param nargs     The number of arguments in this function call.
+   * @param nresults  The number of results required.
    */
-  public void call(int n, int r)
+  public void call(int nargs, int nresults)
   {
-    if (n < 0 || n + base > stack.size())
-    {
-      throw new IllegalArgumentException();
-    }
-    int func = stack.size() - (n + 1);
-    this.vmCall(func, r);
+    apiChecknelems(nargs+1);
+    int func = stack.size() - (nargs + 1);
+    this.vmCall(func, nresults);
   }
 
   /**
@@ -787,11 +784,25 @@ public final class Lua
 
 
   /**
-   * Protected {@link Lua#call}.
+   * <p>
+   * Protected {@link Lua#call}.  <var>nargs</var> and
+   * <var>nresults</var> have the same meaning as in {@link Lua#call}.
+   * If there are no errors during the call, this method behaves as
+   * {@link Lua#call}.  Any errors are caught, the error object (usually
+   * a message) is pushed onto the stack, and a non-zero error code is
+   * returned.
+   * </p>
+   * <p>
+   * If <var>er</var> is <code>null</code> then the error object that is
+   * on the stack is the original error object.  Otherwise
+   * <var>ef</var> specifies an <em>error handling function</em> which
+   * is called when the original error is generated; its return value
+   * becomes the error object left on the stack by <code>pcall</code>.
+   * </p>
    * @param nargs     number of arguments.
    * @param nresults  number of result required.
    * @param ef        error function to call in case of error.
-   * @return status code
+   * @return 0 if successful, else a non-zero error code.
    */
   public int pcall(int nargs, int nresults, Object ef)
   {
