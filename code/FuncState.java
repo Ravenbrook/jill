@@ -46,10 +46,10 @@ final class FuncState
   Lua L;
 
   /** chain of current blocks */
-  BlockCnt bl = null;
+  BlockCnt bl;  // = null;
 
   /** next position to code. */
-  int pc = 0;
+  int pc;       // = 0;
 
   /** pc of last jump target. */
   int lasttarget = -1;
@@ -58,19 +58,19 @@ final class FuncState
   int jpc = NO_JUMP;
 
   /** First free register. */
-  int freereg = 0;
+  int freereg;  // = 0;
 
   /** number of elements in <var>k</var>. */
-  int nk = 0;
+  int nk;       // = 0;
 
   /** number of elements in <var>p</var>. */
-  int np = 0;
+  int np;       // = 0;
 
   /** number of elements in <var>locvars</var>. */
-  short nlocvars = 0;
+  short nlocvars;       // = 0;
 
   /** number of active local variables. */
-  short nactvar = 0;
+  short nactvar;        // = 0;
 
   /** upvalues as 8-bit k and 8-bit info */
   int [] upvalues = new int [Lua.MAXUPVALUES] ;
@@ -422,7 +422,7 @@ final class FuncState
     return addk(s);
   }
 
-  private final static Object fake_nil = new Object() ;
+  private static final Object fake_nil = new Object() ;
 
   private int addk(Object o)
   {
@@ -608,16 +608,16 @@ final class FuncState
     e.init(Expdesc.VNONRELOC, reg);
   }
 
-  private int code_label(int A, int b, int jump)
+  private int code_label(int a, int b, int jump)
   {
     kGetlabel();  /* those instructions may be jump targets */
-    return kCodeABC(Lua.OP_LOADBOOL, A, b, jump);
+    return kCodeABC(Lua.OP_LOADBOOL, a, b, jump);
   }
 
-/*
-** check whether list has any jump that do not produce a value
-** (or produce an inverted value)
-*/
+  /**
+   * check whether list has any jump that do not produce a value
+   * (or produce an inverted value)
+   */
   private boolean need_value(int list)
   {
     for (; list != NO_JUMP; list = getjump(list))
@@ -950,8 +950,8 @@ final class FuncState
         if (nk <= Lua.MAXINDEXRK)    /* constant fit in RK operand? */
         {
           e.info = (e.k == Expdesc.VNIL)  ? nilK() :
-              (e.k == Expdesc.VKNUM) ? kNumberK(e.nval) :
-              boolK(e.k == Expdesc.VTRUE);
+                   (e.k == Expdesc.VKNUM) ? kNumberK(e.nval) :
+                                            boolK(e.k == Expdesc.VTRUE);
           e.k = Expdesc.VK;
           return e.info | Lua.BITRK;
         }
@@ -977,7 +977,6 @@ final class FuncState
         kDischargevars(e);
   }
 
-  /** TODO: int may become boolean or Boolean */
   private int boolK(boolean b)
   {
     return addk(Lua.valueOfBoolean(b));
@@ -1078,9 +1077,9 @@ final class FuncState
     return condjump(Lua.OP_TESTSET, Lua.NO_REG, e.info, cond ? 1 : 0);
   }
 
-  private int condjump(int op, int A, int B, int C)
+  private int condjump(int op, int a, int b, int c)
   {
-    kCodeABC(op, A, B, C);
+    kCodeABC(op, a, b, c);
     return kJump();
   }
 
