@@ -301,7 +301,7 @@ public final class Lua
    * @param narr  number of array elements to pre-allocate.
    * @param nrec  number of non-array elements to pre-allocate.
    * @return a fresh table.
-   * @see newTable
+   * @see Lua#newTable
    */
   public LuaTable createTable(int narr, int nrec)
   {
@@ -635,7 +635,7 @@ public final class Lua
    * <code>&lt;</code> operator, so may call metamethods.
    * @param o1  the left-hand operand.
    * @param o2  the right-hand operand.
-   * @param true when <code>o1 < o2</code>.
+   * @return true when <code>o1 < o2</code>.
    */
   public boolean lessThan(Object o1, Object o2)
   {
@@ -741,7 +741,7 @@ public final class Lua
 
   /**
    * Creates a new empty table and returns it.
-   * @see createTable
+   * @see Lua#createTable
    */
   public LuaTable newTable()
   {
