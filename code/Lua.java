@@ -741,6 +741,7 @@ public final class Lua
 
   /**
    * Creates a new empty table and returns it.
+   * @return a fresh table.
    * @see Lua#createTable
    */
   public LuaTable newTable()
@@ -3347,7 +3348,7 @@ reentry:
     stack.setElementAt(callTMres(tm, value(p1), value(p2)), res);
     return true;
   }
-    
+
   /**
    * @return -1 if no tagmethod, 0 false, 1 true
    */
@@ -3580,7 +3581,6 @@ final class DumpState
   int status;
   boolean littleEndian = true ;
 
-  // :TODO: Lua interface is for a writer interface, not a stream
   DumpState(DataOutputStream writer, boolean strip)
   {
     this.writer = writer ;

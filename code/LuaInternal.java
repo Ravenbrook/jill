@@ -84,7 +84,6 @@ final class LuaInternal extends LuaJavaCallback
           reader = new InputStreamReader(stream, "UTF-8");
         }
         p = Syntax.parser(L, reader, chunkname);
-        debug_compiler(L, p, false) ; // :todo: take this out
       }
       L.push(new LuaFunction(p,
           new UpVal[0],
@@ -97,30 +96,5 @@ final class LuaInternal extends LuaJavaCallback
       L.dThrow(Lua.ERRFILE);
       return 0;
     }
-  }
-
-
-  // :todo: take this out
-  static int seq = 0 ;
-  static void debug_compiler(Lua L, Proto p, boolean strip)
-  {
-    /*
-    OutputStream out = null ;
-    try
-    {
-      out = new FileOutputStream (new File ("compiler.chunk"+(seq++)+".luc")) ;
- p.source = "@"+p.source ;
-      L.uDump (p, out, strip) ;
-    }
-    catch (Exception e)
-    {
-      System.out.println ("Problem dumping compiler chunk to compiler.chunk.output "+e.getMessage()) ;
-    }
-    finally
-    {
-      if (out != null)
-      { try { out.close () ; } catch (IOException io) {}}
-    }
-    */
   }
 }

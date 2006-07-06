@@ -37,9 +37,12 @@ public final class LuaTable extends java.util.Hashtable
     super(narray+nhash);
   }
 
-  /** Implements discriminating equality.  <code>o1.equals(o2) == (o1 ==
+  /**
+   * Implements discriminating equality.  <code>o1.equals(o2) == (o1 ==
    * o2) </code>.  This method is not necessary in CLDC, it's only
    * necessary in J2SE because java.util.Hashtable overrides equals.
+   * @param o  the reference to compare with.
+   * @return true when equal.
    */
   public boolean equals(Object o)
   {
@@ -124,9 +127,17 @@ public final class LuaTable extends java.util.Hashtable
 
   /**
    * Overrides {@link java.util.Hashtable#put} to enable Lua's semantics
-   * for <code>nil</code>.  In particular that <code>x = nil</nil>
-   * deletes <code>x</code>.  In Jili it is dangerous to use the return
-   * value from this method (because it may be null).
+   * for <code>nil</code>;
+   * In particular that <code>x = nil</nil>
+   * deletes <code>x</code>.
+   * Generally, users of Jili should be using
+   * {@link Lua#setTable} instead of this.
+   * In Jili it is dangerous to use the return
+   * value from this method (because it may be <code>null</code> which
+   * is not a Lua value).
+   * @param key key.
+   * @param value value.
+   * @return something not well defined.
    */
   public Object put(Object key, Object value)
   {
