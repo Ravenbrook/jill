@@ -315,7 +315,7 @@ public class SyntaxTest extends JiliTestCase
     Object res = L.value(1) ;
     assertTrue("closures 1 result test", res instanceof LuaTable) ;
     int size = ((LuaTable) res).size () ;
-    assertTrue("closures 1 result test#2", size == 2) ;
+    assertTrue("closures 1 result test#2", size == 3) ;
     
     L.setTop(0) ;
   }
