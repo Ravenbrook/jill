@@ -18,7 +18,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 
 // these for compiler_debug only:
 /*
@@ -80,8 +79,9 @@ final class LuaInternal extends LuaJavaCallback
       {
         if (reader == null)
         {
-          try { reader = new InputStreamReader(stream, "UTF-8"); }
-          catch (UnsupportedEncodingException uee) {}
+          // Possible UnsupportedEncodingException caught as IOException
+          // in this method's top-level try/catch.
+          reader = new InputStreamReader(stream, "UTF-8");
         }
         p = Syntax.parser(L, reader, chunkname);
         debug_compiler(L, p, false) ; // :todo: take this out

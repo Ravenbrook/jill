@@ -19,7 +19,6 @@ import java.io.OutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
 import java.util.Stack;
 import java.util.Vector;
@@ -3712,18 +3711,12 @@ final class DumpState
     }
     else
     {
-      try
-      {
-        byte [] contents = s.getBytes("UTF-8") ;
-        int size = contents.length ;
-        DumpInt(size+1) ;
-        writer.write(contents, 0, size) ;
-        writer.writeByte(0) ;
-      }
-      catch (UnsupportedEncodingException uee)
-      {
-        // :todo: handle this case appropriately
-      }
+      // Possible UnsupportedEncodingException is left to be thrown.
+      byte [] contents = s.getBytes("UTF-8") ;
+      int size = contents.length ;
+      DumpInt(size+1) ;
+      writer.write(contents, 0, size) ;
+      writer.writeByte(0) ;
     }
   }
 
