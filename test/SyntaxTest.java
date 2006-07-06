@@ -299,6 +299,10 @@ public class SyntaxTest extends JiliTestCase
 
   }
 
+  /**
+   * For historical reasons, this no longer tests the Syntax module
+   * (compiler), but detects a bug in the VM.
+   */
   public void testSyntax10()
   {
     System.out.println ("Syntax10");
