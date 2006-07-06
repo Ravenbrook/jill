@@ -170,6 +170,11 @@
       <arg value="load" />
       <arg value="bin/jilit.cod" />
     </exec>
+    <exec executable="javaloader" >
+      <arg value="-u" />
+      <arg value="load" />
+      <arg value="bin/jilishell.cod" />
+    </exec>
   </target>
 
   <target name="cod"
@@ -180,6 +185,12 @@
       <arg value="-midlet" />
       <arg value="codename=jilit" />
       <arg value="jilit.jar" />
+    </exec>
+    <exec executable="rapc" dir="bin" >
+      <arg value="import=${rim}/lib/net_rim_api.jar" />
+      <arg value="-midlet" />
+      <arg value="codename=jilishell" />
+      <arg value="jilishell.jar" />
     </exec>
   </target>
 
