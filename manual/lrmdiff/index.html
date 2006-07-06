@@ -80,11 +80,11 @@ ASCII would map them to.
 
 <p>
 Obviously different as the PUC-Rio API is in C and Jili's API is in
-Java.  Equivalent facilities are provided.  Where, in the list below, an
-entry simply says "Same" it means that an equivalent method is provided
-in the <code>Lua</code> class; generally "lua_" will be removed from the
-name and capitalisation will be modified to meet prevalent Java
-standards.
+Java.  Equivalent facilities are provided.  In the list below, only
+those API facilities that are significantly different from PUC-Rio are
+mentioned.  Generally the C API function <code>lua_XXX</code> becomes a
+method in the <code>Lua</code> class called <code>XXX</code> with the
+capitalisation modified to meet prevalent Java standards.
 </p>
 
 <dl>
@@ -104,17 +104,22 @@ standards.
   <dd>(The Registry) Court still in session.</dd>
 
   <dt>(Error Handling) LRM 3.6</dt>
-  <dd>Still to be decided but it's likely that errors will be raised by
-  throwing an exception.</dd>
+  <dd>As in PUC-Rio Lua errors should be handled using
+  <code>pcall</code>.  Internally errors are generated using Java
+  exceptions, so Lua errors that occur outside of the environment
+  created by <code>pcall</code> will manifest as Java exceptions.  Most
+  of Java's internal exceptions are not caught so will be passed through
+  transparently.  In particular running out of memory in Lua will appear
+  as the usual Java exception.
+  </dd>
 
   <dt>lua_Alloc</dt>
   <dd>No equivalent in Jili.</dd>
 
   <dt>lua_atpanic</dt>
-  <dd>No equivalent in Jili.</dd>
-
-  <dt>lua_call</dt>
-  <dd>Same.</dd>
+  <dd>No equivalent in Jili.  A Lua error raised outside the environment
+  created by <code>pcall</code> will manifest as a Java exception being
+  thrown.</dd>
 
   <dt>lua_CFunction</dt>
   <dd>Replace by <code>LuaJavaCallback</code>.</dd>
@@ -126,23 +131,8 @@ standards.
   <dd>Provided, but does nothing (would call GC metamethods if they were
   supported).</dd>
 
-  <dt>lua_concat</dt>
-  <dd>Same.</dd>
-
   <dt>lua_cpcall</dt>
-  <dd>To be decided.  An equivalent shall be provided.</dd>
-
-  <dt>lua_createtable</dt>
-  <dd>Use constructor of <code>LuaTable</code>.</dd>
-
-  <dt>lua_dump</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_equal</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_error</dt>
-  <dd>Same.</dd>
+  <dd>There is no direct equivalent, use <code>pcall</code> instead.</dd>
 
   <dt>lua_gc</dt>
   <dd>Same interface but mostly dummy functionality.</dd>
@@ -150,65 +140,20 @@ standards.
   <dt>lua_getallocf</dt>
   <dd>No equivalent.</dd>
 
-  <dt>lua_getfenv</dt>
-  <dd>Same.</dd>
-
   <dt>lua_getfield</dt>
   <dd>Same.  <code>LUA_GLOBALSINDEX</code>,
   <code>LUA_ENVIRONINDEX</code>, <code>LUA_REGISTRYINDEX</code>, not
   supported.  See <code>getGlobals</code>, <code>getEnviron</code>,
   <code>getRegistry</code> instead.</dd>
 
-  <dt>lua_getglobal</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_getmetatable</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_gettable</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_gettop</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_insert</dt>
-  <dd>No equivalent.</dd>
-
   <dt>lua_integer</dt>
   <dd>Replaced by <code>int</code>.</dd>
-
-  <dt>lua_isboolean</dt>
-  <dd>Same.</dd>
 
   <dt>lua_iscfunction</dt>
   <dd>Use <code>isJavaFunction</code>.</dd>
 
-  <dt>lua_isfunction</dt>
-  <dd>Same.</dd>
-
   <dt>lua_islightuserdata</dt>
   <dd>To be Decided.</dd>
-
-  <dt>lua_isnil</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_isnumber</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_isstring</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_istable</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_isthread</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_isuserdata</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_lessthan</dt>
-  <dd>Same.</dd>
 
   <dt>lua_load</dt>
   <dd>Similar, see <code>Lua.load</code>.</dd>
@@ -216,14 +161,8 @@ standards.
   <dt>lua_newstate</dt>
   <dd>Use constructor of <code>Lua</code>.</dd>
 
-  <dt>lua_newtable</dt>
-  <dd>Use constructor of <code>LuaTable</code>.</dd>
-
   <dt>lua_newthread</dt>
   <dd>Same.</dd>
-
-  <dt>lua_newuserdata</dt>
-  <dd>Equivalent facilities provided.</dd>
 
   <dt>lua_next</dt>
   <dd>Same, but not efficient.</dd>
@@ -232,75 +171,32 @@ standards.
   <dd>Modelled by <code>java.lang.Double</code>.</dd>
 
   <dt>lua_objlen</dt>
-  <dd>Same except that it returns 0 for userdata.</dd>
-
-  <dt>lua_pcall</dt>
-  <dd>To Be Decided.</dd>
-
-  <dt>lua_pop</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_pushboolean</dt>
-  <dd>Use <code>Lua.valueOfBoolean</code> and generic push.
-  Note that push is
-  not necessary unless you are constructing an argument list for a
-  function call, or constructing a set of return values.</dd>
+  <dd>Same, except that it returns 0 for userdata.</dd>
 
   <dt>lua_pushcclosure</dt>
-  <dd>Use generic push.</dd>
+  <dd>Use generic push with a <code>LuaJavaCallback</code> instance.</dd>
 
   <dt>lua_pushcfunction</dt>
-  <dd>Use generic push.</dd>
+  <dd>As for <code>lua_pushcclosure</code>.</dd>
   
   <dt>lua_pushfstring</dt>
-  <dd>To Be Decided.</dd>
+  <dd>Not provided.  Generally you can use Java's <code>+</code>
+  operator on <code>String</code> to build complex strings.</dd>
 
   <dt>lua_pushinteger</dt>
-  <dd>Lua.pushNumber.</dd>
+  <dd>Use <code>Lua.pushNumber</code>.</dd>
 
   <dt>lua_pushlightuserdata</dt>
   <dd>To Be Decided</dd>
 
   <dt>lua_pushlstring</dt>
-  <dd>No equivalent facility.
-  Java strings have no difficulties with embedded NULs, therefore
-  additional APIs to take account of them are not necessary.</dd>
-
-  <dt>lua_pushnil</dd>
-  <dd>same.</dd>
-
-  <dt>lua_pushnumber</dd>
-  <dd>same.</dd>
-
-  <dt>lua_pushstring</dt>
-  <dd>Use generic push.</dd>
-
-  <dt>lua_pushthread</dt>
-  <dd>Use generic push.</dd>
-
-  <dt>lua_pushvalue</dt>
-  <dd>same.</dd>
+  <dd>Use <code>Lua.pushString</code>.</dd>
 
   <dt>lua_pushvfstring</dt>
-  <dd>No.</dd>
-
-  <dt>lua_rawequal</dt>
-  <dd>To be decided (could use <code>Object.equals</code> instead).</dd>
-
-  <dt>lua_rawget</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_rawgeti</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_rawset</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_rawseti</dt>
-  <dd>Same.</dd>
+  <dd>Not provided.</dd>
 
   <dt>lua_Reader</dt>
-  <dd>To Be Decided (possibly use <code>java.util.Reader</code>).</dd>
+  <dd>Generally replaced with <code>java.io.InputStream</code>.</dd>
 
   <dt>lua_register</dt>
   <dd>To be decided.</dd>
@@ -311,38 +207,14 @@ standards.
   <dt>lua_replace</dt>
   <dd>No equivalent.</dd>
 
-  <dt>lua_resume</dt>
-  <dd>Same.</dd>
-
   <dt>lua_setallocf</dt>
   <dd>No equivalent.</dd>
-
-  <dt>lua_setfenv</dt>
-  <dd>Same.</dd>
 
   <dt>lua_setfield</dt>
   <dd>Same. See <code>lua_getfield</code>.</dd>
 
-  <dt>lua_setglobal</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_setmetatable</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_settable</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_settop</dt>
-  <dd>Same.</dd>
-
   <dt>lua_State</dt>
   <dd>The Jili equivalent is the <code>Lua</code> class.</dd>
-
-  <dt>lua_status</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_toboolean</dt>
-  <dd>Same.</dd>
 
   <dt>lua_tocfunction</dt>
   <dd>No equivalent (cast to <code>LuaJavaCallback</code>).</dd>
@@ -353,36 +225,14 @@ standards.
   <dt>lua_tolstring</dt>
   <dd>No equivalent.  Use <code>Lua.toString</code> instead.</dd>
 
-  <dt>lua_tonumber</dt>
-  <dd>Same.</dd>
-
   <dt>lua_topointer</dt>
   <dd>No.  Cast to <code>Object</code> if you must.</dd>
 
   <dt>lua_tostring</dt>
   <dd>Same.  Obviously, does not modify the stack.</dd>
 
-  <dt>lua_tothread</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_touserdata</dt>
-  <dd>Same.</dd>
-  
-  <dt>lua_type</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_typename</dt>
-  <dd>Same.</dd>
-
   <dt>lua_Writer</dt>
-  <dd>To Be Decided.</dd>
-
-  <dt>lua_xmove</dt>
-  <dd>Same.</dd>
-
-  <dt>lua_yield</dt>
-  <dd>Same.</dd>
-
+  <dd>Generally replaced with <code>java.io.OutputStream</code>.</dd>
 
 </dl>
 
@@ -446,6 +296,12 @@ Unicode code positions.
     <td>2006-05-22</td>
     <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
     <td>Created.</td>
+</tr>
+
+<tr valign="top">
+    <td>2006-07-06</td>
+    <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+    <td>More doc.</td>
 </tr>
 
 </table>
