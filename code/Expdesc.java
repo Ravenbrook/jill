@@ -43,7 +43,9 @@ final class Expdesc
   int t;
   int f;
 
-  Expdesc() { }
+  Expdesc()
+  {
+  }
 
   Expdesc(int k, int i)
   {

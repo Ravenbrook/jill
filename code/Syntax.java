@@ -1621,8 +1621,14 @@ final class Syntax
     pushclosure(new_fs, e);
   }
 
-  private int UPVAL_K(int upvaldesc)    { return (upvaldesc >> 8) & 0xFF ; }
-  private int UPVAL_INFO(int upvaldesc) { return upvaldesc & 0xFF ; }
+  private int UPVAL_K(int upvaldesc)
+  {
+    return (upvaldesc >> 8) & 0xFF ;
+  }
+  private int UPVAL_INFO(int upvaldesc)
+  {
+    return upvaldesc & 0xFF ;
+  }
   private int UPVAL_ENCODE(int k, int info)
   {
     lua_assert((k & 0xFF) == k && (info & 0xFF) == info, "UPVAL_ENCODE()") ;
@@ -2002,8 +2008,13 @@ final class LHS_assign
   LHS_assign prev ;
   Expdesc v = new Expdesc() ;
 
-  LHS_assign() {}
-  LHS_assign(LHS_assign prev) { this.prev = prev ; }
+  LHS_assign()
+  {
+  }
+  LHS_assign(LHS_assign prev)
+  {
+    this.prev = prev ;
+  }
 }
 
 final class ConsControl

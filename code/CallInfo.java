@@ -24,7 +24,9 @@ final class CallInfo
   private int tailcalls;
 
   /** Only used to create the first instance. */
-  CallInfo() { }
+  CallInfo()
+  {
+  }
 
   /**
    * @param func  stack index of function

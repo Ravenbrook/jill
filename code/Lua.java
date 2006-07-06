@@ -317,7 +317,8 @@ public final class Lua
   public static void dump(Object function, OutputStream writer)
       throws IOException
   {
-    if (!(function instanceof LuaFunction)) {
+    if (!(function instanceof LuaFunction))
+    {
       throw new IOException("Cannot dump " + typeName(type(function)));
     }
     LuaFunction f = (LuaFunction)function;
@@ -3103,7 +3104,8 @@ reentry:
       return ((String)l).compareTo((String)r) < 0;
     }
     int res = call_orderTM(l, r, "__lt");
-    if (res >= 0) {
+    if (res >= 0)
+    {
       return res != 0;
     }
     return gOrdererror(l, r);

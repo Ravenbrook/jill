@@ -835,11 +835,26 @@ final class FuncState
  ,opmode(0, 1, OpArgU, OpArgN, iABC)            /* OP_VARARG */
       };
 
-  private int getOpMode(int m) { return pOpmodes[m] & 3 ; }
-  private int getBMode(int m) { return (pOpmodes[m] >> 4) & 3 ; }
-  private int getCMode(int m) { return (pOpmodes[m] >> 2) & 3 ; }
-  private boolean testAMode(int m) { return (pOpmodes[m] & (1<<6)) != 0 ; }
-  private boolean testTMode(int m) { return (pOpmodes[m] & (1<<7)) != 0 ; }
+  private int getOpMode(int m)
+  {
+    return pOpmodes[m] & 3 ;
+  }
+  private int getBMode(int m)
+  {
+    return (pOpmodes[m] >> 4) & 3 ;
+  }
+  private int getCMode(int m)
+  {
+    return (pOpmodes[m] >> 2) & 3 ;
+  }
+  private boolean testAMode(int m)
+  {
+    return (pOpmodes[m] & (1<<6)) != 0 ;
+  }
+  private boolean testTMode(int m)
+  {
+    return (pOpmodes[m] & (1<<7)) != 0 ;
+  }
 
   /** Equivalent to <code>luaK_patchtohere</code>. */
   void kPatchtohere(int list)
