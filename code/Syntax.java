@@ -722,7 +722,7 @@ final class Syntax
 
   private void enterlevel()
   {
-      L.nCcalls ++ ;
+    L.nCcalls++ ;
   }
 
   private void error_expected(int token)
@@ -732,7 +732,7 @@ final class Syntax
 
   private void leavelevel()
   {
-      L.nCcalls -- ;
+    L.nCcalls-- ;
   }
 
 
