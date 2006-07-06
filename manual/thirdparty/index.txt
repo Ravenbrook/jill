@@ -3,7 +3,9 @@ $Header$
 David Jones, Ravenbrook Limited
 drj@ravenbrook.com
 
+
 Third Party Resources
+
 
 1. INTRODUCTION
 
@@ -15,10 +17,16 @@ This document is Intuwave confidential.
 
 2. SCHEDULE OF RESOURCES
 
-- code/LoaderTest2.luc is derived from the PUC-Rio Lua 5.1 distribution.
+- test/LoaderTest2.luc is derived from the PUC-Rio Lua 5.1 distribution.
+- test/ChunkSpy.lua is from Kein-Hong Man's ChunkSpy, used under his MIT
+  style license.  See http://luaforge.net/projects/chunkspy/
+- lib/j2meunit.jar is from j2meunit project at
+  http://j2meunit.sourceforge.net/.  It's licensed under the Common
+  Public License Version 1.0 (which is a bit long for my liking).
 
 A. REFERENCES
 
 B. HISTORY
 
 2006-05-15  DRJ  Created.
+2006-07-06  DRJ  ChunkSpy, j2meunit, added.
