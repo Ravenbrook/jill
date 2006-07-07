@@ -308,8 +308,9 @@
   <target name="clean"
       description="Cleans intermediate build products (not bin/)" >
     <delete dir="compiled" quiet="true" />
-    <delete dir="preverified" quiet="true" />
     <delete dir="test-compiled" quiet="true" />
+    <delete dir="preverified" quiet="true" />
+    <delete dir="test-preverified" quiet="true" />
     <delete dir="prejar" quiet="true" />
   </target>
 
