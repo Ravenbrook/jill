@@ -842,14 +842,6 @@ final class FuncState
   {
     return pOpmodes[m] & 3 ;
   }
-  private int getBMode(int m)
-  {
-    return (pOpmodes[m] >> 4) & 3 ;
-  }
-  private int getCMode(int m)
-  {
-    return (pOpmodes[m] >> 2) & 3 ;
-  }
   private boolean testAMode(int m)
   {
     return (pOpmodes[m] & (1<<6)) != 0 ;

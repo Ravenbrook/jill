@@ -1640,7 +1640,7 @@ final class Syntax
 
   private int UPVAL_K(int upvaldesc)
   {
-    return (upvaldesc >> 8) & 0xFF ;
+    return (upvaldesc >>> 8) & 0xFF ;
   }
   private int UPVAL_INFO(int upvaldesc)
   {
