@@ -14,6 +14,7 @@
  */
 
 package mnj.lua;
+
 /**
  * Equivalent to struct lua_Debug.  This implementation is incomplete
  * because it is not intended to form part of the public API.  It has
@@ -21,8 +22,8 @@ package mnj.lua;
  */
 final class Debug
 {
-  // private, not public accessors defined
-  private int i_ci;
+  // private, no public accessors defined.
+  private int ici;
 
   // public accessors may be defined for these.
   private String what;
@@ -30,22 +31,22 @@ final class Debug
   private int currentline;
   private int linedefined;
   private int lastlinedefined;
-  private String short_src;
+  private String shortsrc;
 
   /**
-   * @param i_ci  index of CallInfo record in L.civ
+   * @param ici  index of CallInfo record in L.civ
    */
-  Debug(int i_ci)
+  Debug(int ici)
   {
-    this.i_ci = i_ci;
+    this.ici = ici;
   }
 
   /**
-   * Get i_ci, index of the {@link CallInfo} record.
+   * Get ici, index of the {@link CallInfo} record.
    */
-  int i_ci()
+  int ici()
   {
-    return i_ci;
+    return ici;
   }
 
   /**
@@ -57,12 +58,12 @@ final class Debug
   }
 
   /**
-   * Sets the source, and the short_src.
+   * Sets the source, and the shortsrc.
    */
   void setSource(String source)
   {
     this.source = source;
-    this.short_src = Lua.oChunkid(source);
+    this.shortsrc = Lua.oChunkid(source);
   }
 
   /**
@@ -107,10 +108,10 @@ final class Debug
 
   /**
    * Gets the "printable" version of source, for error messages.
-   * Mat become public.
+   * May become public.
    */
-  String short_src()
+  String shortsrc()
   {
-    return short_src;
+    return shortsrc;
   }
 }

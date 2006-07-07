@@ -1655,7 +1655,7 @@ public final class Lua
       getInfo("Sl", ar);                // get info about it
       if (ar.currentline() > 0)         // is there info?
       {
-        return ar.short_src() + ":" + ar.currentline() + ": ";
+        return ar.shortsrc() + ":" + ar.currentline() + ": ";
       }
     }
     return "";  // else, no information available...
@@ -1687,9 +1687,9 @@ public final class Lua
     Object f = null;
     CallInfo callinfo = null;
     // :todo: complete me
-    if (ar.i_ci() > 0)          // no tail call?
+    if (ar.ici() > 0)   // no tail call?
     {
-      callinfo = (CallInfo)civ.elementAt(ar.i_ci());
+      callinfo = (CallInfo)civ.elementAt(ar.ici());
       f = stack.elementAt(callinfo.function());
       // assert isFunction(f);
     }

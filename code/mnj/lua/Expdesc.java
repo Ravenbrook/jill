@@ -56,7 +56,8 @@ final class Expdesc
   /** Equivalent to init_exp from lparser.c */
   void init(int kind, int i)
   {
-    this.f = this.t = FuncState.NO_JUMP;
+    this.t = FuncState.NO_JUMP;
+    this.f = FuncState.NO_JUMP;
     this.k = kind;
     this.info = i;
   }
