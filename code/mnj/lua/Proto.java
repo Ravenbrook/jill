@@ -141,11 +141,13 @@ final class Proto
    * Augment with debug info.  All the arguments are referenced by the
    * instance after the method has returned, so try not to share them.
    */
-  void debug(int[] lineinfo, LocVar[] locvars, String[] upvalues)
+  void debug(int[] lineinfoArg,
+      LocVar[] locvarsArg,
+      String[] upvaluesArg)
   {
-    this.lineinfo = lineinfo;  sizelineinfo = lineinfo.length;
-    this.locvars = locvars;    sizelocvars = locvars.length;
-    this.upvalues = upvalues;  sizeupvalues = upvalues.length;
+    this.lineinfo = lineinfoArg;  sizelineinfo = lineinfo.length;
+    this.locvars = locvarsArg;    sizelocvars = locvars.length;
+    this.upvalues = upvaluesArg;  sizeupvalues = upvalues.length;
   }
 
   /** Gets source. */

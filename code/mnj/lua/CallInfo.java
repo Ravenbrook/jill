@@ -108,10 +108,10 @@ final class CallInfo
   /**
    * Used during tailcall to set the base and top members.
    */
-  void tailcall(int base, int top)
+  void tailcall(int baseArg, int topArg)
   {
-    this.base = base;
-    this.top = top;
+    this.base = baseArg;
+    this.top = topArg;
     ++tailcalls;
   }
 }
