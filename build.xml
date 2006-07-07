@@ -239,8 +239,8 @@
     </exec>
     <copy todir="test-compiled">
       <fileset dir="test">
-        <include name="*.lua" />
-        <include name="*.luc" />
+        <include name="**/*.lua" />
+        <include name="**/*.luc" />
       </fileset>
     </copy>
   </target>
@@ -300,7 +300,7 @@
     <java fork="yes"
         classname="j2meunit.textui.TestRunner"
         classpath="compiled:test-compiled:${j2meunit}">
-      <arg value="METest" />
+      <arg value="mnj.lua.METest" />
     </java>
   </target>
 

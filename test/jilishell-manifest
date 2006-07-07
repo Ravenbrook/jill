@@ -3,7 +3,7 @@ MicroEdition-Configuration: CLDC-1.1
 MIDlet-Name: JiliShell
 Created-By: 1.5.0_06 (Sun Microsystems Inc.)
 MIDlet-Vendor: Ravenbrook Limited
-MIDlet-1: JiliShell,,JiliShell
+MIDlet-1: JiliShell,,mnj.lua.JiliShell
 MIDlet-Jar-Size: 0
 MIDlet-Jar-URL: jilishell.jar
 MIDlet-Version: 0.0

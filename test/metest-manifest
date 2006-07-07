@@ -3,7 +3,7 @@ MicroEdition-Configuration: CLDC-1.1
 MIDlet-Name: JiliTest
 Created-By: 1.5.0_06 (Sun Microsystems Inc.)
 MIDlet-Vendor: Ravenbrook Limited
-MIDlet-1: ,,METestMIDlet
+MIDlet-1: METest,,mnj.lua.METestMIDlet
 MIDlet-Jar-Size: 0
 MIDlet-Jar-URL: jilit.jar
 MIDlet-Version: 0.0
