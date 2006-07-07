@@ -561,26 +561,26 @@ final class Syntax
     return source;
   }
 
-  private String txtToken(int token)
+  private String txtToken(int tok)
   {
-    switch (token)
+    switch (tok)
     {
       case TK_NAME:
       case TK_STRING:
       case TK_NUMBER:
         return buff.toString();
       default:
-        return xToken2str(token);
+        return xToken2str(tok);
     }
   }
 
   /** Equivalent to <code>luaX_lexerror</code>. */
-  private void xLexerror(String msg, int token)
+  private void xLexerror(String msg, int tok)
   {
     msg = source + ":" + linenumber + ": " + msg;
-    if (token != 0)
+    if (tok != 0)
     {
-      msg = msg + " near '" + txtToken(token) + "'";
+      msg = msg + " near '" + txtToken(tok) + "'";
     }
     L.dThrow(Lua.ERRSYNTAX);
   }
@@ -610,7 +610,7 @@ final class Syntax
     xLexerror(msg, token);
   }
 
-  private String xToken2str(int token)
+  private static String xToken2str(int token)
   {
     if (token < FIRST_RESERVED)
     {
@@ -739,16 +739,15 @@ final class Syntax
     L.nCcalls++ ;
   }
 
-  private void error_expected(int token)
+  private void error_expected(int tok)
   {
-    xSyntaxerror("'" + xToken2str(token) + "' expected");
+    xSyntaxerror("'" + xToken2str(tok) + "' expected");
   }
 
   private void leavelevel()
   {
     L.nCcalls-- ;
   }
-
 
 
   /** Equivalent to luaY_parser. */
