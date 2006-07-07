@@ -3302,13 +3302,13 @@ reentry:
 
     // Move fixed parameters to final position
     int fixed = stack.size() - actual;  // first fixed argument
-    int base = stack.size();    // final position of first argument
+    int newbase = stack.size(); // final position of first argument
     for (int i=0; i<nfixargs; ++i)
     {
       stack.addElement(stack.elementAt(fixed+i));
       stack.setElementAt(NIL, fixed+i);
     }
-    return base;
+    return newbase;
   }
 
   /**
@@ -3525,9 +3525,9 @@ reentry:
   }
 
   /** Make new CallInfo record. */
-  private CallInfo inc_ci(int func, int base, int top, int nresults)
+  private CallInfo inc_ci(int func, int baseArg, int top, int nresults)
   {
-    CallInfo ci = new CallInfo(func, base, top, nresults);
+    CallInfo ci = new CallInfo(func, baseArg, top, nresults);
     civ.addElement(ci);
     return ci;
   }
