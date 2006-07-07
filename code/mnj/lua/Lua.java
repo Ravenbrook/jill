@@ -24,9 +24,6 @@ import java.util.Enumeration;
 import java.util.Stack;
 import java.util.Vector;
 
-// Required by little-endian support in class DumpState
-import java.io.ByteArrayOutputStream;
-
 /**
  * <p>
  * Encapsulates a Lua execution environment.  A lot of Jili's public API
@@ -3571,18 +3568,11 @@ final class DumpState
   DataOutputStream writer;
   boolean strip;
   int status;
-  boolean littleEndian = true ;
 
   DumpState(DataOutputStream writer, boolean strip)
   {
     this.writer = writer ;
     this.strip = strip ;
-  }
-
-  DumpState(DataOutputStream writer, boolean strip, boolean littleEndian)
-  {
-    this(writer, strip);
-    this.littleEndian = littleEndian ;
   }
 
 
@@ -3596,38 +3586,17 @@ final class DumpState
 
   void DumpHeader() throws IOException
   {
-    writer.write(header, 0, 6) ;
-    writer.writeByte(littleEndian ? 0x01 : 0x00) ;
-    writer.write(header, 7, 5) ;
+    writer.write(header) ;
   }
 
   private void DumpInt(int i) throws IOException
   {
-    if (littleEndian)
-    {
-      writer.writeByte(i) ;
-      writer.writeByte(i >>> 8) ;
-      writer.writeByte(i >>> 16) ;
-      writer.writeByte(i >>> 24) ;
-    }
-    else
-      writer.writeInt(i) ;// big-endian version
+    writer.writeInt(i) ;        // big-endian
   }
 
   private void DumpNumber(double d) throws IOException
   {
-    if (littleEndian)
-    {
-      ByteArrayOutputStream sos = new ByteArrayOutputStream() ;
-      DataOutputStream dos = new DataOutputStream(sos) ;
-      dos.writeDouble(d) ;
-      dos.flush() ;
-      byte [] bytes = sos.toByteArray() ;
-      for (int i = 7 ; i >= 0 ; i--)
-        writer.writeByte(bytes[i]) ;
-    }
-    else
-      writer.writeDouble(d) ;
+    writer.writeDouble(d) ;     // big-endian
   }
 
   void DumpFunction(Proto f, String p) throws IOException
