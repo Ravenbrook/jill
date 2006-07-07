@@ -673,23 +673,23 @@ final class FuncState
 
   void setarga(Expdesc e, int a)
   {
-   int pc = e.info;
+   int at = e.info;
    int[] code = f.code;
-   code[pc] = Lua.SETARG_A(code[pc], a);
+   code[at] = Lua.SETARG_A(code[at], a);
   }
 
   void setargb(Expdesc e, int b)
   {
-    int pc = e.info;
+    int at = e.info;
     int[] code = f.code;
-    code[pc] = Lua.SETARG_B(code[pc], b);
+    code[at] = Lua.SETARG_B(code[at], b);
   }
 
   void setargc(Expdesc e, int c)
   {
-    int pc = e.info;
+    int at = e.info;
     int[] code = f.code;
-    code[pc] = Lua.SETARG_C(code[pc], c);
+    code[at] = Lua.SETARG_C(code[at], c);
   }
 
   /** Equivalent to <code>luaK_getlabel</code>. */
@@ -699,8 +699,10 @@ final class FuncState
     return pc;
   }
 
-  /** Equivalent to <code>luaK_concat</code>. */
-  /** l1 was an int*, now passing back as result */
+  /**
+   * Equivalent to <code>luaK_concat</code>.
+   * l1 was an int*, now passing back as result.
+   */
   int kConcat(int l1, int l2)
   {
     if (l2 == NO_JUMP)
@@ -759,13 +761,13 @@ final class FuncState
     return true;
   }
 
-  private int getjumpcontrol(int pc)
+  private int getjumpcontrol(int at)
   {
     int [] code = f.code ;
-    if (pc >= 1 && testTMode(Lua.OPCODE(code[pc-1])))
-      return pc-1;
+    if (at >= 1 && testTMode(Lua.OPCODE(code[at-1])))
+      return at-1;
     else
-      return pc;
+      return at;
   }
 
   /*
@@ -864,23 +866,23 @@ final class FuncState
     jpc = kConcat(jpc, list);
   }
 
-  private void fixjump(int pc, int dest)
+  private void fixjump(int at, int dest)
   {
-    int jmp = f.code[pc];
-    int offset = dest-(pc+1);
+    int jmp = f.code[at];
+    int offset = dest-(at+1);
     lua_assert(dest != NO_JUMP, "fixjump()");
     if (Math.abs(offset) > Lua.MAXARG_sBx)
       ls.xSyntaxerror("control structure too long");
-    f.code[pc] = Lua.SETARG_sBx(jmp, offset);
+    f.code[at] = Lua.SETARG_sBx(jmp, offset);
   }
 
-  private int getjump(int pc)
+  private int getjump(int at)
   {
-    int offset = Lua.ARGsBx(f.code[pc]);
+    int offset = Lua.ARGsBx(f.code[at]);
     if (offset == NO_JUMP)  /* point to itself represents end of list */
      return NO_JUMP;  /* end of list */
     else
-      return (pc+1)+offset;  /* turn offset into absolute position */
+      return (at+1)+offset;  /* turn offset into absolute position */
   }
 
   /** Equivalent to <code>luaK_jump</code>. */
@@ -991,28 +993,28 @@ final class FuncState
   /** Equivalent to <code>luaK_goiffalse</code>. */
   void kGoiffalse(Expdesc e)
   {
-    int pc;  /* pc of last jump */
+    int lj;  /* pc of last jump */
     kDischargevars(e);
     switch (e.k)
     {
       case Expdesc.VNIL:
       case Expdesc.VFALSE:
-        pc = NO_JUMP;  /* always false; do nothing */
+        lj = NO_JUMP;  /* always false; do nothing */
         break;
 
       case Expdesc.VTRUE:
-        pc = kJump();  /* always jump */
+        lj = kJump();  /* always jump */
         break;
 
       case Expdesc.VJMP:
-        pc = e.info;
+        lj = e.info;
         break;
 
       default:
-        pc = jumponcond(e, true);
+        lj = jumponcond(e, true);
         break;
     }
-    e.t = kConcat(e.t, pc);  /* insert last jump in `t' list */
+    e.t = kConcat(e.t, lj);  /* insert last jump in `t' list */
     kPatchtohere(e.f);
     e.f = NO_JUMP;
   }
@@ -1020,44 +1022,44 @@ final class FuncState
   /** Equivalent to <code>luaK_goiftrue</code>. */
   void kGoiftrue(Expdesc e)
   {
-    int pc;  /* pc of last jump */
+    int lj;  /* pc of last jump */
     kDischargevars(e);
     switch (e.k)
     {
       case Expdesc.VK:
       case Expdesc.VKNUM:
       case Expdesc.VTRUE:
-        pc = NO_JUMP;  /* always true; do nothing */
+        lj = NO_JUMP;  /* always true; do nothing */
         break;
 
       case Expdesc.VFALSE:
-        pc = kJump();  /* always jump */
+        lj = kJump();  /* always jump */
         break;
 
       case Expdesc.VJMP:
         invertjump(e);
-        pc = e.info;
+        lj = e.info;
         break;
 
       default:
-        pc = jumponcond(e, false);
+        lj = jumponcond(e, false);
         break;
     }
-    e.f = kConcat(e.f, pc);  /* insert last jump in `f' list */
+    e.f = kConcat(e.f, lj);  /* insert last jump in `f' list */
     kPatchtohere(e.t);
     e.t = NO_JUMP;
   }
 
   private void invertjump(Expdesc e)
   {
-    int pc = getjumpcontrol(e.info);
+    int at = getjumpcontrol(e.info);
     int [] code = f.code ;
-    int instr = code[pc] ;
+    int instr = code[at] ;
     lua_assert(testTMode(Lua.OPCODE(instr)) &&
                Lua.OPCODE(instr) != Lua.OP_TESTSET &&
                Lua.OPCODE(instr) != Lua.OP_TEST,
                "invertjump()");
-    code[pc] = Lua.SETARG_A(instr, (Lua.ARGA(instr) == 0 ? 1 : 0));
+    code[at] = Lua.SETARG_A(instr, (Lua.ARGA(instr) == 0 ? 1 : 0));
   }
 
 
