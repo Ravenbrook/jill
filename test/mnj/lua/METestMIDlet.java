@@ -12,7 +12,7 @@ public class METestMIDlet extends TestRunner
 
   public void startApp()
   {
-    start(new String[] { "METest" });
+    start(new String[] { "mnj.lua.METest" });
   }
 }
 
