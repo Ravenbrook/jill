@@ -202,8 +202,8 @@
       Gather files for jilit.  Take everything we can get.
     -->
     <copy todir="prejar/jilit" >
-      <fileset dir="compiled" />
-      <fileset dir="test-compiled" />
+      <fileset dir="preverified" />
+      <fileset dir="test-preverified" />
     </copy>
     <jar
       destfile="bin/jilit.jar"
@@ -217,8 +217,8 @@
       with Jili in is.
     -->
     <copy todir="prejar/jilishell" >
-      <fileset dir="compiled" />
-      <fileset dir="test-compiled"
+      <fileset dir="preverified" />
+      <fileset dir="test-preverified"
         includes="**/JiliShell*.class" />
     </copy>
     <jar
