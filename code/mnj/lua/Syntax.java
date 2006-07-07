@@ -217,12 +217,11 @@ final class Syntax
   }
 
   // :todo: consider removing or macroising.
-  private void lua_assert(boolean b, String routine)
+  private static void lua_assert(boolean b, String routine)
   {
     if (!b)
     {
-      //System.out.println ("lua_assert failure in "+routine) ;
-      xSyntaxerror("lua_assert failure in "+routine) ;
+      throw new RuntimeException("lua_assert failure in "+routine) ;
     }
   }
 
@@ -334,6 +333,7 @@ final class Syntax
             return '[';
           else
             xLexerror("invalid long string delimiter", TK_STRING);
+          continue;     // avoids Checkstyle warning.
 
         case '=':
           next() ;
@@ -378,7 +378,7 @@ final class Syntax
         case '.':
           save_and_next();
           if (check_next("."))
-          { 
+          {
             if (check_next("."))
             {
               return TK_DOTS;
@@ -786,32 +786,35 @@ final class Syntax
     }
   }
 
-  private int singlevaraux(FuncState fs, String n, Expdesc var, boolean base)
+  private int singlevaraux(FuncState f,
+      String n,
+      Expdesc var,
+      boolean base)
   {
-    if (fs == null)     // no more levels?
+    if (f == null)      // no more levels?
     {
       var.init(Expdesc.VGLOBAL, Lua.NO_REG);    // default is global variable
       return Expdesc.VGLOBAL;
     }
     else
     {
-      int v = fs.searchvar(n);
+      int v = f.searchvar(n);
       if (v >= 0)
       {
         var.init(Expdesc.VLOCAL, v);
         if (!base)
         {
-          markupval(fs, v);      // local will be used as an upval
+          f.markupval(v);       // local will be used as an upval
         }
         return Expdesc.VLOCAL;
       }
       else    // not found at current level; try upper one
       {
-        if (singlevaraux(fs.prev, n, var, false) == Expdesc.VGLOBAL)
+        if (singlevaraux(f.prev, n, var, false) == Expdesc.VGLOBAL)
         {
           return Expdesc.VGLOBAL;
         }
-        var.upval(indexupvalue(fs, n, var));       // else was LOCAL or UPVAL
+        var.upval(indexupvalue(f, n, var));     // else was LOCAL or UPVAL
         return Expdesc.VUPVAL;
       }
     }
@@ -861,8 +864,8 @@ final class Syntax
     int line = linenumber;
     int pc = fs.kCodeABC(Lua.OP_NEWTABLE, 0, 0, 0);
     ConsControl cc = new ConsControl(t) ;
-    init_exp(t, Expdesc.VRELOCABLE, pc);
-    init_exp(cc.v, Expdesc.VVOID, 0);  /* no value (yet) */
+    t.init(Expdesc.VRELOCABLE, pc);
+    cc.v.init(Expdesc.VVOID, 0);        /* no value (yet) */
     fs.kExp2nextreg(t);  /* fix it at stack top (for gc) */
     checknext('{');
     do
@@ -1061,7 +1064,7 @@ final class Syntax
         return;  /* avoid default */
       }
     }
-    init_exp(e, Expdesc.VNONRELOC, fs.freereg-1);  /* default assignment */
+    e.init(Expdesc.VNONRELOC, fs.freereg-1);    /* default assignment */
     fs.kStorevar(lh.v, e);
   }
 
@@ -1196,10 +1199,14 @@ final class Syntax
   {
     // stat -> RETURN explist
     xNext();    // skip RETURN
-    int first = 0, nret;    // registers with returned values
+    // registers with returned values (first, nret)
+    int first = 0;
+    int nret;
     if (block_follow(token) || token == ';')
     {
-      first = nret = 0; // return no values
+      // return no values
+      first = 0;
+      nret = 0;
     }
     else
     {
@@ -1240,7 +1247,7 @@ final class Syntax
     switch (token)
     {
       case TK_NUMBER:
-        init_exp(v, Expdesc.VKNUM, 0);
+        v.init(Expdesc.VKNUM, 0);
         v.nval = tokenR;
         break;
 
@@ -1249,21 +1256,21 @@ final class Syntax
         break;
 
       case TK_NIL:
-        init_exp(v, Expdesc.VNIL, 0);
+        v.init(Expdesc.VNIL, 0);
         break;
 
       case TK_TRUE:
-        init_exp(v, Expdesc.VTRUE, 0);
+        v.init(Expdesc.VTRUE, 0);
         break;
 
       case TK_FALSE:
-        init_exp(v, Expdesc.VFALSE, 0);
+        v.init(Expdesc.VFALSE, 0);
         break;
 
       case TK_DOTS:  /* vararg */
         if (!fs.f.is_vararg)
           xSyntaxerror("cannot use \"...\" outside a vararg function");
-        init_exp(v, Expdesc.VVARARG, fs.kCodeABC(Lua.OP_VARARG, 0, 1, 0));
+        v.init(Expdesc.VVARARG, fs.kCodeABC(Lua.OP_VARARG, 0, 1, 0));
         break;
 
       case '{':   /* constructor */
@@ -1450,28 +1457,28 @@ final class Syntax
     return op;
   }
 
-  private void enterblock(FuncState fs, BlockCnt bl, boolean isbreakable)
+  private void enterblock(FuncState f, BlockCnt bl, boolean isbreakable)
   {
     bl.breaklist = FuncState.NO_JUMP ;
     bl.isbreakable = isbreakable ;
-    bl.nactvar = fs.nactvar ;
+    bl.nactvar = f.nactvar ;
     bl.upval = false ;
-    bl.previous = fs.bl;
-    fs.bl = bl;
-    lua_assert(fs.freereg == fs.nactvar, "enterblock()");
+    bl.previous = f.bl;
+    f.bl = bl;
+    lua_assert(f.freereg == f.nactvar, "enterblock()");
   }
 
-  private void leaveblock(FuncState fs)
+  private void leaveblock(FuncState f)
   {
-    BlockCnt bl = fs.bl;
-    fs.bl = bl.previous;
+    BlockCnt bl = f.bl;
+    f.bl = bl.previous;
     removevars(bl.nactvar);
     if (bl.upval)
-      fs.kCodeABC(Lua.OP_CLOSE, bl.nactvar, 0, 0);
+      f.kCodeABC(Lua.OP_CLOSE, bl.nactvar, 0, 0);
     lua_assert((!bl.isbreakable) || (!bl.upval), "leaveblock()");  /* loops have no body */
-    lua_assert(bl.nactvar == fs.nactvar, "leaveblock() 2");
-    fs.freereg = fs.nactvar;  /* free registers */
-    fs.kPatchtohere(bl.breaklist);
+    lua_assert(bl.nactvar == f.nactvar, "leaveblock() 2");
+    f.freereg = f.nactvar;  /* free registers */
+    f.kPatchtohere(bl.breaklist);
   }
 
 
@@ -1652,7 +1659,7 @@ final class Syntax
     f.ensureProtos(L, fs.np) ;
     Proto ff = func.f ;
     f.p[fs.np++] = ff;
-    init_exp(v, Expdesc.VRELOCABLE, fs.kCodeABx(Lua.OP_CLOSURE, 0, fs.np-1));
+    v.init(Expdesc.VRELOCABLE, fs.kCodeABx(Lua.OP_CLOSURE, 0, fs.np-1));
     for (int i=0; i < ff.nups; i++)
     {
       int upvalue = func.upvalues[i] ;
@@ -1725,22 +1732,15 @@ final class Syntax
     return v.f;
   }
 
-  private void init_exp(Expdesc e, int k, int i)
-  {
-    e.f = e.t = FuncState.NO_JUMP;
-    e.k = k;
-    e.info = i;
-  }
-
-  private void open_func(FuncState fs)
+  private void open_func(FuncState funcstate)
   {
     Proto f = new Proto(source, 2);  /* registers 0/1 are always valid */
-    fs.f = f;
-    fs.ls = this;
-    fs.L = L;
+    funcstate.f = f;
+    funcstate.ls = this;
+    funcstate.L = L;
 
-    fs.prev = this.fs;  /* linked list of funcstates */
-    this.fs = fs;
+    funcstate.prev = this.fs;   /* linked list of funcstates */
+    this.fs = funcstate;
   }
 
   private void localstat() throws IOException
@@ -1946,10 +1946,9 @@ final class Syntax
 
   private void localfunc() throws IOException
   {
-    Expdesc v = new Expdesc();
     Expdesc b = new Expdesc();
     new_localvar(str_checkname(), 0);
-    init_exp(v, Expdesc.VLOCAL, fs.freereg);
+    Expdesc v = new Expdesc(Expdesc.VLOCAL, fs.freereg);
     fs.kReserveregs(1);
     adjustlocalvars(1);
     body(b, false, linenumber);
@@ -1983,22 +1982,13 @@ final class Syntax
     cc.tostore++;
   }
 
-  private void markupval(FuncState fs, int level)
+  private int indexupvalue(FuncState funcstate, String name, Expdesc v)
   {
-    BlockCnt bl = fs.bl;
-    while (bl != null && bl.nactvar > level)
-      bl = bl.previous;
-    if (bl != null)
-      bl.upval = true;
-  }
-
-  private int indexupvalue(FuncState fs, String name, Expdesc v)
-  {
-    Proto f = fs.f;
+    Proto f = funcstate.f;
     int oldsize = f.sizeupvalues;
     for (int i=0; i<f.nups; i++)
     {
-      int entry = fs.upvalues[i] ;
+      int entry = funcstate.upvalues[i] ;
       if (UPVAL_K(entry) == v.k && UPVAL_INFO(entry) == v.info)
       {
         lua_assert(name.equals(f.upvalues[i]), "indexupvalue()");
@@ -2010,7 +2000,7 @@ final class Syntax
     f.ensureUpvals(L, f.nups) ;
     f.upvalues[f.nups] = name;
     lua_assert(v.k == Expdesc.VLOCAL || v.k == Expdesc.VUPVAL, "indexupvalue() 2");
-    fs.upvalues[f.nups] = UPVAL_ENCODE(v.k, v.info) ;
+    funcstate.upvalues[f.nups] = UPVAL_ENCODE(v.k, v.info) ;
     return f.nups++;
   }
 }

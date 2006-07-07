@@ -1138,11 +1138,19 @@ final class FuncState
     e1.k = Expdesc.VJMP;
   }
 
+  void markupval(int level)
+  {
+    BlockCnt b = this.bl;
+    while (b != null && b.nactvar > level)
+      b = b.previous;
+    if (b != null)
+      b.upval = true;
+  }
+
   private void lua_assert(boolean b, String routine)
   {
     if (!b)
     {
-      System.out.println("lua_assert failure in "+routine) ;
       ls.xSyntaxerror("lua_assert failure in "+routine) ;
     }
   }
