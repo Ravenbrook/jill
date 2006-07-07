@@ -197,34 +197,65 @@
   <target name="jar"
       depends="bin-dir,preverify"
       description="Builds some popular jar files in bin/" >
+
+    <!--
+      Gather files for jilit.  Take everything we can get.
+    -->
+    <copy todir="prejar/jilit" >
+      <fileset dir="compiled" />
+      <fileset dir="test-compiled" />
+    </copy>
     <jar
       destfile="bin/jilit.jar"
-      basedir="preverified"
+      basedir="prejar/jilit"
       manifest="test/metest-manifest"
       />
+
+    <!--
+      Gather files for JiliShell, copying just what we need and no more.
+      So that its file size can be used as a measure of how big a jar
+      with Jili in is.
+    -->
+    <copy todir="prejar/jilishell" >
+      <fileset dir="compiled" />
+      <fileset dir="test-compiled"
+        includes="**/JiliShell*.class" />
+    </copy>
     <jar
       destfile="bin/jilishell.jar"
-      basedir="preverified"
+      basedir="prejar/jilishell"
       manifest="test/jilishell-manifest"
       />
   </target>
 
-  <!-- Runs preverifier on compiled/ and test-compiled/ directories -->
+  <!--
+    Runs preverifier on compiled/ and test-compiled/ directories.
+    The results go into separate directories.
+  -->
   <target name="preverify" depends="include-extra,compile,compile-test" >
+    <!-- preverify compiled/ into preverified/ -->
     <exec executable="${preverify}" >
       <arg value="-classpath" />
       <arg value="${jme.jar}" />
       <arg value="-d" />
       <arg value="preverified" />
       <arg value="compiled" />
+    </exec>
+    <!-- preverify test-compiled/ into test-preverified/ -->
+    <exec executable="${preverify}" >
+      <arg value="-classpath" />
+      <arg value="${jme.jar}:preverified/" />
+      <arg value="-d" />
+      <arg value="test-preverified" />
       <arg value="test-compiled" />
     </exec>
+    <!-- copy non-class files (resources) as well. -->
     <copy todir="preverified" >
       <fileset dir="compiled">
         <exclude name="**/*.class" />
       </fileset>
     </copy>
-    <copy todir="preverified" >
+    <copy todir="test-preverified" >
       <fileset dir="test-compiled">
         <exclude name="**/*.class" />
       </fileset>
@@ -233,9 +264,9 @@
 
   <!-- places additional materials alongside compiled class files -->
   <target name="include-extra" depends="compiled-dir,test-compiled-dir" >
-    <exec executable="jar" dir="compiled" >
+    <exec executable="jar" dir="test-compiled" >
       <arg value="xf" />
-      <arg value="../lib/j2meunit.jar" />
+      <arg value="../${j2meunit}" />
     </exec>
     <copy todir="test-compiled">
       <fileset dir="test">
@@ -279,6 +310,7 @@
     <delete dir="compiled" quiet="true" />
     <delete dir="preverified" quiet="true" />
     <delete dir="test-compiled" quiet="true" />
+    <delete dir="prejar" quiet="true" />
   </target>
 
   <target name="doc"
