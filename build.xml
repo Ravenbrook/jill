@@ -244,7 +244,7 @@
     <!-- preverify test-compiled/ into test-preverified/ -->
     <exec executable="${preverify}" >
       <arg value="-classpath" />
-      <arg value="${jme.jar}:preverified/" />
+      <arg value="${jme.jar}${path.separator}preverified" />
       <arg value="-d" />
       <arg value="test-preverified" />
       <arg value="test-compiled" />
