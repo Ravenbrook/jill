@@ -85,11 +85,15 @@ public final class Lua
    * subclass of Vector, but it mostly the Vector methods that are used.
    */
   private Stack civ = new Stack();
-  /** CallInfo record for currently active function. */
-  private CallInfo ci = new CallInfo();
   {
-    civ.addElement(ci);
+    civ.addElement(new CallInfo());
   }
+  /** CallInfo record for currently active function. */
+  private CallInfo ci()
+  {
+    return (CallInfo)civ.lastElement();
+  }
+
   /** Open Upvalues.  All UpVal objects that reference the VM stack.
    * openupval is a java.util.Vector of UpVal stored in order of stack
    * slot index: higher stack indexes are stored at higher Vector
@@ -830,7 +834,7 @@ public final class Lua
         stack.setSize(restoreStack+1);
         nCcalls = oldnCcalls;
         civ.setSize(restoreCi);
-        ci = (CallInfo)civ.lastElement();
+        CallInfo ci = ci();
         base = ci.base();
         savedpc = ci.savedpc();
       }
@@ -1778,7 +1782,7 @@ public final class Lua
     {
       return -1;
     }
-    if (ci == this.ci)
+    if (ci == ci())
     {
       ci.setSavedpc(savedpc);
     }
@@ -2425,7 +2429,7 @@ reentry:
     while (true)
     {
       // assert stack.elementAt[ci.function()] instanceof LuaFunction;
-      LuaFunction function = (LuaFunction)stack.elementAt(ci.function());
+      LuaFunction function = (LuaFunction)stack.elementAt(ci().function());
       Proto proto = function.proto();
       int[] code = proto.code();
       Object[] k = proto.constant();
@@ -2774,7 +2778,7 @@ reentry:
                 // Was Java function called by precall, adjust result
                 if (nresults >= 0)
                 {
-                  stack.setSize(ci.top());
+                  stack.setSize(ci().top());
                 }
                 continue;
               default:
@@ -2797,9 +2801,10 @@ reentry:
                 // tail call: put new frame in place of previous one.
                 CallInfo ci = (CallInfo)civ.elementAt(civ.size()-2);
                 int func = ci.function();
-                int pfunc = this.ci.function();
+                CallInfo fci = ci();    // Fresh CallInfo
+                int pfunc = fci.function();
                 fClose(ci.base());
-                base = func + (this.ci.base() - pfunc);
+                base = func + (fci.base() - pfunc);
                 int aux;        // loop index is used after loop ends
                 for (aux=0; pfunc+aux < stack.size(); ++aux)
                 {
@@ -2840,7 +2845,7 @@ reentry:
             }
             if (adjust)
             {
-              stack.setSize(ci.top());
+              stack.setSize(ci().top());
             }
             continue reentry;
           }
@@ -2899,7 +2904,7 @@ reentry:
             stack.setSize(cb+3);
             savedpc = pc; // Protect
             vmCall(cb, ARGC(i));
-            stack.setSize(ci.top());
+            stack.setSize(ci().top());
             if (NIL != stack.elementAt(cb))     // continue loop
             {
               stack.setElementAt(stack.elementAt(cb), cb-1);
@@ -2963,7 +2968,7 @@ reentry:
           case OP_VARARG:
           {
             int b = ARGB(i)-1;
-            int n = (base - ci.function()) -
+            int n = (base - ci().function()) -
                 function.proto().numparams() - 1;
             if (b == MULTRET)
             {
@@ -3133,8 +3138,9 @@ reentry:
     // we are returning to.
     int res = lci.res();
     int wanted = lci.nresults();        // Caution: wanted could be == MULTRET
-    base = this.ci.base();
-    savedpc = this.ci.savedpc();
+    CallInfo cci = ci();        // Continuation CallInfo
+    base = cci.base();
+    savedpc = cci.savedpc();
     // Move results (and pad with nils to required number if necessary)
     int i = wanted;
     int top = stack.size();
@@ -3175,7 +3181,7 @@ reentry:
     {
       faso = tryfuncTM(func);
     }
-    this.ci.setSavedpc(savedpc);
+    ci().setSavedpc(savedpc);
     if (faso instanceof LuaFunction)
     {
       LuaFunction f = (LuaFunction)faso;
@@ -3521,7 +3527,7 @@ reentry:
   /** Make new CallInfo record. */
   private CallInfo inc_ci(int func, int base, int top, int nresults)
   {
-    ci = new CallInfo(func, base, top, nresults);
+    CallInfo ci = new CallInfo(func, base, top, nresults);
     civ.addElement(ci);
     return ci;
   }
@@ -3530,7 +3536,6 @@ reentry:
   private CallInfo dec_ci()
   {
     CallInfo ci = (CallInfo)civ.pop();
-    this.ci = (CallInfo)civ.lastElement();
     return ci;
   }
 
