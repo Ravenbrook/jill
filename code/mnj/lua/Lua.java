@@ -3046,19 +3046,22 @@ reentry:
       {
         LuaTable h = (LuaTable)t;
         Object res = h.get(key);
-        if (!isNil(res) || ((tm = tagmethod(h, "__index")) == null))
-        {
+
+        if (!isNil(res))
           return res;
-        } // else will try the tag method
+        tm = tagmethod(h, "__index");
+        if (tm == null)
+          return res;
+        // else will try the tag method
       }
-      else if ((tm = tagmethod(t, "__index")) == null)
+      else
       {
-        gTypeerror(t, "index");
+        tm = tagmethod(t, "__index");
+        if (tm == null)
+          gTypeerror(t, "index");
       }
       if (isFunction(tm))
-      {
         return callTMres(tm, t, key);
-      }
       t = tm;     // else repeat with 'tm'
     }
     gRunerror("loop in gettable");
@@ -3237,24 +3240,31 @@ reentry:
   /** Equivalent of luaV_settable. */
   private void vmSettable(Object t, Object key, Object val)
   {
-   for (int loop = 0; loop < MAXTAGLOOP; ++loop)
-   {
-     Object tm;
-     if (t instanceof LuaTable) // 't' is a table
-     {
-       LuaTable h = (LuaTable)t;
-       Object o = h.get(key);
-       if (o != NIL ||  // result is no nil?
-           (tm = tagmethod(h, "__newindex")) == null)   // or no TM?
+    for (int loop = 0; loop < MAXTAGLOOP; ++loop)
+    {
+      Object tm;
+      if (t instanceof LuaTable) // 't' is a table
+      {
+        LuaTable h = (LuaTable)t;
+        Object o = h.get(key);
+        if (o != NIL)   // result is not nil?
+        {
+          h.put(key, val);
+          return;
+        }
+        tm = tagmethod(h, "__newindex");
+        if (tm == null) // or no TM?
         {
           h.put(key, val);
           return;
         }
         // else will try the tag method
       }
-      else if ((tm = tagmethod(t, "__newindex")) == null)
+      else
       {
-        gTypeerror(t, "index");
+        tm = tagmethod(t, "__newindex");
+        if (tm == null)
+          gTypeerror(t, "index");
       }
       if (isFunction(tm))
       {
