@@ -3,7 +3,7 @@
 package mnj.lua;
 
 import javax.microedition.lcdui.*;
-import javax.microedition.midlet.*;
+import javax.microedition.midlet.MIDlet;
 
 
 public class JiliShell extends MIDlet implements CommandListener
@@ -18,39 +18,29 @@ public class JiliShell extends MIDlet implements CommandListener
     private static final int LOWLOW_PRIO        = 0x5 << STATE_SHIFT ;
 
     public static final int INVALID_STATE      = 0x00 ;
-    public static final int REALLY_EXIT_STATE  = 0x04 ;
-    public static final int ENTER_STATE        = 0x05 ;
+    public static final int EXIT_STATE  = 0x04 ;
     public static final int EXECUTE_STATE      = 0x06 ;
     public static final int PROMPT_STATE       = 0x07 ;
 
-    public static final String version = "0.0" ;
-
-    private int state = INVALID_STATE ;
-
-    protected Form title_screen ;
-    protected Display the_display ;
-    protected Command exit_command ;
-    protected Command exec_command ;
-    protected Command back_command ;
-    protected TextBox the_output_screen ;
-    protected TextField the_input_box ;
-
-    protected String appName = "" ;
+    private Display the_display = Display.getDisplay (this) ;
+    private Form title_screen ;
+    private TextBox the_output_screen ;
+    private TextField the_input_box ;
 
     public JiliShell ()
     {
-        appName = "Jili Test MIDlet v"+version ;
-        the_display = Display.getDisplay (this) ;
-        exit_command = new Command ("EXIT", Command.EXIT,
-          HIGHISH_PRIO | REALLY_EXIT_STATE) ;
-        exec_command = new Command ("Exec", Command.SCREEN, HIGH_PRIO | EXECUTE_STATE) ;
-        back_command = new Command ("Again", Command.SCREEN, HIGH_PRIO | PROMPT_STATE) ;
+        Command exit_command = new Command ("EXIT", Command.EXIT,
+            HIGHISH_PRIO | EXIT_STATE) ;
+        Command exec_command = new Command ("Exec", Command.SCREEN,
+            HIGH_PRIO | EXECUTE_STATE) ;
+        Command back_command = new Command ("Again", Command.SCREEN,
+            HIGH_PRIO | PROMPT_STATE) ;
 
         title_screen = new Form ("Jili Shell") ;
-        title_screen.append (new StringItem (null, appName)) ;
 
-        the_output_screen = new TextBox ("--output--", "", 2048, 0) ;
+        the_output_screen = new TextBox ("output", "", 2048, 0) ;
         the_input_box  = new TextField ("input", "", 1024, 0) ;
+        the_input_box.setInitialInputMode("MIDP_LOWERCASE_LATIN");
 
         title_screen.append (the_input_box) ;
 
@@ -74,42 +64,25 @@ public class JiliShell extends MIDlet implements CommandListener
     }
 
     public void destroyApp (boolean unconditional)
-        throws MIDletStateChangeException 
     {
-        if (unconditional)
-            loseLua () ;
-        else
-            throw new MIDletStateChangeException() ;
+        loseLua () ;
     }
 
     public synchronized void commandAction (Command c, Displayable d)
     {
-        int new_state = INVALID_STATE ;
-
         int prio = c.getPriority () ;
-        new_state = prio & STATE_MASK ;
+        int new_state = prio & STATE_MASK ;
 
         handle_new_state (new_state) ;
     }
 
-    public void handle_new_state (int new_state)
+    private void handle_new_state (int new_state)
     {
-        int old_state = state ;
-        state = new_state ;
         switch (new_state)
         {
-        case ENTER_STATE:
-            the_display.setCurrent (title_screen) ;
-            break ;
-
-        case REALLY_EXIT_STATE:
-            try
-            {
-                destroyApp (true) ;
-                notifyDestroyed () ;
-            }
-            catch (MIDletStateChangeException e)
-            {}
+        case EXIT_STATE:
+            destroyApp (true) ;
+            notifyDestroyed () ;
             break ;
 
         case EXECUTE_STATE:
@@ -124,25 +97,30 @@ public class JiliShell extends MIDlet implements CommandListener
 
     }
 
-    String describe (Object o)
+    private String describe (Object o)
     {
+        if (o == null)
+        {
+          return "null";
+        }
         return o.getClass().getName()+": "+o.toString() ;
     }
 
-    Lua l = null ;
+    private Lua l = null ;
 
-    void getLua ()
+    private void getLua ()
     {
         l = new Lua () ;
         BaseLib.open (l) ;
+        StringLib.open(l);
     }
 
-    void loseLua ()
+    private void loseLua ()
     {
         l = null ;
     }
 
-    void execute ()
+    private void execute ()
     {
         String result = "** no Lua! **" ;
         if (l == null)
@@ -156,8 +134,7 @@ public class JiliShell extends MIDlet implements CommandListener
         if (res == 0)
         {
             Object obj = l.value(1) ;
-            result = obj == null ? "NULL" :
-                describe (obj);
+            result = describe (obj);
         }
         else
         {
