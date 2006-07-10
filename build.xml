@@ -285,7 +285,8 @@
       description="Compiles java code from code/ to compiled/" >
     <javac destdir="compiled" srcdir="code"
         debug="true"
-        classpath="${jme.jar}:${j2meunit}"
+        bootclasspath="${jme.jar}"
+        classpath="${j2meunit}"
         source="1.2"
         target="1.1"
     />
