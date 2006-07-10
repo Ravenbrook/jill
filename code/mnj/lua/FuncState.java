@@ -143,8 +143,8 @@ final class FuncState
   int kCodeABC(int o, int a, int b, int c)
   {
     // assert getOpMode(o) == iABC;
-    // assert getBMode(o) != OpArgN || b == 0;
-    // assert getCMode(o) != OpArgN || c == 0;
+    // assert getBMode(o) != OP_ARG_N || b == 0;
+    // assert getCMode(o) != OP_ARG_N || c == 0;
     return kCode(Lua.CREATE_ABC(o, a, b, c), ls.lastline());
   }
 
@@ -152,7 +152,7 @@ final class FuncState
   int kCodeABx(int o, int a, int bc)
   {
     // assert getOpMode(o) == iABx || getOpMode(o) == iAsBx);
-    // assert getCMode(o) == OpArgN);
+    // assert getCMode(o) == OP_ARG_N);
     return kCode(Lua.CREATE_ABx(o, a, bc), ls.lastline());
   }
 
@@ -457,11 +457,11 @@ final class FuncState
 
   private boolean constfolding(int op, Expdesc e1, Expdesc e2)
   {
-    double v1, v2, r;
+    double r;
     if (!isnumeral(e1) || !isnumeral(e2))
       return false;
-    v1 = e1.nval;
-    v2 = e2.nval;
+    double v1 = e1.nval;
+    double v2 = e2.nval;
     switch (op)
     {
       case Lua.OP_ADD: r = v1 + v2; break;
@@ -780,75 +780,75 @@ final class FuncState
   */
 
   /** arg modes */
-  static final int OpArgN = 0 ;
-  static final int OpArgU = 1 ;
-  static final int OpArgR = 2 ;
-  static final int OpArgK = 3 ;
+  private static final int OP_ARG_N = 0 ;
+  private static final int OP_ARG_U = 1 ;
+  private static final int OP_ARG_R = 2 ;
+  private static final int OP_ARG_K = 3 ;
 
   /** op modes */
-  static final int iABC = 0 ;
-  static final int iABx = 1 ;
-  static final int iAsBx = 2 ;
+  private static final int iABC = 0 ;
+  private static final int iABx = 1 ;
+  private static final int iAsBx = 2 ;
 
   static byte opmode(int t, int a, int b, int c, int m)
   {
     return (byte) ((t<<7) | (a<<6) | (b<<4) | (c<<2) | m) ;
   }
 
-    static final byte [] pOpmodes = new byte []
+  private static final byte [] OPMODE = new byte []
   {
-/*       T  A    B       C     mode                opcode       */
-  opmode(0, 1, OpArgR, OpArgN, iABC)            /* OP_MOVE */
- ,opmode(0, 1, OpArgK, OpArgN, iABx)            /* OP_LOADK */
- ,opmode(0, 1, OpArgU, OpArgU, iABC)            /* OP_LOADBOOL */
- ,opmode(0, 1, OpArgR, OpArgN, iABC)            /* OP_LOADNIL */
- ,opmode(0, 1, OpArgU, OpArgN, iABC)            /* OP_GETUPVAL */
- ,opmode(0, 1, OpArgK, OpArgN, iABx)            /* OP_GETGLOBAL */
- ,opmode(0, 1, OpArgR, OpArgK, iABC)            /* OP_GETTABLE */
- ,opmode(0, 0, OpArgK, OpArgN, iABx)            /* OP_SETGLOBAL */
- ,opmode(0, 0, OpArgU, OpArgN, iABC)            /* OP_SETUPVAL */
- ,opmode(0, 0, OpArgK, OpArgK, iABC)            /* OP_SETTABLE */
- ,opmode(0, 1, OpArgU, OpArgU, iABC)            /* OP_NEWTABLE */
- ,opmode(0, 1, OpArgR, OpArgK, iABC)            /* OP_SELF */
- ,opmode(0, 1, OpArgK, OpArgK, iABC)            /* OP_ADD */
- ,opmode(0, 1, OpArgK, OpArgK, iABC)            /* OP_SUB */
- ,opmode(0, 1, OpArgK, OpArgK, iABC)            /* OP_MUL */
- ,opmode(0, 1, OpArgK, OpArgK, iABC)            /* OP_DIV */
- ,opmode(0, 1, OpArgK, OpArgK, iABC)            /* OP_MOD */
- ,opmode(0, 1, OpArgK, OpArgK, iABC)            /* OP_POW */
- ,opmode(0, 1, OpArgR, OpArgN, iABC)            /* OP_UNM */
- ,opmode(0, 1, OpArgR, OpArgN, iABC)            /* OP_NOT */
- ,opmode(0, 1, OpArgR, OpArgN, iABC)            /* OP_LEN */
- ,opmode(0, 1, OpArgR, OpArgR, iABC)            /* OP_CONCAT */
- ,opmode(0, 0, OpArgR, OpArgN, iAsBx)           /* OP_JMP */
- ,opmode(1, 0, OpArgK, OpArgK, iABC)            /* OP_EQ */
- ,opmode(1, 0, OpArgK, OpArgK, iABC)            /* OP_LT */
- ,opmode(1, 0, OpArgK, OpArgK, iABC)            /* OP_LE */
- ,opmode(1, 1, OpArgR, OpArgU, iABC)            /* OP_TEST */
- ,opmode(1, 1, OpArgR, OpArgU, iABC)            /* OP_TESTSET */
- ,opmode(0, 1, OpArgU, OpArgU, iABC)            /* OP_CALL */
- ,opmode(0, 1, OpArgU, OpArgU, iABC)            /* OP_TAILCALL */
- ,opmode(0, 0, OpArgU, OpArgN, iABC)            /* OP_RETURN */
- ,opmode(0, 1, OpArgR, OpArgN, iAsBx)           /* OP_FORLOOP */
- ,opmode(0, 1, OpArgR, OpArgN, iAsBx)           /* OP_FORPREP */
- ,opmode(1, 0, OpArgN, OpArgU, iABC)            /* OP_TFORLOOP */
- ,opmode(0, 0, OpArgU, OpArgU, iABC)            /* OP_SETLIST */
- ,opmode(0, 0, OpArgN, OpArgN, iABC)            /* OP_CLOSE */
- ,opmode(0, 1, OpArgU, OpArgN, iABx)            /* OP_CLOSURE */
- ,opmode(0, 1, OpArgU, OpArgN, iABC)            /* OP_VARARG */
+/*       T  A    B       C         mode                opcode       */
+  opmode(0, 1, OP_ARG_R, OP_ARG_N, iABC)            /* OP_MOVE */
+ ,opmode(0, 1, OP_ARG_K, OP_ARG_N, iABx)            /* OP_LOADK */
+ ,opmode(0, 1, OP_ARG_U, OP_ARG_U, iABC)            /* OP_LOADBOOL */
+ ,opmode(0, 1, OP_ARG_R, OP_ARG_N, iABC)            /* OP_LOADNIL */
+ ,opmode(0, 1, OP_ARG_U, OP_ARG_N, iABC)            /* OP_GETUPVAL */
+ ,opmode(0, 1, OP_ARG_K, OP_ARG_N, iABx)            /* OP_GETGLOBAL */
+ ,opmode(0, 1, OP_ARG_R, OP_ARG_K, iABC)            /* OP_GETTABLE */
+ ,opmode(0, 0, OP_ARG_K, OP_ARG_N, iABx)            /* OP_SETGLOBAL */
+ ,opmode(0, 0, OP_ARG_U, OP_ARG_N, iABC)            /* OP_SETUPVAL */
+ ,opmode(0, 0, OP_ARG_K, OP_ARG_K, iABC)            /* OP_SETTABLE */
+ ,opmode(0, 1, OP_ARG_U, OP_ARG_U, iABC)            /* OP_NEWTABLE */
+ ,opmode(0, 1, OP_ARG_R, OP_ARG_K, iABC)            /* OP_SELF */
+ ,opmode(0, 1, OP_ARG_K, OP_ARG_K, iABC)            /* OP_ADD */
+ ,opmode(0, 1, OP_ARG_K, OP_ARG_K, iABC)            /* OP_SUB */
+ ,opmode(0, 1, OP_ARG_K, OP_ARG_K, iABC)            /* OP_MUL */
+ ,opmode(0, 1, OP_ARG_K, OP_ARG_K, iABC)            /* OP_DIV */
+ ,opmode(0, 1, OP_ARG_K, OP_ARG_K, iABC)            /* OP_MOD */
+ ,opmode(0, 1, OP_ARG_K, OP_ARG_K, iABC)            /* OP_POW */
+ ,opmode(0, 1, OP_ARG_R, OP_ARG_N, iABC)            /* OP_UNM */
+ ,opmode(0, 1, OP_ARG_R, OP_ARG_N, iABC)            /* OP_NOT */
+ ,opmode(0, 1, OP_ARG_R, OP_ARG_N, iABC)            /* OP_LEN */
+ ,opmode(0, 1, OP_ARG_R, OP_ARG_R, iABC)            /* OP_CONCAT */
+ ,opmode(0, 0, OP_ARG_R, OP_ARG_N, iAsBx)           /* OP_JMP */
+ ,opmode(1, 0, OP_ARG_K, OP_ARG_K, iABC)            /* OP_EQ */
+ ,opmode(1, 0, OP_ARG_K, OP_ARG_K, iABC)            /* OP_LT */
+ ,opmode(1, 0, OP_ARG_K, OP_ARG_K, iABC)            /* OP_LE */
+ ,opmode(1, 1, OP_ARG_R, OP_ARG_U, iABC)            /* OP_TEST */
+ ,opmode(1, 1, OP_ARG_R, OP_ARG_U, iABC)            /* OP_TESTSET */
+ ,opmode(0, 1, OP_ARG_U, OP_ARG_U, iABC)            /* OP_CALL */
+ ,opmode(0, 1, OP_ARG_U, OP_ARG_U, iABC)            /* OP_TAILCALL */
+ ,opmode(0, 0, OP_ARG_U, OP_ARG_N, iABC)            /* OP_RETURN */
+ ,opmode(0, 1, OP_ARG_R, OP_ARG_N, iAsBx)           /* OP_FORLOOP */
+ ,opmode(0, 1, OP_ARG_R, OP_ARG_N, iAsBx)           /* OP_FORPREP */
+ ,opmode(1, 0, OP_ARG_N, OP_ARG_U, iABC)            /* OP_TFORLOOP */
+ ,opmode(0, 0, OP_ARG_U, OP_ARG_U, iABC)            /* OP_SETLIST */
+ ,opmode(0, 0, OP_ARG_N, OP_ARG_N, iABC)            /* OP_CLOSE */
+ ,opmode(0, 1, OP_ARG_U, OP_ARG_N, iABx)            /* OP_CLOSURE */
+ ,opmode(0, 1, OP_ARG_U, OP_ARG_N, iABC)            /* OP_VARARG */
       };
 
   private int getOpMode(int m)
   {
-    return pOpmodes[m] & 3 ;
+    return OPMODE[m] & 3 ;
   }
   private boolean testAMode(int m)
   {
-    return (pOpmodes[m] & (1<<6)) != 0 ;
+    return (OPMODE[m] & (1<<6)) != 0 ;
   }
   private boolean testTMode(int m)
   {
-    return (pOpmodes[m] & (1<<7)) != 0 ;
+    return (OPMODE[m] & (1<<7)) != 0 ;
   }
 
   /** Equivalent to <code>luaK_patchtohere</code>. */
