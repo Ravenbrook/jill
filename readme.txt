@@ -77,7 +77,8 @@ to be on your PATH.  Apologies for the lack of guidance.
 3.2 Building
 
 Apache ant is used to encapsulate the build procedure.  See
-"ant -projecthelp" for the documented targets.
+"ant -projecthelp" for the documented targets.  More documentation is
+available in manual/build/.
 
 To install test software onto a USB-connected BlackBerry, go:
 
@@ -95,6 +96,39 @@ to adapt the build procedure.
 
 
 4. RELEASE NOTES
+
+
+RELEASE 0.6.0
+
+This release is intended to meet the planned "Base Library".
+
+Lua's base library is provided and much of the Jili public API (the
+documentation for which is available by going "ant doc") is also
+provided.
+
+The following notable improvements have been made:
+
+"ant style" performs a Checkstyle coding standards style check.  Much of
+the code has been modified to conform more to these conventions.
+
+build.xml has been cleaned up and supports multiple platforms more
+clearly and more easily.
+
+
+There are the following known bugs in this release:
+
+load (in the base library) does not accept a file beginning with '#'.
+(Ravenbrook job001436).
+
+t.v = nil does not work (Ravenbrook job001451).
+
+Wrong package (Ravenbrook job001398).
+
+t[nil] does not work (Ravenbrook job001430).  This was known from the
+previous release.
+
+x^y does not work (Ravenbrook job001405).  This is not likely to be
+fixed.
 
 
 RELEASE 0.5.0
