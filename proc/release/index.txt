@@ -52,9 +52,9 @@ Edit the readme:
 
 Edit the Lua.VERSION (a public string declared in Lua.java):
 
-  p4 edit version\0.X\code\Lua.java
-  vi version\0.X\code\Lua.java
-  p4 submit version\0.X\code\Lua.java
+  p4 edit version\0.X\code\mnj\lua\Lua.java
+  vi version\0.X\code\mnj\lua\Lua.java
+  p4 submit version\0.X\code\mnj\lua\Lua.java
 
 :todo: run smoke test?
 
@@ -68,7 +68,7 @@ Copy to release hierarchy:
   xcopy /s version\0.X release\0.X.Y\jili-0.X.Y\
 
 Open the release\0.X.Y directory in Windows Explorer, right-click on the
-jili-0.4.0 directory and select "Send To >> Compressed (zipped) Folder".
+jili-0.X.0 directory and select "Send To >> Compressed (zipped) Folder".
 Rename the resulting zip file to add the final .Y back in.
 
 Adding the zip file to perforce:
