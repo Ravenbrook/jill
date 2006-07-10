@@ -3558,7 +3558,7 @@ reentry:
     d.DumpHeader();
     d.DumpFunction(f, null);
     d.writer.flush();
-    return d.status;
+    return 0;   // Any errors result in thrown exceptions.
   }
 
 }
@@ -3567,7 +3567,6 @@ final class DumpState
 {
   DataOutputStream writer;
   boolean strip;
-  int status;
 
   DumpState(DataOutputStream writer, boolean strip)
   {
@@ -3578,15 +3577,15 @@ final class DumpState
 
   //////////////// dumper ////////////////////
 
-  static final byte [] header = new byte []
-      { 0x1B, 0x4C, 0x75, 0x61,
-        0x51, 0x00, 0x00, 0x04, // big endian currently
-        0x04, 0x04, 0x08, 0x00
-      } ;
-
   void DumpHeader() throws IOException
   {
-    writer.write(header) ;
+    /*
+     * In order to make the code more compact the dumper re-uses the
+     * header defined in Loader.java.  It has to fix the endianness byte
+     * first.
+     */
+    Loader.HEADER[6] = 0;
+    writer.write(Loader.HEADER) ;
   }
 
   private void DumpInt(int i) throws IOException
