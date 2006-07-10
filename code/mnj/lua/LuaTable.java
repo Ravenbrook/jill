@@ -51,6 +51,19 @@ public final class LuaTable extends java.util.Hashtable
   }
 
   /**
+   * Provided to avoid Checkstyle warning.  This method is not necessary
+   * for correctness (in neither JME nor JSE), it's only provided to
+   * remove a Checkstyle warning.
+   * Since {@link LuaTable#equals} implements the most discriminating
+   * equality possible, this method can have any implementation.
+   * @return an int.
+   */
+  public int hashCode()
+  {
+    return System.identityHashCode(this);
+  }
+
+  /**
    * Getter for metatable member.
    * @return  The metatable.
    */
