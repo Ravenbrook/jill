@@ -239,19 +239,19 @@ final class Syntax
     return (current == s) ? count : (-count) - 1;
   }
 
-  private void read_long_string(boolean is_string, int sep) throws IOException
+  private void read_long_string(boolean isString, int sep) throws IOException
   {
     int cont = 0;
     save_and_next();  /* skip 2nd `[' */
     if (currIsNewline())  /* string starts with a newline? */
       inclinenumber();  /* skip it */
-    boolean looping = true ;
-    while (looping)
+loop:
+    while (true)
     {
       switch (current)
       {
         case EOZ:
-          xLexerror(is_string ? "unfinished long string" :
+          xLexerror(isString ? "unfinished long string" :
                                 "unfinished long comment",
               TK_EOS);
           break;  /* to avoid warnings */
@@ -259,7 +259,7 @@ final class Syntax
           if (skip_sep() == sep)
           {
             save_and_next();  /* skip 2nd `]' */
-            looping = false ;
+            break loop;
           }
           break;
 
@@ -267,16 +267,16 @@ final class Syntax
         case '\r':
           save('\n');
           inclinenumber();
-          if (!is_string)
+          if (!isString)
             buff.setLength(0) ; /* avoid wasting space */
           break;
 
         default:
-          if (is_string) save_and_next();
+          if (isString) save_and_next();
           else next();
       }
-    }
-    if (is_string)
+    } /* loop */
+    if (isString)
     {
       String rawtoken = buff.toString();
       int trim_by = 2+sep ;
@@ -986,7 +986,7 @@ final class Syntax
   private void exprstat() throws IOException
   {
     // stat -> func | assignment
-    LHS_assign v = new LHS_assign() ;
+    LHSAssign v = new LHSAssign() ;
     primaryexp(v.v);
     if (v.v.k == Expdesc.VCALL)      // stat -> func
     {
@@ -1005,7 +1005,7 @@ final class Syntax
   ** local value in a safe place and use this safe copy in the previous
   ** assignment.
   */
-  private void check_conflict(LHS_assign lh, Expdesc v)
+  private void check_conflict(LHSAssign lh, Expdesc v)
   {
     int extra = fs.freereg;  /* eventual position to save local variable */
     boolean conflict = false ;
@@ -1032,7 +1032,7 @@ final class Syntax
     }
   }
 
-  private void assignment(LHS_assign lh, int nvars) throws IOException
+  private void assignment(LHSAssign lh, int nvars) throws IOException
   {
     Expdesc e = new Expdesc() ;
     int kind = lh.v.k ;
@@ -1040,7 +1040,7 @@ final class Syntax
       xSyntaxerror("syntax error");
     if (testnext(','))    /* assignment -> `,' primaryexp assignment */
     {
-      LHS_assign nv = new LHS_assign(lh) ;
+      LHSAssign nv = new LHSAssign(lh) ;
       primaryexp(nv.v);
       if (nv.v.k == Expdesc.VLOCAL)
         check_conflict(lh, nv.v);
@@ -2005,15 +2005,15 @@ final class Syntax
   }
 }
 
-final class LHS_assign
+final class LHSAssign
 {
-  LHS_assign prev ;
+  LHSAssign prev ;
   Expdesc v = new Expdesc() ;
 
-  LHS_assign()
+  LHSAssign()
   {
   }
-  LHS_assign(LHS_assign prev)
+  LHSAssign(LHSAssign prev)
   {
     this.prev = prev ;
   }
