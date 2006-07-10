@@ -466,10 +466,12 @@ final class Loader
   }
 
   /**
-   * Undumps a String or null.  As per <code>LoadString</code> in
+   * Undumps a {@link String} or <code>null</code>.  As per
+   * <code>LoadString</code> in
    * PUC-Rio's lundump.c.  Strings are converted from the binary
-   * according to the default character encoding, using the {@link
-   * java.lang.String#String(byte[]) String(byte[])} constructor.
+   * using the UTF-8 encoding, using the {@link
+   * java.lang.String#String(byte[], String) String(byte[], String)}
+   * constructor.
    */
   private String string() throws IOException
   {
