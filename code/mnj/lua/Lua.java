@@ -2628,7 +2628,6 @@ reentry:
             }
             continue;
           case OP_POW:
-            // There's no Math.pow.  :todo: consider implementing.
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
             if (rb instanceof Double && rc instanceof Double)
@@ -2996,6 +2995,7 @@ reentry:
   double iNumpow(double a, double b)
   {
     // :todo: this needs proper checking for boundary cases
+    // EG, is currently wrong for (-0)^2.
     boolean invert = b < 0.0 ;
     if (invert) b = -b ;
     if (a == 0.0)
@@ -3671,7 +3671,13 @@ final class DumpState
     }
     else
     {
-      // Possible UnsupportedEncodingException is left to be thrown.
+      /*
+       * Strings are dumped by converting to UTF-8 encoding.  The MIDP
+       * 2.0 spec guarantees that this encoding will be supported (see
+       * page 9 of midp-2_0-fr-spec.pdf).  Nonetheless, any 
+       * possible UnsupportedEncodingException is left to be thrown
+       * (it's a subclass of IOException which is declared to be thrown).
+       */
       byte [] contents = s.getBytes("UTF-8") ;
       int size = contents.length ;
       DumpInt(size+1) ;
