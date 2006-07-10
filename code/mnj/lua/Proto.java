@@ -65,7 +65,7 @@ final class Proto
    * <code>true</code> if and only if the function is variadic, that is,
    * defined with '...' in its parameter list.
    */
-  boolean is_vararg;
+  boolean isVararg;
   int maxstacksize;
   // Debug info
   /** Map from PC to line number. */
@@ -91,7 +91,7 @@ final class Proto
    * @param code       array of VM instructions.
    * @param nups       number of upvalues (used by this function).
    * @param numparams  number of fixed formal parameters.
-   * @param is_vararg     whether '...' is used.
+   * @param isVararg   whether '...' is used.
    * @param maxstacksize  number of stack slots required when invoking.
    * @throws NullPointerException if any array arguments are null.
    * @throws IllegalArgumentException if nups or numparams is negative.
@@ -101,7 +101,7 @@ final class Proto
         Proto[] proto,
         int nups,
         int numparams,
-        boolean is_vararg,
+        boolean isVararg,
         int maxstacksize)
   {
     if (null == constant || null == code || null == proto)
@@ -117,7 +117,7 @@ final class Proto
     this.p = proto;    this.sizep = proto.length ;
     this.nups = nups;
     this.numparams = numparams;
-    this.is_vararg = is_vararg;
+    this.isVararg = isVararg;
     this.maxstacksize = maxstacksize;
   }
 
@@ -216,7 +216,6 @@ final class Proto
     ensureCode(L, pc);
     code[pc] = instruction;
 
-    /** TODO: errorcase */
     if (pc >= lineinfo.length)
     {
       int[] newLineinfo = new int[lineinfo.length*2+1];
@@ -329,15 +328,15 @@ final class Proto
   }
 
   /** Predicate for whether function uses ... in its parameter list. */
-  boolean is_vararg()
+  boolean isVararg()
   {
-    return is_vararg;
+    return isVararg;
   }
 
-  /** "Setter" for is_vararg.  Sets it to true. */
-  void setIs_vararg()
+  /** "Setter" for isVararg.  Sets it to true. */
+  void setIsVararg()
   {
-    is_vararg = true;
+    isVararg = true;
   }
 
   /** LocVar array (do not modify). */

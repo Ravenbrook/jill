@@ -3188,7 +3188,7 @@ reentry:
       Proto p = f.proto();
       // :todo: ensure enough stack
 
-      if (!p.is_vararg())
+      if (!p.isVararg())
       {
         base = func + 1;
         if (stack.size() > base + p.numparams())
@@ -3606,7 +3606,7 @@ final class DumpState
     DumpInt(f.lastlinedefined);
     writer.writeByte(f.nups);
     writer.writeByte(f.numparams);
-    writer.writeBoolean(f.is_vararg);
+    writer.writeBoolean(f.isVararg());
     writer.writeByte(f.maxstacksize);
     DumpCode(f);
     DumpConstants(f);

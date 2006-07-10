@@ -757,7 +757,7 @@ loop:
     Syntax ls = new Syntax(L, in, name);
     FuncState fs = new FuncState(ls);
     ls.open_func(fs);
-    fs.f.is_vararg = true;
+    fs.f.setIsVararg();
     ls.xNext();
     ls.chunk();
     ls.check(TK_EOS);
@@ -1268,7 +1268,7 @@ loop:
         break;
 
       case TK_DOTS:  /* vararg */
-        if (!fs.f.is_vararg)
+        if (!fs.f.isVararg())
           xSyntaxerror("cannot use \"...\" outside a vararg function");
         v.init(Expdesc.VVARARG, fs.kCodeABC(Lua.OP_VARARG, 0, 1, 0));
         break;
@@ -1538,7 +1538,6 @@ loop:
     /* parlist -> [ param { `,' param } ] */
     Proto f = fs.f;
     int nparams = 0;
-    f.is_vararg = false;
     if (token != ')')    /* is `parlist' not empty? */
     {
       do
@@ -1553,12 +1552,12 @@ loop:
           case TK_DOTS:    /* param -> `...' */
           {
             xNext();
-            f.is_vararg = true;
+            f.setIsVararg();
             break;
           }
           default: xSyntaxerror("<name> or '...' expected");
         }
-      } while ((!f.is_vararg) && testnext(','));
+      } while ((!f.isVararg()) && testnext(','));
     }
     adjustlocalvars(nparams);
     f.numparams = fs.nactvar ; /* VARARG_HASARG not now used */
