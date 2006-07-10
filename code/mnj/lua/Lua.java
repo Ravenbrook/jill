@@ -3674,7 +3674,7 @@ final class DumpState
       /*
        * Strings are dumped by converting to UTF-8 encoding.  The MIDP
        * 2.0 spec guarantees that this encoding will be supported (see
-       * page 9 of midp-2_0-fr-spec.pdf).  Nonetheless, any 
+       * page 9 of midp-2_0-fr-spec.pdf).  Nonetheless, any
        * possible UnsupportedEncodingException is left to be thrown
        * (it's a subclass of IOException which is declared to be thrown).
        */
