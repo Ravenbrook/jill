@@ -113,6 +113,7 @@ public class JiliShell extends MIDlet implements CommandListener
         l = new Lua () ;
         BaseLib.open (l) ;
         StringLib.open(l);
+        OSLib.open(l);
     }
 
     private void loseLua ()

@@ -1423,8 +1423,18 @@ public final class Lua
    */
   public int checkInt(int narg)
   {
+    return (int)checkNumber(narg);
+  }
+
+  /**
+   * Checks is a number.  Raises error if not a number.
+   * @parm narg  argument index.
+   * @return  the argument as a double.
+   */
+  public double checkNumber(int narg)
+  {
     Object o = value(narg);
-    int d = toInteger(o);
+    double d = toNumber(o);
     if (d == 0 && !isNumber(o))
     {
       tagError(narg, TNUMBER);
@@ -1529,7 +1539,7 @@ public final class Lua
     return mt.get(event);
   }
 
-  private boolean isnoneornil(int narg)
+  boolean isnoneornil(int narg)
   {
     return type(narg) <= TNIL;
   }
