@@ -215,7 +215,7 @@ public final class StringLib extends LuaJavaCallback
           }     // else
           return ms.push_captures(si, res);
         }
-      } while (si < ms.end && !anchor);
+      } while (si++ < ms.end && !anchor);
     }
     L.pushNil();        // not found
     return 1;
