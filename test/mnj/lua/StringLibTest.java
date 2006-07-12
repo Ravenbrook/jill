@@ -55,6 +55,11 @@ function testfind()
   local e,f = string.find(s, p)
   return a==1,b==3,c==2,d==5,e==2,f==35
 end
+function testmatch()
+  local a,b = string.match('the quick brown fox jumps over the lazy dog',
+      'br(%a+).-o(%w%w+)%s')
+  return a == 'own', b == 'ver'
+end
 
 */
 
@@ -182,6 +187,11 @@ public class StringLibTest extends JiliTestCase
     nTrue("testfind", 6);
   }
 
+  public void testmatch()
+  {
+    nTrue("testmatch", 2);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -220,6 +230,10 @@ public class StringLibTest extends JiliTestCase
     suite.addTest(new StringLibTest("testfind")
       {
         public void runTest() { testfind(); }
+      });
+    suite.addTest(new StringLibTest("testmatch")
+      {
+        public void runTest() { testmatch(); }
       });
     return suite;
   }
