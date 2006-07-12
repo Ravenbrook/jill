@@ -151,38 +151,67 @@ final class Syntax
 
   // Implementations of functions from <ctype.h> are only correct copies
   // to the extent that Lua requires them.
+  // Generally they have default access so that StringLib can see them.
+  // Unlike C's these version are not locale dependent (in they use the
+  // ISO-Latin-1 definitions from CLDC 1.1 Character class.
 
-  private static boolean isalnum(int c)
+  static boolean isalnum(int c)
   {
-    return (c >= 'a' && c <= 'z') ||
-        (c >= 'A' && c <= 'Z') ||
-        (c >= '0' && c <='9');
+    char ch = (char)c;
+    return Character.isUpperCase(ch) ||
+        Character.isLowerCase(ch) ||
+        Character.isDigit(ch);
   }
 
-  private static boolean isalpha(int c)
+  static boolean isalpha(int c)
   {
-    return (c >= 'a' && c <= 'z') ||
-        (c >= 'A' && c <= 'Z');
+    char ch = (char)c;
+    return Character.isUpperCase(ch) ||
+        Character.isLowerCase(ch);
   }
 
   /** True if and only if the char (when converted from the int) is a
    * control character.
    */
-  private static boolean iscntrl(int c)
+  static boolean iscntrl(int c)
   {
     return (char)c < 0x20 || c == 0x7f;
   }
 
-  private static boolean isdigit(int c)
+  static boolean isdigit(int c)
   {
-    return c >= '0' && c <= '9';
+    return Character.isDigit((char)c);
   }
 
-  private static boolean isspace(int c)
+  static boolean islower(int c)
+  {
+    return Character.isLowerCase((char)c);
+  }
+
+  /**
+   * A character is punctuation if not cntrl, not alnum, and not space.
+   */
+  static boolean ispunct(int c)
+  {
+    return !isalnum(c) && !iscntrl(c) && !isspace(c);
+  }
+
+  static boolean isspace(int c)
   {
     return c == ' ' || c == '\t';
   }
 
+  static boolean isupper(int c)
+  {
+    return Character.isUpperCase((char)c);
+  }
+
+  static boolean isxdigit(int c)
+  {
+    return Character.isDigit((char)c) ||
+      ('a' <= c && c <= 'f') ||
+      ('A' <= c && c <= 'F');
+  }
 
   // From llex.c
 
