@@ -363,7 +363,7 @@ final class MatchState {
   /** Total number of captures (finished or unfinished). */
   int level;
   /** Each capture element is a 2-element array of (index, len). */
-  Vector capture;
+  Vector capture = new Vector();
   // :todo: consider adding the pattern string as a member (and removing
   // p parameter from methods).
 
