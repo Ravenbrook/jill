@@ -3,7 +3,6 @@
 package mnj.lua;
 // For j2meunit see http://j2meunit.sourceforge.net/
 import j2meunit.framework.Test;
-import j2meunit.framework.TestCase;
 import j2meunit.framework.TestSuite;
 
 // Auxiliary files
@@ -47,6 +46,14 @@ function testbyte()
 end
 function testchar()
   return string.char()=='',  string.char(102, 111, 111)=='foo'
+end
+function testfind()
+  local a,b = string.find('food', 'foo')
+  local c,d = string.find('Spong', '%l+')
+  local s = '|a-|zap\t789foo!@#$%     XY0Bop9###Floo'
+  local p =  'a.|%a*%c%d+%l-[%p]+[%s]*%u[%w]+#+%x'
+  local e,f = string.find(s, p)
+  return a==1,b==3,c==2,d==5,e==2,f==35
 end
 
 */
@@ -170,6 +177,11 @@ public class StringLibTest extends JiliTestCase
     nTrue("testchar", 2);
   }
 
+  public void testfind()
+  {
+    nTrue("testfind", 6);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -202,8 +214,13 @@ public class StringLibTest extends JiliTestCase
         {
         public void runTest() { testbyte(); } });
     suite.addTest(new StringLibTest("testchar")
-        {
-        public void runTest() { testchar(); } });
+      {
+        public void runTest() { testchar(); }
+      });
+    suite.addTest(new StringLibTest("testfind")
+      {
+        public void runTest() { testfind(); }
+      });
     return suite;
   }
 }
