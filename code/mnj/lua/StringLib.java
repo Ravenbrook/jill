@@ -202,7 +202,8 @@ public final class StringLib extends LuaJavaCallback
       MatchState ms = new MatchState(L, s, l1);
       boolean anchor = p.charAt(0) == '^';
       int si = init;
-      do {
+      do
+      {
         ms.level = 0;
         int res = ms.match(si, p, anchor ? 1 : 0);
         if (res >= 0)
@@ -354,7 +355,8 @@ public final class StringLib extends LuaJavaCallback
   }
 }
 
-final class MatchState {
+final class MatchState
+{
   Lua L;
   /** The entire string that is the subject of the match. */
   String src;
@@ -765,7 +767,7 @@ init:   // labelled while loop emulates "goto init", which we use to
 
                 case '+':       // 1 or more repetitions
                   return m ? max_expand(si+1, p, pi, ep) : -1;
-                
+
                 case '-':       // 0 or more repetitions (minimum)
                   return min_expand(si, p, pi, ep);
               }
