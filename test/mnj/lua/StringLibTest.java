@@ -6,62 +6,8 @@ import j2meunit.framework.Test;
 import j2meunit.framework.TestSuite;
 
 // Auxiliary files
-// StringLibTest.luc - contains functions that test each of the
-// string library functions:
-/*
-
-function testlen()
-  return string.len''==0, string.len'foo'==3
-end
-function testlower()
-  return string.lower'Foo'=='foo', string.lower'foo'=='foo',
-    string.lower' !801"'==' !801"'
-end
-function testrep()
-  return string.rep('foo', 3)=='foofoofoo',
-    string.rep('foo', 1)=='foo',
-    string.rep('foo', 0)==''
-end
-function testupper()
-  return string.upper'Foo'=='FOO', string.upper'FOO'=='FOO',
-    string.upper' !801"'==' !801"'
-end
-function testsub()
-  return string.sub('foobar', 4)=='bar',
-    string.sub('foobar', 4, 4)=='b',
-    string.sub('foobar', -5, -2)=='ooba'
-end
-function testmeta()
-  local s='foobar'
-  return s:len()==6, s:upper()=='FOOBAR'
-end
-function testreverse()
-  return string.reverse'foo'=='oof',
-    string.reverse''==''
-end
-function testbyte()
-  local a,b,c = string.byte('ebcdic', 2, 4)
-  return string.byte'foo'==102, string.byte('bar', 2)==97,
-    a==98, b==99, c==100
-end
-function testchar()
-  return string.char()=='',  string.char(102, 111, 111)=='foo'
-end
-function testfind()
-  local a,b = string.find('food', 'foo')
-  local c,d = string.find('Spong', '%l+')
-  local s = '|a-|zap\t789foo!@#$%     XY0Bop9###Floo'
-  local p =  'a.|%a*%c%d+%l-[%p]+[%s]*%u[%w]+#+%x'
-  local e,f = string.find(s, p)
-  return a==1,b==3,c==2,d==5,e==2,f==35
-end
-function testmatch()
-  local a,b = string.match('the quick brown fox jumps over the lazy dog',
-      'br(%a+).-o(%w%w+)%s')
-  return a == 'own', b == 'ver'
-end
-
-*/
+// StringLibTest.lua - test functions.
+// StringLibTest.luc - compiled .lua file.
 
 /**
  * J2MEUnit tests for Jili's StringLib (string library).  DO NOT SUBCLASS.
@@ -119,7 +65,12 @@ public class StringLibTest extends JiliTestCase
     L.call(0, 0);
     System.out.println(name);
     L.push(L.getGlobal(name));
-    L.call(0, n);
+    int status = L.pcall(0, n, new AddWhere());
+    if (status != 0)
+    {
+      System.out.println(L.toString(L.value(-1)));
+    }
+    assertTrue(name, status == 0);
     return L;
   }
 
@@ -192,6 +143,11 @@ public class StringLibTest extends JiliTestCase
     nTrue("testmatch", 2);
   }
 
+  public void testformat()
+  {
+    nTrue("testformat", 1);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -235,6 +191,20 @@ public class StringLibTest extends JiliTestCase
       {
         public void runTest() { testmatch(); }
       });
+    suite.addTest(new StringLibTest("testformat")
+      {
+        public void runTest() { testformat(); }
+      });
     return suite;
+  }
+}
+
+final class AddWhere extends LuaJavaCallback
+{
+  int luaFunction(Lua L)
+  {
+    L.insert(L.where(2), -1);
+    L.concat(2);
+    return 1;
   }
 }
