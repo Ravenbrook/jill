@@ -1180,6 +1180,7 @@ precision:
       case 'e': case 'E': case 'f': case 'g': case 'G':
       case 'q':
       case 's':
+        type = s.charAt(i);
         length = i+1;
         return;
     }
