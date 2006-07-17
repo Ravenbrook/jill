@@ -1255,6 +1255,9 @@ precision:
       case 'o':
         radix = 8;
         break;
+      case 'd':
+        radix = 10;
+        break;
       case 'x': case 'X':
         radix = 16;
         break;
