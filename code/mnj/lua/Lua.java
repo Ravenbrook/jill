@@ -648,8 +648,10 @@ public final class Lua
    * binary then it is loaded directly.  Otherwise the chunk is assumed
    * to be a Lua source chunk and compilation is required first; the
    * <code>InputStream</code> is used to create a <code>Reader</code>
-   * (using the
-   * {@link java.io.InputStreamReader#InputStreamReader(InputStream)}
+   * using the UTF-8 encoding
+   * (using a second argument of <code>"UTF-8"</code> to the
+   * {@link java.io.InputStreamReader#InputStreamReader(java.io.InputStream,
+   * java.lang.String)}
    * constructor) and the Lua source is compiled.
    * </p>
    * <p>
@@ -1096,7 +1098,7 @@ public final class Lua
    * Does the equivalent of <code>t[k] = v</code>.
    * @param t  the table to modify.
    * @param k  the index to modify.
-   * @param v  the new value at index <var>k</code>.
+   * @param v  the new value at index <var>k</var>.
    */
   public void setTable(Object t, Object k, Object v)
   {

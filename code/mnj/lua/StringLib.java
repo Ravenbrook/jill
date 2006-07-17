@@ -256,7 +256,7 @@ public final class StringLib extends LuaJavaCallback
 
   /**
    * Expects the iteration state, an Object[3] (see {@link
-   * StringLib#gmatch)}), to be first on the stack.
+   * StringLib#gmatch}), to be first on the stack.
    */
   private static int gmatchaux(Lua L)
   {
