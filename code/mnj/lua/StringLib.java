@@ -1175,8 +1175,9 @@ precision:
     }
     switch (s.charAt(i))
     {
+      case 'c':
       case 'd': case 'i':
-      case 'o': case 'u': case 'c': case 'X':
+      case 'o': case 'u': case 'x': case 'X':
       case 'e': case 'E': case 'f': case 'g': case 'G':
       case 'q':
       case 's':
