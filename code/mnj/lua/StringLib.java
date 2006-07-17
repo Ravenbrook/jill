@@ -43,6 +43,10 @@ public final class StringLib extends LuaJavaCallback
   private static final int SUB = 14;
   private static final int UPPER = 15;
 
+  private static final int GMATCH_AUX= 16;
+
+  private static final StringLib GMATCH_AUX_FUN = new StringLib(GMATCH_AUX);
+
   /**
    * Which library function this object represents.  This value should
    * be one of the "enums" defined in the class.
@@ -71,6 +75,12 @@ public final class StringLib extends LuaJavaCallback
         return charFunction(L);
       case FIND:
         return find(L);
+      case FORMAT:
+        return format(L);
+      case GMATCH:
+        return gmatch(L);
+      case GSUB:
+        return gsub(L);
       case LEN:
         return len(L);
       case LOWER:
@@ -228,6 +238,175 @@ public final class StringLib extends LuaJavaCallback
     return findAux(L, true);
   }
 
+  /** Implement string.match.  Operates slightly differently from the
+   * PUC-Rio code because instead of storing the iteration state as
+   * upvalues of the C closure the iteration state is stored in an
+   * Object[3] and kept on the stack.
+   */
+  private static int gmatch(Lua L)
+  {
+    Object[] state = new Object[3];
+    state[0] = L.checkString(1);
+    state[1] = L.checkString(2);
+    state[2] = new Integer(0);
+    L.push(GMATCH_AUX_FUN);
+    L.push(state);
+    return 2;
+  }
+
+  /**
+   * Expects the iteration state, an Object[3] (see {@link
+   * StringLib#gmatch)}), to be first on the stack.
+   */
+  private static int gmatchaux(Lua L)
+  {
+    Object[] state = (Object[])L.value(1);
+    String s = (String)state[0];
+    String p = (String)state[1];
+    int i = ((Integer)state[2]).intValue();
+    MatchState ms = new MatchState(L, s, s.length());
+    for ( ; i <= ms.end ; ++i)
+    {
+      ms.level = 0;
+      int e = ms.match(i, p, 0);
+      if (e >= 0)
+      {
+        int newstart = e;
+        if (e == i)     // empty match?
+          ++newstart;   // go at least one position
+        state[2] = new Integer(newstart);
+        return ms.push_captures(i, e);
+      }
+    }
+    return 0;   // not found.
+  }
+
+  /** Implements string.gsub. */
+  private static int gsub(Lua L)
+  {
+    String s = L.checkString(1);
+    int sl = s.length();
+    String p = L.checkString(2);
+    int maxn = L.optInt(4, sl+1);
+    boolean anchor = p.charAt(0) == '^';
+    if (anchor)
+      p = p.substring(1);
+    MatchState ms = new MatchState(L, s, sl);
+    StringBuffer b = new StringBuffer();
+
+    int n = 0;
+    int si = 0;
+    while (n < maxn)
+    {
+      ms.level = 0;
+      int e = ms.match(si, p, 0);
+      if (e >= 0)
+      {
+        ++n;
+        ms.addvalue(b, si, e);
+      }
+      if (e >= 0 && e > si)     // non empty match?
+        si = e; // skip it
+      else if (si < ms.end)
+        b.append(s.charAt(si++));
+      else
+        break;
+      if (anchor)
+        break;
+    }
+    b.append(s.substring(si));
+    L.pushString(b.toString());
+    L.pushNumber(n);    // number of substitutions
+    return 2;
+  }
+
+  static void addquoted(Lua L, StringBuffer b, int arg)
+  {
+    String s = L.checkString(arg);
+    int l = s.length();
+    b.append('"');
+    for (int i=0; i<l; ++i)
+    {
+      switch (s.charAt(i))
+      {
+        case '"': case '\\': case '\n':
+          b.append('\\');
+          b.append(s.charAt(i));
+          break;
+
+        case '\r':
+          b.append("\\r");
+          break;
+
+        case '\0':
+          b.append("\\000");
+          break;
+
+        default:
+          b.append(s.charAt(i));
+          break;
+      }
+    }
+    b.append('"');
+  }
+
+  static int format(Lua L)
+  {
+    int arg = 1;
+    String strfrmt = L.checkString(1);
+    int sfl = strfrmt.length();
+    StringBuffer b = new StringBuffer();
+    int i=0;
+    while (i < sfl)
+    {
+      if (strfrmt.charAt(i) != MatchState.L_ESC)
+      {
+        b.append(strfrmt.charAt(i++));
+      }
+      else if (strfrmt.charAt(++i) == MatchState.L_ESC)
+      {
+        b.append(strfrmt.charAt(i++));
+      }
+      else      // format item
+      {
+        ++arg;
+        FormatItem item = new FormatItem(L, strfrmt.substring(i));
+        i += item.length();
+        switch (item.type())
+        {
+          case 'c':
+            item.formatChar(b, (char)L.checkNumber(arg));
+            break;
+
+          case 'd': case 'i':
+          case 'o': case 'u': case 'x': case 'X':
+          // :todo: should be unsigned conversions cope better with
+          // negative number?
+            item.formatInteger(b, (long)L.checkNumber(arg));
+            break;
+
+          case 'e': case 'E': case 'f':
+          case 'g': case 'G':
+            item.formatFloat(b, L.checkNumber(arg));
+            break;
+
+          case 'q':
+            addquoted(L, b, arg);
+            break;
+
+          case 's':
+            item.formatString(b, L.checkString(arg));
+            break;
+
+          default:
+            return L.error("invalid option to 'format'");
+        }
+      }
+    }
+    L.pushString(b.toString());
+    return 1;
+  }
+
   /** Implements string.len. */
   private static int len(Lua L)
   {
@@ -369,6 +548,7 @@ final class MatchState
   // :todo: consider adding the pattern string as a member (and removing
   // p parameter from methods).
 
+  // :todo: consider removing end parameter, if end always == // src.length()
   MatchState(Lua L, String src, int end)
   {
     this.L = L;
@@ -646,7 +826,7 @@ final class MatchState
     return -1;
   }
 
-  private static final char L_ESC = '%';
+  static final char L_ESC = '%';
   static final String SPECIALS = "^$*+?.([%-";
   private static final int CAP_UNFINISHED = -1;
   private static final int CAP_POSITION = 2;
@@ -788,26 +968,27 @@ init:   // labelled while loop emulates "goto init", which we use to
    * @param s  index of start of match.
    * @param e  index of end of match.
    */
-  void push_onecapture(int i, int s, int e)
+  Object onecapture(int i, int s, int e)
   {
     if (i >= level)
     {
       if (i == 0)       // level == 0, too
-        L.pushString(src.substring(s, e));      // add whole match
+         return src.substring(s, e);    // add whole match
       else
         capInvalid();
+        // NOTREACHED;
     }
-    else
-    {
-      int l = captureLen(i);
-      if (l == CAP_UNFINISHED)
-        capUnfinished();
-      if (l == CAP_POSITION)
-        L.pushNumber(captureInit(i) +1);
-      else
-        L.pushString(src.substring(captureInit(i),
-            captureInit(i) + l));
-    }
+    int l = captureLen(i);
+    if (l == CAP_UNFINISHED)
+      capUnfinished();
+    if (l == CAP_POSITION)
+      return L.valueOfNumber(captureInit(i) +1);
+    return src.substring(captureInit(i), captureInit(i) + l);
+  }
+
+  void push_onecapture(int i, int s, int e)
+  {
+    L.push(onecapture(i, s, e));
   }
 
   /**
@@ -822,4 +1003,325 @@ init:   // labelled while loop emulates "goto init", which we use to
     return nlevels;     // number of strings pushed
   }
 
+  /** A helper for gsub. */
+  void adds(StringBuffer b, int si, int ei)
+  {
+    String news = (String)L.value(3);
+    int l = news.length();
+    for (int i=0; i<l; ++i)
+    {
+      if (news.charAt(i) != L_ESC)
+      {
+        b.append(news.charAt(i));
+      }
+      else
+      {
+        ++i;    // skip L_ESC
+        if (!Syntax.isdigit(news.charAt(i)))
+        {
+          b.append(news.charAt(i));
+        }
+        else if (news.charAt(i) == '0')
+        {
+          b.append(src.substring(si, ei));
+        }
+        else
+        {
+          // add capture to accumulated result
+          b.append(onecapture(news.charAt(i) - '1', si, ei));
+        }
+      }
+    }
+  }
+
+  /** A helper for gsub. */
+  void addvalue(StringBuffer b, int si, int ei)
+  {
+    switch (L.type(3))
+    {
+      case Lua.TNUMBER:
+      case Lua.TSTRING:
+        adds(b, si, ei);
+        return;
+
+      case Lua.TFUNCTION:
+        {
+          L.pushValue(3);
+          int n = push_captures(si, ei);
+          L.call(n, 1);
+        }
+        break;
+
+      case Lua.TTABLE:
+        L.push(L.getTable(L.value(3), onecapture(0, si, ei)));
+        break;
+
+      default:
+      {
+        L.argError(3, "string/function/table expected");
+        return;
+      }
+    }
+    if (!L.toBoolean(L.value(-1)))      // nil or false
+    {
+      L.pop(1);
+      L.pushString(src.substring(si, ei));
+    }
+    else if (!L.isString(L.value(-1)))
+    {
+      L.error("invalid replacement value (a " +
+          L.typeName(L.type(-1)) + ")");
+    }
+    b.append(L.value(-1));      // add result to accumulator
+    L.pop(1);
+  }
+}
+
+final class FormatItem
+{
+  private Lua L;
+  private boolean left; // '-' flag
+  private boolean sign; // '+' flag
+  private boolean space;        // ' ' flag
+  private boolean alt;  // '#' flag
+  private boolean zero; // '0' flag
+  private int width;    // minimum field width
+  private int precision = -1;   // precision, -1 when no precision specified.
+  private char type;    // the type of the conversion
+  private int length;   // length of the format item in the format string.
+
+  /**
+   * Parse a format item (starting from after the <code>L_ESC</code>).
+   */
+  FormatItem(Lua L, String s)
+  {
+    this.L = L;
+    int i=0;
+    int l = s.length();
+    // parse flags
+flag:
+    while (true)
+    {
+      if (i >=l )
+        L.error("invalid format");
+      switch (s.charAt(i))
+      {
+        case '-':
+          left = true;
+          break;
+        case '+':
+          sign = true;
+          break;
+        case ' ':
+          space = true;
+          break;
+        case '#':
+          alt = true;
+          break;
+        case '0':
+          zero = true;
+          break;
+        default:
+          break flag;
+      }
+      ++i;
+    } /* flag */
+    // parse width
+    int widths = i;       // index of start of width specifier
+    while (true)
+    {
+      if (i >= l)
+        L.error("invalid format");
+      if (Syntax.isdigit(s.charAt(i)))
+        ++i;
+      else
+        break;
+    }
+    if (widths < i)
+    {
+      try
+      {
+        width = Integer.parseInt(s.substring(widths, i));
+      }
+      catch (NumberFormatException e_)
+      {
+      }
+    }
+    // parse precision
+    if (s.charAt(i) == '.')
+    {
+      int precisions = i; // index of start of precision specifier
+      ++i;
+precision:
+      while (true)
+      {
+        if (i >= l)
+          L.error("invalid format");
+        if (Syntax.isdigit(s.charAt(i)))
+          ++i;
+        else
+          break;
+      }
+      if (precisions < i)
+      {
+        try
+        {
+          precision = Integer.parseInt(s.substring(precisions, i));
+        }
+        catch (NumberFormatException e_)
+        {
+        }
+      }
+    }
+    switch (s.charAt(i))
+    {
+      case 'd': case 'i':
+      case 'o': case 'u': case 'c': case 'X':
+      case 'e': case 'E': case 'f': case 'g': case 'G':
+      case 'q':
+      case 's':
+        length = i+1;
+        return;
+    }
+    L.error("invalid option to 'format'");
+  }
+
+  int length()
+  {
+    return length;
+  }
+
+  int type()
+  {
+    return type;
+  }
+
+  /**
+   * Format the converted string according to width, and left.
+   * zero padding is handling is either formatInteger or formatFloat
+   * (and width is fixed to 0 in such cases).  Therefore we can ignore
+   * zero.
+   */
+  private void format(StringBuffer b, String s)
+  {
+    int l = s.length();
+    if (l >= width)
+    {
+      b.append(s);
+      return;
+    }
+    StringBuffer pad = new StringBuffer();
+    while (l < width)
+    {
+      pad.append(' ');
+      ++l;
+    }
+    if (left)
+    {
+      b.append(s);
+      b.append(pad);
+    }
+    else
+    {
+      b.append(pad);
+      b.append(s);
+    }
+  }
+
+  // All the format* methods take a StringBuffer and append the
+  // formatted representation of the value to it.
+
+  void formatChar(StringBuffer b, char c)
+  {
+    String s = String.valueOf(c);
+    format(b, s);
+  }
+
+  void formatInteger(StringBuffer b, long i)
+  {
+    // :todo: improve inefficient use of implicit StringBuffer
+    // :todo: handle (alt && radix==16) case.  Tricky.
+
+    if (left)
+      zero = false;
+    if (precision >= 0)
+      zero = false;
+
+    int radix = 10;
+    switch (type)
+    {
+      case 'o':
+        radix = 8;
+        break;
+      case 'x': case 'X':
+        radix = 16;
+        break;
+      default:
+        L.error("invalid format");
+    }
+    String s = Long.toString(i, radix);
+    if (type == 'X')
+      s = s.toUpperCase();
+    if (precision == 0 && s.equals("0"))
+      s = "";
+
+    // form a prefix by strippping possible leading '-',
+    // pad to precision,
+    // add prefix,
+    // pad to width.
+    // extra wart: padding with '0' is implemented using precision
+    // because this makes handling the prefix easier.
+    String prefix = "";
+    if (s.startsWith("-"))
+    {
+      prefix = "-";
+      s = s.substring(1);
+    }
+    if (alt && radix == 16)
+      prefix = "0x";
+    if (prefix == "")
+    {
+      if (sign)
+        prefix = "+";
+      else if (space )
+        prefix = " ";
+    }
+    if (alt && radix == 8 && !s.startsWith("0"))
+      s = "0" + s;
+    int l = s.length();
+    if (zero)
+    {
+      precision = width - prefix.length();
+      width = 0;
+    }
+    if (l < precision)
+    {
+      StringBuffer p = new StringBuffer();
+      while (l < precision)
+      {
+        p.append('0');
+      }
+      p.append(s);
+      s = p.toString();
+    }
+    s = prefix + s;
+    format(b, s);
+  }
+
+  void formatFloat(StringBuffer b, double d)
+  {
+    // :todo: implement the many missing options.
+    format(b, Double.toString(d));
+  }
+
+  void formatString(StringBuffer b, String s)
+  {
+    String p = s;
+
+    if (precision >= 0 && precision < s.length())
+    {
+      p = s.substring(0, precision);
+    }
+    format(b, p);
+  }
 }
