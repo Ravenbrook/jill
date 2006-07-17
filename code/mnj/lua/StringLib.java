@@ -1150,9 +1150,8 @@ flag:
     // parse precision
     if (s.charAt(i) == '.')
     {
-      int precisions = i; // index of start of precision specifier
       ++i;
-precision:
+      int precisions = i; // index of start of precision specifier
       while (true)
       {
         if (i >= l)
