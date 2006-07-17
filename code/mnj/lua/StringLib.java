@@ -1305,6 +1305,7 @@ precision:
       while (l < precision)
       {
         p.append('0');
+        ++l;
       }
       p.append(s);
       s = p.toString();
