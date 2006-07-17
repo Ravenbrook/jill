@@ -45,12 +45,12 @@ function testfind()
   local e,f = string.find(s, p)
   return a==1,b==3,c==2,d==5,e==2,f==35
 end
--- from [LUA 2006-03-26] strings.lua
 function testmatch()
   local a,b = string.match('the quick brown fox jumps over the lazy dog',
       'br(%a+).-o(%w%w+)%s')
   return a == 'own', b == 'ver'
 end
+-- from [LUA 2006-03-26] strings.lua
 function testformat()
   x = '"?lo"\n\\'
   assert(string.format('%q%s', x, x) == '"\\"?lo\\"\\\n\\\\""?lo"\n\\')
@@ -70,9 +70,12 @@ function testformat()
   assert(string.format("-%.20s.20s", string.rep("%", 2000)) == "-"..string.rep("%", 20)..".20s")
   assert(string.format('"-%20s.20s"', string.rep("%", 2000)) ==
          string.format("%q", "-"..string.rep("%", 2000)..".20s"))
-
-
+  return true
+end
+-- This one fails as of 2006-07-17
+function testformatmore()
   -- longest number that can be formated
   assert(string.len(string.format('%99.99f', -1e308)) >= 100)
+  return true
 end
 

@@ -148,6 +148,11 @@ public class StringLibTest extends JiliTestCase
     nTrue("testformat", 1);
   }
 
+  public void testformatmore()
+  {
+    nTrue("testformatmore", 1);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
