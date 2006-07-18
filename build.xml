@@ -292,6 +292,25 @@
     />
   </target>
 
+  <target name="compiled-gnone-dir">
+    <mkdir dir="compiled-gnone" />
+  </target>
+
+  <!--
+    Compiles Java sources into compiled-gnone using the -g:none option.
+    The resulting class files have no debug information, so are smaller.
+    -->
+  <target name="compile-gnone"
+      depends="compiled-gnone-dir" >
+    <javac destdir="compiled-gnone" srcdir="code"
+        debug="off"
+        bootclasspath="${jme.jar}"
+        classpath="${j2meunit}"
+        source="1.2"
+        target="1.1"
+    />
+  </target>
+
   <target name="test-compiled-dir">
     <mkdir dir="test-compiled" />
   </target>
