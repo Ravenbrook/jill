@@ -78,4 +78,18 @@ function testformatmore()
   assert(string.len(string.format('%99.99f', -1e308)) >= 100)
   return true
 end
-
+-- from [LUA 2006-03-26] strings.lua
+function testgsub()
+  assert(string.gsub('  alo alo  ', '^%s*(.-)%s*$', '%1') == 'alo alo') -- double trim
+  assert(string.gsub('alo  alo  \n 123\n ', '%s+', ' ') == 'alo alo 123 ')
+  assert(string.gsub('alo alo', '()[al]', '%1') == '12o 56o')
+  assert(string.gsub("abc=xyz", "(%w*)(%p)(%w+)", "%3%2%1-%0") ==
+                "xyz=abc-abc=xyz")
+  assert(string.gsub("abc", "%w", "%1%0") == "aabbcc")
+  assert(string.gsub("abc", "%w+", "%0%1") == "abcabc")
+  assert(string.gsub('', '^', 'r') == 'r')
+  assert(string.gsub('', '$', 'r') == 'r')
+  assert(string.gsub("um (dois) tres (quatro)", "(%(%w+%))", string.upper) ==
+              "um (DOIS) tres (QUATRO)")
+  return true
+end

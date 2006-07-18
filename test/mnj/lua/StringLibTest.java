@@ -153,6 +153,11 @@ public class StringLibTest extends JiliTestCase
     nTrue("testformatmore", 1);
   }
 
+  public void testgsub()
+  {
+    nTrue("testgsub", 1);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -199,6 +204,10 @@ public class StringLibTest extends JiliTestCase
     suite.addTest(new StringLibTest("testformat")
       {
         public void runTest() { testformat(); }
+      });
+    suite.addTest(new StringLibTest("testgsub")
+      {
+        public void runTest() { testgsub(); }
       });
     return suite;
   }
