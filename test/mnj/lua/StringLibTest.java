@@ -158,6 +158,11 @@ public class StringLibTest extends JiliTestCase
     nTrue("testgsub", 1);
   }
 
+  public void testgmatch()
+  {
+    nTrue("testgmatch", 1);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -208,6 +213,10 @@ public class StringLibTest extends JiliTestCase
     suite.addTest(new StringLibTest("testgsub")
       {
         public void runTest() { testgsub(); }
+      });
+    suite.addTest(new StringLibTest("testgmatch")
+      {
+        public void runTest() { testgmatch(); }
       });
     return suite;
   }

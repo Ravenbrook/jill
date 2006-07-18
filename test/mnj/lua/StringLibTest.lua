@@ -78,7 +78,7 @@ function testformatmore()
   assert(string.len(string.format('%99.99f', -1e308)) >= 100)
   return true
 end
--- from [LUA 2006-03-26] strings.lua
+-- from [LUA 2006-03-26] pm.lua
 function testgsub()
   assert(string.gsub('  alo alo  ', '^%s*(.-)%s*$', '%1') == 'alo alo') -- double trim
   assert(string.gsub('alo  alo  \n 123\n ', '%s+', ' ') == 'alo alo 123 ')
@@ -91,5 +91,32 @@ function testgsub()
   assert(string.gsub('', '$', 'r') == 'r')
   assert(string.gsub("um (dois) tres (quatro)", "(%(%w+%))", string.upper) ==
               "um (DOIS) tres (QUATRO)")
+  return true
+end
+-- from [LUA 2006-03-26] pm.lua
+function testgmatch()
+  local a = 0
+  for i in string.gmatch('abcde', '()') do assert(i == a+1); a=i end
+  assert(a==6)
+
+  t = {n=0}
+  for w in string.gmatch("first second word", "%w+") do
+        t.n=t.n+1; t[t.n] = w
+  end
+  assert(t[1] == "first" and t[2] == "second" and t[3] == "word")
+
+  t = {3, 6, 9}
+  for i in string.gmatch ("xuxx uu ppar r", "()(.)%2") do
+    assert(i == table.remove(t, 1))
+  end
+  assert(table.getn(t) == 0)
+
+  t = {}
+  for i,j in string.gmatch("13 14 10 = 11, 15= 16, 22=23", "(%d+)%s*=%s*(%d+)") do
+    t[i] = j
+  end
+  a = 0
+  for k,v in pairs(t) do assert(k+1 == v+0); a=a+1 end
+  assert(a == 3)
   return true
 end
