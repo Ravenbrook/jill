@@ -1028,7 +1028,7 @@ init:   // labelled while loop emulates "goto init", which we use to
         else
         {
           // add capture to accumulated result
-          b.append(onecapture(news.charAt(i) - '1', si, ei));
+          b.append(L.toString(onecapture(news.charAt(i) - '1', si, ei)));
         }
       }
     }
