@@ -831,7 +831,7 @@ final class MatchState
   static final char L_ESC = '%';
   static final String SPECIALS = "^$*+?.([%-";
   private static final int CAP_UNFINISHED = -1;
-  private static final int CAP_POSITION = 2;
+  private static final int CAP_POSITION = -2;
 
   /**
    * @param si  index of subject at which to attempt match.
