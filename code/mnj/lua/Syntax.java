@@ -198,7 +198,11 @@ final class Syntax
 
   static boolean isspace(int c)
   {
-    return c == ' ' || c == '\t';
+    return c == ' ' ||
+           c == '\f' ||
+           c == '\n' ||
+           c == '\r' ||
+           c == '\t';
   }
 
   static boolean isupper(int c)
