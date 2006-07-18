@@ -95,6 +95,8 @@ public final class StringLib extends LuaJavaCallback
         return sub(L);
       case UPPER:
         return upper(L);
+      case GMATCH_AUX:
+        return gmatchaux(L);
     }
     return 0;
   }
