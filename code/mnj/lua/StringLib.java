@@ -709,7 +709,7 @@ final class MatchState
         return sig;
       }
     }
-    return sig;
+    return !sig;
   }
 
   static boolean singlematch(char c, String p, int pi, int ep)
