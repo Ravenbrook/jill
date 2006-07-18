@@ -94,6 +94,7 @@ function testgsub()
   return true
 end
 -- from [LUA 2006-03-26] pm.lua
+-- treated to remove references to table.*
 function testgmatch()
   local a = 0
   for i in string.gmatch('abcde', '()') do assert(i == a+1); a=i end
@@ -106,10 +107,12 @@ function testgmatch()
   assert(t[1] == "first" and t[2] == "second" and t[3] == "word")
 
   t = {3, 6, 9}
+  a = 1
   for i in string.gmatch ("xuxx uu ppar r", "()(.)%2") do
-    assert(i == table.remove(t, 1))
+    assert(i == t[a])
+    a = a+1
   end
-  assert(table.getn(t) == 0)
+  assert(a == 4)
 
   t = {}
   for i,j in string.gmatch("13 14 10 = 11, 15= 16, 22=23", "(%d+)%s*=%s*(%d+)") do
