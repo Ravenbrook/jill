@@ -110,7 +110,7 @@ public final class OSLib extends LuaJavaCallback {
   private static final int date(Lua L)
   {
     long t;
-    if (L.isnoneornil(2))
+    if (L.isNoneOrNil(2))
     {
       t = System.currentTimeMillis();
     }

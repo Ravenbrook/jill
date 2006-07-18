@@ -1541,7 +1541,7 @@ public final class Lua
     return mt.get(event);
   }
 
-  boolean isnoneornil(int narg)
+  boolean isNoneOrNil(int narg)
   {
     return type(narg) <= TNIL;
   }
@@ -1607,7 +1607,7 @@ public final class Lua
    */
   public int optInt(int narg, int def)
   {
-    if (isnoneornil(narg))
+    if (isNoneOrNil(narg))
     {
       return def;
     }
@@ -1622,7 +1622,7 @@ public final class Lua
    */
   public String optString(int narg, String def)
   {
-    if (isnoneornil(narg))
+    if (isNoneOrNil(narg))
     {
       return def;
     }
