@@ -155,7 +155,7 @@ public final class TableLib extends LuaJavaCallback
     double max = 0;
     L.checkType(1, Lua.TTABLE);
     LuaTable t = (LuaTable)L.value(1);
-    Enumeration e = t.elements();
+    Enumeration e = t.keys();
     while (e.hasMoreElements())
     {
       Object o = e.nextElement();
