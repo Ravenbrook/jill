@@ -64,8 +64,19 @@ final class AddWhere extends LuaJavaCallback
 {
   int luaFunction(Lua L)
   {
-    L.insert(L.where(2), -1);
-    L.concat(2);
+    boolean any = false;
+    for (int i=1; i<=3; ++i)
+    {
+      String s = L.where(i);
+      if (!s.equals(""))
+      {
+        if (any)
+          s = s + " > ";
+        any = true;
+        L.insert(s, -1);
+        L.concat(2);
+      }
+    }
     return 1;
   }
 }
