@@ -85,6 +85,11 @@ public class TableLibTest extends JiliTestCase
     }
   }
 
+  public void testsort()
+  {
+    nTrue("testsort", 1);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -92,6 +97,10 @@ public class TableLibTest extends JiliTestCase
     suite.addTest(new TableLibTest("testTableLib")
       {
         public void runTest() { testTableLib(); }
+      });
+    suite.addTest(new TableLibTest("testsort")
+      {
+        public void runTest() { testsort(); }
       });
 
     return suite;
