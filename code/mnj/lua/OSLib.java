@@ -15,6 +15,7 @@
 
 package mnj.lua;
 
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -63,6 +64,10 @@ public final class OSLib extends LuaJavaCallback {
         return clock(L);
       case DATE:
         return date(L);
+      case DIFFTIME:
+        return difftime(L);
+      case TIME:
+        return time(L);
     }
     return 0;
   }
@@ -107,7 +112,7 @@ public final class OSLib extends LuaJavaCallback {
   }
 
   /** Implements date. */
-  private static final int date(Lua L)
+  private static int date(Lua L)
   {
     long t;
     if (L.isNoneOrNil(2))
@@ -122,5 +127,63 @@ public final class OSLib extends LuaJavaCallback {
     // :todo: implement all the formats of the first argument.
     L.pushString(d.toString());
     return 1;
+  }
+
+  /** Implements difftime. */
+  private static int difftime(Lua L)
+  {
+    L.pushNumber((L.checkNumber(1) - L.optNumber(2, 0))/1000);
+    return 1;
+  }
+
+  // Incredibly, the spec doesn't give a numeric value and range for
+  // Calendar.JANUARY through to Calendar.DECEMBER, so we have an array
+  // to convert from 0-11 to the required value.
+  private static final int[] MONTH =
+  {
+    Calendar.JANUARY,
+    Calendar.FEBRUARY,
+    Calendar.MARCH,
+    Calendar.APRIL,
+    Calendar.MAY,
+    Calendar.JUNE,
+    Calendar.JULY,
+    Calendar.AUGUST,
+    Calendar.SEPTEMBER,
+    Calendar.OCTOBER,
+    Calendar.NOVEMBER,
+    Calendar.DECEMBER
+  };
+
+  /** Implements time. */
+  private static int time(Lua L)
+  {
+    if (L.isNoneOrNil(1))       // called without args?
+    {
+      L.pushNumber(System.currentTimeMillis());
+      return 1;
+    }
+    L.checkType(1, Lua.TTABLE);
+    L.setTop(1);        // make sure table is at the top
+    Calendar c = Calendar.getInstance();
+    c.set(Calendar.SECOND, getfield(L, "sec", 0));
+    c.set(Calendar.MINUTE, getfield(L, "min", 0));
+    c.set(Calendar.HOUR, getfield(L, "hour", 12));
+    c.set(Calendar.DAY_OF_MONTH, getfield(L, "day", -1));
+    c.set(Calendar.MONTH, MONTH[getfield(L, "month", -1) - 1]);
+    c.set(Calendar.YEAR, getfield(L, "year", -1));
+    // ignore isdst field
+    L.pushNumber(c.getTimeInMillis());
+    return 1;
+  }
+
+  private static int getfield(Lua L, String key, int d)
+  {
+    Object o = L.getField(L.value(-1), key);
+    if (L.isNumber(o))
+      return (int)L.toNumber(o);
+    if (d < 0)
+      return L.error("field '" + key + "' missing in date table");
+    return d;
   }
 }

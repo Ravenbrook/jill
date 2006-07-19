@@ -1615,6 +1615,21 @@ public final class Lua
   }
 
   /**
+   * Get optional number argument.  Raises error if non-number supplied.
+   * @param narg  argument index.
+   * @param def   default value for number.
+   * @return a double.
+   */
+  public double optNumber(int narg, double def)
+  {
+    if (isNoneOrNil(narg))
+    {
+      return def;
+    }
+    return checkNumber(narg);
+  }
+
+  /**
    * Get optional string argument.  Raises error if non-string supplied.
    * @param narg  argument index.
    * @param def   default value for string.
