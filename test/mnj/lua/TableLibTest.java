@@ -85,6 +85,21 @@ public class TableLibTest extends JiliTestCase
     }
   }
 
+  public void testconcat()
+  {
+    nTrue("testconcat", 1);
+  }
+
+  public void testinsertremove()
+  {
+    nTrue("testinsertremove", 1);
+  }
+
+  public void testmaxn()
+  {
+    nTrue("testmaxn", 1);
+  }
+
   public void testsort()
   {
     nTrue("testsort", 1);
@@ -97,6 +112,18 @@ public class TableLibTest extends JiliTestCase
     suite.addTest(new TableLibTest("testTableLib")
       {
         public void runTest() { testTableLib(); }
+      });
+    suite.addTest(new TableLibTest("testconcat")
+      {
+        public void runTest() { testconcat(); }
+      });
+    suite.addTest(new TableLibTest("testinsertremove")
+      {
+        public void runTest() { testinsertremove(); }
+      });
+    suite.addTest(new TableLibTest("testmaxn")
+      {
+        public void runTest() { testmaxn(); }
       });
     suite.addTest(new TableLibTest("testsort")
       {
