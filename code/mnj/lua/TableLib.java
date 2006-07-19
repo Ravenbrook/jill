@@ -249,7 +249,7 @@ public final class TableLib extends LuaJavaCallback
         while (true)
         {
           o1 = L.rawGetI(t, ++i);
-          if (sort_comp(L, o1, p))
+          if (!sort_comp(L, o1, p))
             break;
           if (i>u)
             L.error("invalid order function for sorting");
@@ -258,7 +258,7 @@ public final class TableLib extends LuaJavaCallback
         while (true)
         {
           o2 = L.rawGetI(t, --j);
-          if (sort_comp(L, p, o2))
+          if (!sort_comp(L, p, o2))
             break;
           if (j<l)
             L.error("invalid order function for sorting");
