@@ -34,6 +34,8 @@ public class METest extends TestCase
     suite.addTest(t.suite());
     t = new OSLibTest();
     suite.addTest(t.suite());
+    t = new TableLibTest();
+    suite.addTest(t.suite());
 
     return suite;
   }
