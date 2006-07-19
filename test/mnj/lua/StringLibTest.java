@@ -226,13 +226,3 @@ public class StringLibTest extends JiliTestCase
     return suite;
   }
 }
-
-final class AddWhere extends LuaJavaCallback
-{
-  int luaFunction(Lua L)
-  {
-    L.insert(L.where(2), -1);
-    L.concat(2);
-    return 1;
-  }
-}
