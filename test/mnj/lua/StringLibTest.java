@@ -42,6 +42,20 @@ public class StringLibTest extends JiliTestCase
     // Test that each string library name is defined as expected.
     String[] name =
     {
+      "byte",
+      "char",
+      "dump",
+      "find",
+      "format",
+      "gmatch",
+      "gsub",
+      "len",
+      "lower",
+      "match",
+      "rep",
+      "reverse",
+      "sub",
+      "upper"
     };
     for (int i=0; i<name.length; ++i)
     {
@@ -61,16 +75,7 @@ public class StringLibTest extends JiliTestCase
     Lua L = new Lua();
     BaseLib.open(L);
     StringLib.open(L);
-    loadFile(L, "StringLibTest");
-    L.call(0, 0);
-    System.out.println(name);
-    L.push(L.getGlobal(name));
-    int status = L.pcall(0, n, new AddWhere());
-    if (status != 0)
-    {
-      System.out.println(L.toString(L.value(-1)));
-    }
-    assertTrue(name, status == 0);
+    loadFileAndRun(L, "StringLibTest", name, n);
     return L;
   }
 
