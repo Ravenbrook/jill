@@ -1317,13 +1317,54 @@ flag:
 
   void formatFloat(StringBuffer b, double d)
   {
+    switch (type)
+    {
+      case 'g': case 'G':
+        // :todo: implement g separately
+      case 'f':
+        formatFloatF(b, d);
+        return;
+      case 'e': case 'E':
+        formatFloatE(b, d);
+        return;
+    }
+  }
+
+  private void formatFloatE(StringBuffer b, double d)
+  {
+    double m = Math.abs(d);
+    int offset = 0;
+    if (m >= 1e-3 && m < 1e7)
+    {
+      d *= 1e10;
+      offset = 10;
+    }
+
     String s = Double.toString(d);
     StringBuffer t = new StringBuffer(s);
-    // Assumes %f format.
-    if (precision < 0)
+    int ei = s.indexOf('E');
+    int e = Integer.parseInt(s.substring(ei+1));
+    t.delete(e, Integer.MAX_VALUE);
+    
+    precisionTrim(t);
+
+    e -= offset;
+    t.append(type);
+    if (e >= 0)
     {
-      precision = 6;
+      t.append('+');
     }
+    t.append(Integer.toString(e));
+
+    zeroPad(t);
+    s = t.toString();
+    format(b, s);
+  }
+
+  private void formatFloatF(StringBuffer b, double d)
+  {
+    String s = Double.toString(d);
+    StringBuffer t = new StringBuffer(s);
 
     int di = s.indexOf('.');
     int ei = s.indexOf('E');
@@ -1353,31 +1394,8 @@ flag:
       }
     }
 
-    s = t.toString();
-
-    // trim
-    di = s.indexOf('.');
-    int l = t.length();
-    if (l > di+precision)
-    {
-      t.delete(di+precision+1, Integer.MAX_VALUE);
-    }
-    else
-    {
-      for(; l <= di+precision; ++l)
-      {
-        t.append('0');
-      }
-    }
-
-    if (zero && t.length() < width)
-    {
-      int at = t.charAt(0) == '-' ? 1 : 0;
-      while (t.length() < width)
-      {
-        t.insert(at, '0');
-      }
-    }
+    precisionTrim(t);
+    zeroPad(t);
 
     s = t.toString();
     format(b, s);
@@ -1392,5 +1410,40 @@ flag:
       p = s.substring(0, precision);
     }
     format(b, p);
+  }
+
+  private void precisionTrim(StringBuffer t)
+  {
+    if (precision < 0)
+    {
+      precision = 6;
+    }
+
+    String s = t.toString();
+    int di = s.indexOf('.');
+    int l = t.length();
+    if (l > di+precision)
+    {
+      t.delete(di+precision+1, Integer.MAX_VALUE);
+    }
+    else
+    {
+      for(; l <= di+precision; ++l)
+      {
+        t.append('0');
+      }
+    }
+  }
+
+  private void zeroPad(StringBuffer t)
+  {
+    if (zero && t.length() < width)
+    {
+      int at = t.charAt(0) == '-' ? 1 : 0;
+      while (t.length() < width)
+      {
+        t.insert(at, '0');
+      }
+    }
   }
 }
