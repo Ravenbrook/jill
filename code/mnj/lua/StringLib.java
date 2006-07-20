@@ -1370,8 +1370,16 @@ flag:
       }
     }
 
+    if (zero && t.length() < width)
+    {
+      int at = t.charAt(0) == '-' ? 1 : 0;
+      while (t.length() < width)
+      {
+        t.insert(at, '0');
+      }
+    }
+
     s = t.toString();
-    // :todo: implement zero
     format(b, s);
   }
 
