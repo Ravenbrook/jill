@@ -1201,7 +1201,8 @@ flag:
 
   /**
    * Format the converted string according to width, and left.
-   * zero padding is handling is either formatInteger or formatFloat
+   * zero padding is handled in either {@link FormatItem#formatInteger}
+   * or {@link FormatItem#formatFloat}
    * (and width is fixed to 0 in such cases).  Therefore we can ignore
    * zero.
    */
@@ -1243,7 +1244,6 @@ flag:
   void formatInteger(StringBuffer b, long i)
   {
     // :todo: improve inefficient use of implicit StringBuffer
-    // :todo: handle (alt && radix==16) case.  Tricky.
 
     if (left)
       zero = false;
@@ -1317,8 +1317,62 @@ flag:
 
   void formatFloat(StringBuffer b, double d)
   {
-    // :todo: implement the many missing options.
-    format(b, Double.toString(d));
+    String s = Double.toString(d);
+    StringBuffer t = new StringBuffer(s);
+    // Assumes %f format.
+    if (precision < 0)
+    {
+      precision = 6;
+    }
+
+    int di = s.indexOf('.');
+    int ei = s.indexOf('E');
+    if (ei >= 0)
+    {
+      t.delete(ei, Integer.MAX_VALUE);
+      int e = Integer.parseInt(s.substring(ei+1));
+
+      StringBuffer z = new StringBuffer();
+      for (int i=0; i<e; ++i)
+      {
+        z.append('0');
+      }
+
+      if (e > 0)
+      {
+        t.deleteCharAt(di);
+        t.append(z);
+        t.insert(di+e, '.');
+      }
+      else
+      {
+        t.deleteCharAt(di);
+        int at = t.charAt(0) == '-' ? 1 : 0;
+        t.insert(at, z);
+        t.insert(di, '.');
+      }
+    }
+
+    s = t.toString();
+
+    // trim
+    di = s.indexOf('.');
+    int l = t.length();
+    if (l > di+precision)
+    {
+      t.delete(di+precision+1, Integer.MAX_VALUE);
+    }
+    else
+    {
+      for(; l <= di+precision; ++l)
+      {
+        t.append('0');
+      }
+    }
+
+    s = t.toString();
+    // :todo: implement zero
+    format(b, s);
   }
 
   void formatString(StringBuffer b, String s)
