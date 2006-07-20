@@ -78,6 +78,24 @@ function testformatmore()
   assert(string.len(string.format('%99.99f', -1e308)) >= 100)
   return true
 end
+function testformatx1()
+  local x = 257/256
+  local s = string.format("%.2f", x)
+  print(s)
+  assert(x - s <= 0.01 and x - s >= -0.01)
+  assert(#s == 4)
+  s = string.format("%7.3f", x)
+  print(s)
+  assert(x - s <= 0.001 and x - s >= -0.001)
+  assert(#s == 7)
+  assert(s:sub(1, 2) == string.rep(' ', 2))
+  s = string.format("%08.4f", x)
+  print(s)
+  assert(x - s <= 0.0001 and x - s >= -0.0001)
+  assert(#s == 8)
+  assert(s:sub(1, 2) == string.rep('0', 2))
+  return true
+end
 -- from [LUA 2006-03-26] pm.lua
 function testgsub()
   assert(string.gsub('  alo alo  ', '^%s*(.-)%s*$', '%1') == 'alo alo') -- double trim

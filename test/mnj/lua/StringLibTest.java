@@ -168,6 +168,11 @@ public class StringLibTest extends JiliTestCase
     nTrue("testgmatch", 1);
   }
 
+  public void testformatx1()
+  {
+    nTrue("testformatx1", 1);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -222,6 +227,14 @@ public class StringLibTest extends JiliTestCase
     suite.addTest(new StringLibTest("testgmatch")
       {
         public void runTest() { testgmatch(); }
+      });
+    suite.addTest(new StringLibTest("testformatmore")
+      {
+        public void runTest() { testformatmore(); }
+      });
+    suite.addTest(new StringLibTest("testformatx1")
+      {
+        public void runTest() { testformatx1(); }
       });
     return suite;
   }
