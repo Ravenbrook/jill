@@ -35,7 +35,7 @@ public final class OSLib extends LuaJavaCallback {
   // GETENV = 6;
   // REMOVE = 7;
   // RENAME = 8;
-  // SETLOCALE = 9;
+  private static final int SETLOCALE = 9;
   private static final int TIME = 10;
 
   /**
@@ -66,6 +66,8 @@ public final class OSLib extends LuaJavaCallback {
         return date(L);
       case DIFFTIME:
         return difftime(L);
+      case SETLOCALE:
+        return setlocale(L);
       case TIME:
         return time(L);
     }
@@ -85,6 +87,7 @@ public final class OSLib extends LuaJavaCallback {
     r(L, "clock", CLOCK);
     r(L, "date", DATE);
     r(L, "difftime", DIFFTIME);
+    r(L, "setlocale", SETLOCALE);
     r(L, "time", TIME);
   }
 
@@ -154,6 +157,20 @@ public final class OSLib extends LuaJavaCallback {
     Calendar.NOVEMBER,
     Calendar.DECEMBER
   };
+
+  /** Implements setlocale. */
+  private static int setlocale(Lua L)
+  {
+    if (L.isNoneOrNil(1))
+    {
+      L.pushString("");
+    }
+    else
+    {
+      L.pushNil();
+    }
+    return 1;
+  }
 
   /** Implements time. */
   private static int time(Lua L)
