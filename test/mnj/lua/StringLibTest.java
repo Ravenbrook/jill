@@ -93,6 +93,15 @@ public class StringLibTest extends JiliTestCase
     }
   }
 
+  /**
+   * Used for many test case instances, others override this is an
+   * anonymous class.
+   */
+  public void runTest()
+  {
+    nTrue(getName(), 1);
+  }
+
   public void testlen()
   {
     nTrue("testlen", 2);
@@ -148,31 +157,6 @@ public class StringLibTest extends JiliTestCase
     nTrue("testmatch", 2);
   }
 
-  public void testformat()
-  {
-    nTrue("testformat", 1);
-  }
-
-  public void testformatmore()
-  {
-    nTrue("testformatmore", 1);
-  }
-
-  public void testgsub()
-  {
-    nTrue("testgsub", 1);
-  }
-
-  public void testgmatch()
-  {
-    nTrue("testgmatch", 1);
-  }
-
-  public void testformatx1()
-  {
-    nTrue("testformatx1", 1);
-  }
-
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -216,26 +200,14 @@ public class StringLibTest extends JiliTestCase
       {
         public void runTest() { testmatch(); }
       });
-    suite.addTest(new StringLibTest("testformat")
-      {
-        public void runTest() { testformat(); }
-      });
-    suite.addTest(new StringLibTest("testgsub")
-      {
-        public void runTest() { testgsub(); }
-      });
-    suite.addTest(new StringLibTest("testgmatch")
-      {
-        public void runTest() { testgmatch(); }
-      });
-    suite.addTest(new StringLibTest("testformatmore")
-      {
-        public void runTest() { testformatmore(); }
-      });
-    suite.addTest(new StringLibTest("testformatx1")
-      {
-        public void runTest() { testformatx1(); }
-      });
+    suite.addTest(new StringLibTest("testformat"));
+    suite.addTest(new StringLibTest("testgsub"));
+    suite.addTest(new StringLibTest("testgmatch"));
+    suite.addTest(new StringLibTest("testformatmore"));
+    suite.addTest(new StringLibTest("testformatx1"));
+    suite.addTest(new StringLibTest("testformatx2"));
+    suite.addTest(new StringLibTest("testformatx3"));
+    suite.addTest(new StringLibTest("testformatx4"));
     return suite;
   }
 }

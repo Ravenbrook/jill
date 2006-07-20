@@ -78,22 +78,58 @@ function testformatmore()
   assert(string.len(string.format('%99.99f', -1e308)) >= 100)
   return true
 end
+-- returns the positive difference
+function err(a, b)
+  a = a+0
+  b = b+0
+  if a < b then return b-a else return a-b end
+end
 function testformatx1()
   local x = 257/256
   local s = string.format("%.2f", x)
   print(s)
-  assert(x - s <= 0.01 and x - s >= -0.01)
+  assert(err(x, s) <= 0.01)
   assert(#s == 4)
   s = string.format("%7.3f", x)
   print(s)
-  assert(x - s <= 0.001 and x - s >= -0.001)
+  assert(err(x, s) <= 0.001)
   assert(#s == 7)
   assert(s:sub(1, 2) == string.rep(' ', 2))
   s = string.format("%08.4f", x)
   print(s)
-  assert(x - s <= 0.0001 and x - s >= -0.0001)
+  assert(err(x, s) <= 0.0001)
   assert(#s == 8)
   assert(s:sub(1, 2) == string.rep('0', 2))
+  return true
+end
+function testformatx2()
+  local x = 1234567890
+  local s = string.format('%.2f', x)
+  print(s)
+  assert(err(x, s)==0)
+  assert(#s == 13)
+  assert(s:sub(1, 1) == '1')
+  return true
+end
+function testformatx3()
+  local x = 1/65536
+  local s = string.format('%.4f', x)
+  print(s)
+  assert(err(x, s) <= 0.0001)
+  assert(#s == 6)
+  return true
+end
+function testformatx4()
+  local x = -0.0003
+  local s = string.format('%.7f', x)
+  print(s)
+  assert(err(x, s) <= 1e-4)
+  assert(#s == 10)
+  s = string.format('%07.2f', x)
+  print(s)
+  assert(err(x, s) <= 0.01)
+  assert(#s == 7)
+  assert(s:sub(1,5) == '-000.')
   return true
 end
 -- from [LUA 2006-03-26] pm.lua
