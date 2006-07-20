@@ -1344,7 +1344,7 @@ flag:
     StringBuffer t = new StringBuffer(s);
     int ei = s.indexOf('E');
     int e = Integer.parseInt(s.substring(ei+1));
-    t.delete(e, Integer.MAX_VALUE);
+    t.delete(ei, Integer.MAX_VALUE);
     
     precisionTrim(t);
 
