@@ -1333,7 +1333,7 @@ flag:
       int e = Integer.parseInt(s.substring(ei+1));
 
       StringBuffer z = new StringBuffer();
-      for (int i=0; i<e; ++i)
+      for (int i=0; i<Math.abs(e); ++i)
       {
         z.append('0');
       }
