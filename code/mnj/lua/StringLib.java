@@ -15,6 +15,8 @@
 
 package mnj.lua;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Vector;
 
 /**
@@ -73,6 +75,8 @@ public final class StringLib extends LuaJavaCallback
         return byteFunction(L);
       case CHAR:
         return charFunction(L);
+      case DUMP:
+        return dump(L);
       case FIND:
         return find(L);
       case FORMAT:
@@ -180,6 +184,33 @@ public final class StringLib extends LuaJavaCallback
     }
     L.push(b.toString());
     return 1;
+  }
+
+  /** Implements string.dump. */
+  private static int dump(Lua L)
+  {
+    L.checkType(1, Lua.TFUNCTION);
+    L.setTop(1);
+    try
+    {
+      ByteArrayOutputStream s = new ByteArrayOutputStream();
+      L.dump(L.value(1), s);
+      byte[] a = s.toByteArray();
+      s = null;
+      StringBuffer b = new StringBuffer();
+      for (int i=0; i<a.length; ++i)
+      {
+        b.append((char)(a[i]&0xff));
+      }
+      L.pushString(b.toString());
+      return 1;
+    }
+    catch (IOException e_)
+    {
+      L.error("unabe to dump given function");
+    }
+    // NOTREACHED
+    return 0;
   }
 
   /** Helper for find and match.  Equivalent to str_find_aux. */
