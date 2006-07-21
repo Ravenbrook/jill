@@ -17,6 +17,7 @@ package mnj.lua;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * The OS Library.  Can be opened into a {@link Lua} state by invoking
@@ -126,9 +127,49 @@ public final class OSLib extends LuaJavaCallback {
     {
       t = (long)L.checkNumber(2);
     }
-    Date d = new Date(t);
-    // :todo: implement all the formats of the first argument.
-    L.pushString(d.toString());
+
+    String s = L.optString(1, "%c");
+    TimeZone tz = TimeZone.getDefault();
+    if (s.startsWith("!"))
+    {
+      tz = TimeZone.getTimeZone("GMT");
+      s = s.substring(1);
+    }
+
+    Calendar c = Calendar.getInstance(tz);
+    c.setTimeInMillis(t);
+
+    if (s.equals("*t"))
+    {
+      L.push(L.createTable(0, 8));      // 8 = number of fields
+      setfield(L, "sec", c.get(Calendar.SECOND));
+      setfield(L, "min", c.get(Calendar.MINUTE));
+      setfield(L, "hour", c.get(Calendar.HOUR));
+      setfield(L, "day", c.get(Calendar.DAY_OF_MONTH));
+      setfield(L, "month", canonicalmonth(c.get(Calendar.MONTH)));
+      setfield(L, "year", c.get(Calendar.YEAR));
+      setfield(L, "wday", c.get(Calendar.DAY_OF_WEEK));
+      // yday is not supported because CLDC 1.1 does not provide it.
+      // setfield(L, "yday", c.get("???"));
+      if (tz.useDaylightTime())
+      {
+        // CLDC 1.1 does not provide any way to determine isdst, so we set
+        // it to -1 (which in C means that the information is not
+        // available).
+        setfield(L, "isdst", -1);
+      }
+      else
+      {
+        // On the other hand if the timezone does not do DST then it
+        // can't be in effect.
+        setfield(L, "isdst", 0);
+      }
+    }
+    else
+    {
+      // :todo: implement all the formats of the first argument.
+      L.pushString(c.getTime().toString());
+    }
     return 1;
   }
 
@@ -140,8 +181,11 @@ public final class OSLib extends LuaJavaCallback {
   }
 
   // Incredibly, the spec doesn't give a numeric value and range for
-  // Calendar.JANUARY through to Calendar.DECEMBER, so we have an array
-  // to convert from 0-11 to the required value.
+  // Calendar.JANUARY through to Calendar.DECEMBER. 
+  /**
+   * Converts from 0-11 to required Calendar value.  DO NOT MODIFY THIS
+   * ARRAY.
+   */
   private static final int[] MONTH =
   {
     Calendar.JANUARY,
@@ -157,6 +201,24 @@ public final class OSLib extends LuaJavaCallback {
     Calendar.NOVEMBER,
     Calendar.DECEMBER
   };
+
+  /**
+   * (almost) inverts the conversion provided by {@link OSLib#MONTH}.  Converts
+   * from a {@link Calendar} value to a month in the range 1-12.
+   * @param m  a value from the enum Calendar.JANUARY, Calendar.FEBRUARY, etc
+   * @return a month in the range 1-12, or the original value.
+   */
+  private static int canonicalmonth(int m)
+  {
+    for (int i=0; i<MONTH.length; ++i)
+    {
+      if (m == MONTH[i])
+      {
+        return i+1;
+      }
+    }
+    return m;
+  }
 
   /** Implements setlocale. */
   private static int setlocale(Lua L)
@@ -202,5 +264,10 @@ public final class OSLib extends LuaJavaCallback {
     if (d < 0)
       return L.error("field '" + key + "' missing in date table");
     return d;
+  }
+
+  private static void setfield(Lua L, String key, int value)
+  {
+    L.setField(L.value(-1), key, L.valueOfNumber(value));
   }
 }
