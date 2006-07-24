@@ -700,7 +700,7 @@ public final class Lua
    * <code>false</code> is returned.
    * @param idx  stack index of table.
    * @return  true if and only if there are more keys in the table.
-   * @deprecated Use :todo: iterator protocol instead.
+   * @deprecated Use {@link Lua#tableKeys} enumeration protocol instead.
    */
   public boolean next(int idx)
   {
@@ -1119,6 +1119,21 @@ public final class Lua
   }
 
   /**
+   * Returns an {@link java.util.Enumeration} for the keys of a table.
+   * @param t  a Lua table.
+   * @return an Enumeration object.
+   */
+  public Enumeration tableKeys(Object t)
+  {
+    if (!(t instanceof LuaTable))
+    {
+      error("table required");
+      // NOTREACHED
+    }
+    return ((LuaTable)t).keys();
+  }
+
+  /**
    * Convert to boolean.
    * @param o  Lua value to convert.
    * @return  the resulting primitive boolean.
@@ -1430,7 +1445,7 @@ public final class Lua
 
   /**
    * Checks is a number.  Raises error if not a number.
-   * @parm narg  argument index.
+   * @param narg  argument index.
    * @return  the argument as a double.
    */
   public double checkNumber(int narg)
