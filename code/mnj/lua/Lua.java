@@ -1013,7 +1013,7 @@ public final class Lua
     {
       if (status != 0)
         return resume_error("cannot resume dead coroutine");
-      else if (civ.size() != 0)
+      else if (civ.size() != 1)
         return resume_error("cannot resume non-suspended coroutine");
     }
     // assert errfunc == 0 && nCcalls == 0;
@@ -1025,7 +1025,7 @@ protect:
       int firstArg = stack.size() - narg;
       if (status == 0)  // start coroutine?
       {
-        // assert civ.size() == 0 && firstArg > base);
+        // assert civ.size() == 1 && firstArg > base);
         if (vmPrecall(firstArg - 1, MULTRET) != PCRLUA)
           break protect;
       }
@@ -1043,7 +1043,7 @@ protect:
         else    // yielded inside a hook: just continue its execution
           base = ci().base();
       }
-      vmExecute(civ.size());
+      vmExecute(civ.size() - 1);
     }
     catch (RuntimeException e)
     {
