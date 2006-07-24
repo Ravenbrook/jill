@@ -177,3 +177,11 @@ function testgmatch()
   assert(a == 3)
   return true
 end
+function testdump()
+  local f = function()return 7 end
+  local s = string.dump(f)
+  assert(type(s) == 'string')
+  assert(type(loadstring(s)) == 'function')
+  assert(loadstring(s)() == 7)
+  return true
+end
