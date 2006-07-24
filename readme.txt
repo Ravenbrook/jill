@@ -100,6 +100,25 @@ to adapt the build procedure.
 
 4. RELEASE NOTES
 
+
+RELEASE 0.8.0
+
+This release is intended to meet the planned "String and Table Library"
+release.
+
+The string, table, and os libraries are provided.
+
+
+There are the following known bugs in this release:
+
+(all of these were present in earlier releases)
+
+load (in the base library) does not accept a file beginning with '#'.
+(Ravenbrook job001436).
+
+t[nil] does not work (Ravenbrook job001430).
+
+
 RELEASE 0.7.0
 
 This release is intended to meet the planned "API and Metamethods".  It
