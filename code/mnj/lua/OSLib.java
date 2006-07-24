@@ -19,6 +19,7 @@
 package mnj.lua;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 
 /**
@@ -140,7 +141,7 @@ public final class OSLib extends LuaJavaCallback
     }
 
     Calendar c = Calendar.getInstance(tz);
-    c.setTimeInMillis(t);
+    c.setTime(new Date(t));
 
     if (s.equals("*t"))
     {
@@ -339,7 +340,7 @@ public final class OSLib extends LuaJavaCallback
     c.set(Calendar.MONTH, MONTH[getfield(L, "month", -1) - 1]);
     c.set(Calendar.YEAR, getfield(L, "year", -1));
     // ignore isdst field
-    L.pushNumber(c.getTimeInMillis());
+    L.pushNumber(c.getTime().getTime());
     return 1;
   }
 
