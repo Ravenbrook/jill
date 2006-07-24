@@ -338,7 +338,15 @@ public final class BaseLib extends LuaJavaCallback
   {
     String s = L.checkString(1);
     String chunkname = L.optString(2, s);
-    return load_aux(L, L.loadString(s, chunkname));
+    if (s.startsWith("\033"))
+    {
+      // "binary" dumped into string using string.dump.
+      return load_aux(L, L.load(new DumpedInput(s), chunkname));
+    }
+    else
+    {
+      return load_aux(L, L.loadString(s, chunkname));
+    }
   }
 
   private static int load_aux(Lua L, int status)
