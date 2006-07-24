@@ -50,14 +50,19 @@ directories:
   compiled/		- Results of compiling code/ (.class files).
   javadoc/		- Public documentation for users.
   javadoc-private/	- Private documentation for maintainers.
+  prejar/               - Staging area for building jars.
   preverified/		- Results of preverification (.class files).
   test-compiled/	- Results of compiling test/ .
+  test-preverified/     - Results of preverifying test-compiled/ .
 
 
 3. INSTALLATION
 
 
 3.1 Prerequisites
+
+Prerequisities are discussed a bit more thoroughly in the build
+documentation provided with this release in manual/build/.
 
 You'll need a PC runnings Windows XP (other operating systems may work
 but are not supported).
@@ -69,9 +74,6 @@ You'll need Apache Ant.
 
 You'll need RIM's BlackBerry JDE if you intend to use a BlackBerry
 device or its emulator.
-
-It's probable that the build procedure requires particular directories
-to be on your PATH.  Apologies for the lack of guidance.
 
 
 3.2 Building
@@ -89,13 +91,52 @@ them into a .jar file (ant jar), converts that to RIM's .cod format (ant
 cod), and downloads the .cod file onto an attached device (ant load).
 
 Currently the "ant load" target builds the METestMIDlet which is a
-midlet that runs all the tests that run on JME.
+midlet that runs all the tests that run on JME, and also JiliShell which
+is an interactive interpreter.
 
 If you wish to incorporate Jili into your own software then you'll have
 to adapt the build procedure.
 
 
 4. RELEASE NOTES
+
+RELEASE 0.7.0
+
+This release is intended to meet the planned "API and Metamethods".  It
+also has a partial compiler.
+
+A complete Lua API is provided, and the execution of the Lua language is
+complete, including metamethods.
+
+The following notable improvements have been made:
+
+Jili is now in the package mnj.lua.
+
+Lua source can now be compiled and executed on the target.  This
+functionality is not complete yet however.
+
+Metamethods are now complete supported in the VM.
+
+JiliShell is provided.  This is a MIDlet that allows Lua to be executed
+interactively.  It is built by "ant cod" and placed in the bin/
+directory.  It is also used to demonstrate what size jar file is needed
+(about 83KB currently).
+
+The "t.v = nil" bug is fixed (Ravenbrook job001451).
+
+"x^y" now works, but not necessarily for all corner cases.
+
+API is complete and documented.
+
+
+There are the following known bugs in this release:
+
+(all of these were present in earlier releases)
+
+load (in the base library) does not accept a file beginning with '#'.
+(Ravenbrook job001436).
+
+t[nil] does not work (Ravenbrook job001430).
 
 
 RELEASE 0.6.0
