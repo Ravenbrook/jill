@@ -259,9 +259,31 @@ byte if you like.
 Unicode code positions.
 </dd>
 
+<dt>string.find</dt>
+<dd>The characters class matches for letter, etc, are not locale
+dependent, and in fact derive from
+<code>java.lang.Character.isLowercase</code> and so on.
+</dd>
+
+<dt>string.format</dt>
+<dd>Not all formats may print exactly the same as a stock PUC-Rio
+Lua.</dd>
+
 <dt>os.clock</dt>
 <dd>Returns wall clock time since the class that implements the function
 was loaded.</dd>
+
+<dt>os.date</dt>
+<dd>Not all the conversion specifications of C's strftime are supported.
+Some that are supported will give different output.
+</dd>
+
+<dt>os.time</dt>
+<dd>The number returned is the number of milliseconds since midnight
+1970-01-01 UTC.  See <code>java.lang.System.currentTimeMillis</code> and
+so on.
+</dd>
+
 
 </dl>
 

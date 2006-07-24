@@ -274,7 +274,8 @@ public final class TableLib extends LuaJavaCallback
       L.rawSetI(t, i, o1);      // swap pivot (a[u-1]) with a[i]
       // a[l..i-1 <= a[i] == P <= a[i+1..u]
       // adjust so that smaller half is in [j..i] and larger one in [l..u]
-      if (i-l < u-i) {
+      if (i-l < u-i)
+      {
         j=l;
         i=i-1;
         l=i+2;

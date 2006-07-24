@@ -1320,7 +1320,7 @@ flag:
     {
       if (sign)
         prefix = "+";
-      else if (space )
+      else if (space)
         prefix = " ";
     }
     if (alt && radix == 8 && !s.startsWith("0"))

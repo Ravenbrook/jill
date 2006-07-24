@@ -19,14 +19,14 @@
 package mnj.lua;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.TimeZone;
 
 /**
  * The OS Library.  Can be opened into a {@link Lua} state by invoking
  * the {@link OSLib#open} method.
  */
-public final class OSLib extends LuaJavaCallback {
+public final class OSLib extends LuaJavaCallback
+{
   // Each function in the library corresponds to an instance of
   // this class which is associated (the 'which' member) with an integer
   // which is unique within this class.  They are taken from the following
@@ -286,7 +286,7 @@ public final class OSLib extends LuaJavaCallback {
   }
 
   // Incredibly, the spec doesn't give a numeric value and range for
-  // Calendar.JANUARY through to Calendar.DECEMBER. 
+  // Calendar.JANUARY through to Calendar.DECEMBER.
   /**
    * Converts from 0-11 to required Calendar value.  DO NOT MODIFY THIS
    * ARRAY.
