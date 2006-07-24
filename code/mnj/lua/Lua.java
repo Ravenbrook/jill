@@ -104,15 +104,6 @@ public final class Lua
   /** Limit for table tag-method chains (to avoid loops) */
   private static final int MAXTAGLOOP = 100;
 
-  /**
-   * Maximum number of local variables per function.  As per
-   * LUAI_MAXVARS from "luaconf.h".  Default access so that {@link
-   * FuncState} can see it.
-   */
-  static final int MAXVARS = 200;
-  static final int MAXSTACK = 250;
-  static final int MAXUPVALUES = 60;
-
   /** Used to communicate error status (ERRRUN, etc) from point where
    * error is raised to the code that catches it.
    */
@@ -123,12 +114,26 @@ public final class Lua
    */
   private Object errfunc;
 
+  /**
+   * coroutine activation status.
+   */
+  private int status;
+
   /** Nonce object used by pcall and friends (to detect when an
    * exception is a Lua error). */
   private static final String LUA_ERROR = "";
 
   /** Metatable for primitive types.  Shared between all coroutines. */
   private LuaTable[] metatable = new LuaTable[NUM_TAGS];
+
+  /**
+   * Maximum number of local variables per function.  As per
+   * LUAI_MAXVARS from "luaconf.h".  Default access so that {@link
+   * FuncState} can see it.
+   */
+  static final int MAXVARS = 200;
+  static final int MAXSTACK = 250;
+  static final int MAXUPVALUES = 60;
 
   //////////////////////////////////////////////////////////////////////
   // Public API
@@ -186,7 +191,7 @@ public final class Lua
   /** Status code, returned from pcall and friends, that indicates the
    * coroutine has yielded.
    */
-  public static final int YIELD         = 1;
+  private static final int YIELD         = 1;
   /** Status code, returned from pcall and friends, that indicates
    * a runtime error.
    */
@@ -198,7 +203,7 @@ public final class Lua
   /** Status code, returned from pcall and friends, that indicates
    * a memory allocation error.
    */
-  public static final int ERRMEM        = 4;
+  private static final int ERRMEM        = 4;
   /** Status code, returned from pcall and friends, that indicates
    * an error whilst running the error handler function.
    */
@@ -828,9 +833,7 @@ public final class Lua
       if (e.getMessage() == LUA_ERROR)
       {
         fClose(restoreStack);   // close eventual pending closures
-        // copy error object (usually a string) down
-        stack.setElementAt(stack.lastElement(), restoreStack);
-        stack.setSize(restoreStack+1);
+        dSeterrorobj(errorStatus, restoreStack);
         nCcalls = oldnCcalls;
         civ.setSize(restoreCi);
         CallInfo ci = ci();
@@ -997,6 +1000,65 @@ public final class Lua
   public void register(String name, LuaJavaCallback f)
   {
     setGlobal(name, f);
+  }
+
+  /**
+   * Starts and resumes a coroutine.
+   * @param narg  Number of values to pass to coroutine.
+   * @return Lua.YIELD, 0, or an error code.
+   */
+  public int resume(int narg)
+  {
+    if (status != YIELD)
+    {
+      if (status != 0)
+        return resume_error("cannot resume dead coroutine");
+      else if (civ.size() != 0)
+        return resume_error("cannot resume non-suspended coroutine");
+    }
+    // assert errfunc == 0 && nCcalls == 0;
+protect:
+    try
+    {
+      errorStatus = 0;
+      // This block is equivalent to resume from ldo.c
+      int firstArg = stack.size() - narg;
+      if (status == 0)  // start coroutine?
+      {
+        // assert civ.size() == 0 && firstArg > base);
+        if (vmPrecall(firstArg - 1, MULTRET) != PCRLUA)
+          break protect;
+      }
+      else      // resuming from previous yield
+      {
+        // assert status == YIELD;
+        status = 0;
+        if (isLua(ci()))        // 'common' yield
+        {
+          // finish interrupted execution of 'OP_CALL'
+          // assert ...
+          if (vmPoscall(firstArg))      // complete it...
+            stack.setSize(ci().top());  // and correct top
+        }
+        else    // yielded inside a hook: just continue its execution
+          base = ci().base();
+      }
+      vmExecute(civ.size());
+    }
+    catch (RuntimeException e)
+    {
+      if (e.getMessage() == LUA_ERROR)  // error?
+      {
+        status = errorStatus;   // mark thread as 'dead'
+        dSeterrorobj(errorStatus, stack.size());
+        ci().setTop(stack.size());
+      }
+      else
+      {
+        throw e;
+      }
+    }
+    return status;
   }
 
   /**
@@ -1318,6 +1380,21 @@ public final class Lua
   {
     // :todo: consider interning "common" numbers, like 0, 1, -1, etc.
     return new Double(d);
+  }
+
+  /**
+   * Yields a coroutine.  Should only be called as the return expression
+   * of a Lua Java function: <code>return L.yield(nresults);</code>.
+   * @param nresults  Number of results to return to L.resume.
+   * @return  a secret value.
+   */
+  public int yield(int nresults)
+  {
+    if (nCcalls > 0)
+      gRunerror("attempt to yield across metamethod/Java-call boundary");
+    base = stack.size() - nresults;     // protect stack slots below
+    status = YIELD;
+    return -1;
   }
 
   // Miscellaneous private functions.
@@ -1864,6 +1941,23 @@ public final class Lua
 
   // Methods equivalent to the file ldo.c.  Prefixed with d.
   // Some of these are in vm* instead.
+
+  /** Equivalent to luaD_seterrorobj. */
+  private void dSeterrorobj(int errcode, int oldtop)
+  {
+    switch (errcode)
+    {
+      case ERRERR:
+        stack.setElementAt("error in error handling", oldtop);
+        break;
+
+      case ERRSYNTAX:
+      case ERRRUN:
+        stack.setElementAt(stack.lastElement(), oldtop);
+        break;
+    }
+    stack.setSize(oldtop+1);
+  }
 
   void dThrow(int status)
   {
@@ -3588,6 +3682,13 @@ reentry:
     return ci;
   }
 
+  /** Equivalent to resume_error from ldo.c */
+  private int resume_error(String msg)
+  {
+    stack.setSize(ci().base());
+    stack.addElement(msg);
+    return ERRRUN;
+  }
 
   /**
    * Corresponds to ldump's luaU_dump method, but with data gone and writer

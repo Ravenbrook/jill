@@ -88,6 +88,15 @@ final class CallInfo
   {
     return top;
   }
+
+  /**
+   * Setter for top.
+   */
+  void setTop(int top)
+  {
+    this.top = top;
+  }
+
   /**
    * Get number of results expected by the caller of this function.
    * Used to adjust the returned results to the correct number.
