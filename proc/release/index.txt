@@ -21,6 +21,13 @@ A Windows XP PC.
 
 PROCEDURE
 
+Check that master/readme.txt has been updated from the previous release.
+And in particular has the release notes from the previous release in it.
+
+Check that master/ builds, and tests successfully.
+
+
+
 [[ This is the procedure for creating a version:
 
   p4 sync master/...
