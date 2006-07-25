@@ -68,9 +68,17 @@ public final class Lua
   /** Version string. */
   public static final String VERSION = "Lua 5.1 (Jili 0.X.Y)";
 
-  /** Table of globals (global variables).  Actually shared across all
-   * coroutines. */
-  private LuaTable global = new LuaTable();
+  /** Table of globals (global variables).  This actually shared across
+   * all coroutines (with the same main thread), but kept in each Lua
+   * thread as an optimisation.
+   */
+  private LuaTable global;
+
+  /** Reference the main Lua thread.  Itself if this is the main Lua
+   * thread.
+   */
+  private Lua main;
+
   /** VM data stack. */
   private Vector stack = new Vector();
   private int base;     // = 0;
@@ -124,7 +132,7 @@ public final class Lua
   private static final String LUA_ERROR = "";
 
   /** Metatable for primitive types.  Shared between all coroutines. */
-  private LuaTable[] metatable = new LuaTable[NUM_TAGS];
+  private LuaTable[] metatable;
 
   /**
    * Maximum number of local variables per function.  As per
@@ -135,9 +143,33 @@ public final class Lua
   static final int MAXSTACK = 250;
   static final int MAXUPVALUES = 60;
 
+  /**
+   * Used to construct a Lua thread that shares its global state with
+   * another Lua state.
+   */
+  private Lua(Lua L)
+  {
+    // Copy the global state, that's shared across all coroutines that
+    // share the same main thread, into the new Lua thread.
+    // Any more than this and the global state should be shunted to a
+    // separate object (as it is in PUC-Rio).
+    this.global = L.global;
+    this.metatable = L.metatable;
+    this.main = L;
+  }
+
   //////////////////////////////////////////////////////////////////////
   // Public API
 
+  /**
+   * Creates a fresh Lua state.
+   */
+  public Lua()
+  {
+    this.global = new LuaTable();
+    this.metatable = new LuaTable[NUM_TAGS];
+    this.main = this;
+  }
 
   /**
    * Equivalent of LUA_MULTRET.
@@ -541,6 +573,15 @@ public final class Lua
   }
 
   /**
+   * Tests that a Lua thread is the main thread.
+   * @return true if and only if is the main thread.
+   */
+  public boolean isMain()
+  {
+    return this == main;
+  }
+
+  /**
    * Tests that an object is Lua <code>nil</code>.
    * @param o  the Object to test.
    * @return true if and only if the object is Lua <code>nil</code>.
@@ -753,6 +794,15 @@ public final class Lua
   public LuaTable newTable()
   {
     return new LuaTable();
+  }
+
+  /**
+   * Creates a new Lua thread and returns it.
+   * @return a new Lua thread.
+   */
+  public Lua newThread()
+  {
+    return new Lua(this);
   }
 
   /**
@@ -1181,6 +1231,15 @@ protect:
   }
 
   /**
+   * Status of a Lua thread.
+   * @return 0, an error code, or Lua.YIELD.
+   */
+  public int status()
+  {
+    return status;
+  }
+
+  /**
    * Returns an {@link java.util.Enumeration} for the keys of a table.
    * @param t  a Lua table.
    * @return an Enumeration object.
@@ -1245,6 +1304,20 @@ protect:
   public String toString(Object o)
   {
     return vmTostring(o);
+  }
+
+  /**
+   * Convert to Lua thread and return it or <code>null</code>.
+   * @param o  Lua value to convert.
+   * @return  The resulting Lua instance.
+   */
+  public Lua toThread(Object o)
+  {
+    if (!(o instanceof Lua))
+    {
+      return null;
+    }
+    return (Lua)o;
   }
 
   /**
@@ -1380,6 +1453,26 @@ protect:
   {
     // :todo: consider interning "common" numbers, like 0, 1, -1, etc.
     return new Double(d);
+  }
+
+  /**
+   * Exchange values between different threads.
+   * @param to  destination Lua thread.
+   * @param n   numbers of stack items to move.
+   */
+  public void xmove(Lua to, int n)
+  {
+    if (this == to)
+    {
+      return;
+    }
+    apiChecknelems(n);
+    // L.apiCheck(from.G() == to.G());
+    for (int i = 0; i < n; ++i)
+    {
+      to.push(value(-n+i));
+    }
+    pop(n);
   }
 
   /**
@@ -1824,7 +1917,7 @@ protect:
    * @param level  the call level.
    * @return a {@link Debug} instance describing the activation record.
    */
-  private Debug getStack(int level)
+  Debug getStack(int level)
   {
     int ici;    // Index of CallInfo
 

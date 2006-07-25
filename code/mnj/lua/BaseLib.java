@@ -67,6 +67,8 @@ public final class BaseLib extends LuaJavaCallback
   private static final int WRAP = 54;
   private static final int YIELD = 55;
 
+  private static final int WRAP_AUX = 56;
+
   /**
    * Lua value that represents the generator function for ipairs.  In
    * PUC-Rio this is implemented as an upvalue of ipairs.
@@ -84,10 +86,23 @@ public final class BaseLib extends LuaJavaCallback
    */
   private int which;
 
+  /**
+   * For wrapped threads created by coroutine.wrap, this references the
+   * Lua thread object.
+   */
+  private Lua thread;
+
   /** Constructs instance, filling in the 'which' member. */
   private BaseLib(int which)
   {
     this.which = which;
+  }
+
+  /** Instance constructor used by coroutine.wrap. */
+  private BaseLib(Lua L)
+  {
+    this(WRAP_AUX);
+    thread = L;
   }
 
   /**
@@ -155,8 +170,20 @@ public final class BaseLib extends LuaJavaCallback
       case PAIRS_AUX:
         return pairsaux(L);
 
+      case CREATE:
+        return create(L);
+      case RESUME:
+        return resume(L);
+      case RUNNING:
+        return running(L);
+      case STATUS:
+        return status(L);
+      case WRAP:
+        return wrap(L);
       case YIELD:
         return yield(L);
+      case WRAP_AUX:
+        return wrapaux(L);
     }
     return 0;
   }
@@ -699,6 +726,141 @@ public final class BaseLib extends LuaJavaCallback
     int status = L.pcall(0, Lua.MULTRET, errfunc);
     L.insert(L.valueOfBoolean(status == 0), 1);
     return L.getTop();  // return status + all results
+  }
+
+  /** Implements coroutine.create. */
+  private static int create(Lua L)
+  {
+    Lua NL = L.newThread();
+    Object faso = L.value(1);
+    L.argCheck(L.isFunction(faso) && !L.isJavaFunction(faso), 1,
+        "Lua function expected");
+    L.setTop(1);        // function is at top
+    L.xmove(NL, 1);     // move function from L to NL
+    L.push(NL);
+    return 1;
+  }
+
+  /** Implements coroutine.resume. */
+  private static int resume(Lua L)
+  {
+    Lua co = L.toThread(L.value(1));
+    L.argCheck(co != null, 1, "coroutine expected");
+    int r = auxresume(L, co, L.getTop() - 1);
+    if (r < 0)
+    {
+      L.insert(L.valueOfBoolean(false), -1);
+      return 2; // return false + error message
+    }
+    L.insert(L.valueOfBoolean(true), -r);
+    return r + 1;       // return true + 'resume' returns
+  }
+
+  /** Implements coroutine.running. */
+  private static int running(Lua L)
+  {
+    if (L.isMain())
+    {
+      return 0; // main thread is not a coroutine
+    }
+    L.push(L);
+    return 1;
+  }
+
+  /** Implements coroutine.status. */
+  private static int status(Lua L)
+  {
+    Lua co = L.toThread(L.value(1));
+    L.argCheck(co != null, 1, "coroutine expected");
+    if (L == co)
+    {
+      L.pushLiteral("running");
+    }
+    else
+    {
+      switch (co.status())
+      {
+        case Lua.YIELD:
+          L.pushLiteral("suspended");
+          break;
+        case 0:
+          {
+            Debug ar = co.getStack(0);
+            if (ar != null)       // does it have frames?
+            {
+              L.pushLiteral("normal");    // it is running
+            }
+            else if (co.getTop() == 0)
+            {
+              L.pushLiteral("dead");
+            }
+            else
+            {
+              L.pushLiteral("suspended"); // initial state
+            }
+          }
+          break;
+        default:        // some error occured
+          L.pushLiteral("dead");
+      }
+    }
+    return 1;
+  }
+
+  /** Implements coroutine.wrap. */
+  private static int wrap(Lua L)
+  {
+    create(L);
+    L.push(wrapit(L.toThread(L.value(-1))));
+    return 1;
+  }
+
+  /** Helper for wrap.  Returns a LuaJavaCallback that has access to the
+   * Lua thread.
+   * @param L the Lua thread to be wrapped.
+   */
+  private static LuaJavaCallback wrapit(Lua L)
+  {
+    return new BaseLib(L);
+  }
+
+  /** Helper for wrap.  This implements the function returned by wrap. */
+  private int wrapaux(Lua L)
+  {
+    Lua co = thread;
+    int r = auxresume(L, co, L.getTop());
+    if (r < 0)
+    {
+      if (L.isString(L.value(-1)))      // error object is a string?
+      {
+        String w = L.where(1);
+        L.insert(w, -1);
+        L.concat(2);
+      }
+      L.error(L);       // propagate error
+    }
+    return r;
+  }
+
+  private static int auxresume(Lua L, Lua co, int narg)
+  {
+    // if (!co.checkStack...
+    if (co.status() == 0 && co.getTop() == 0)
+    {
+      L.pushLiteral("cannot resume dead coroutine");
+      return -1;        // error flag;
+    }
+    L.xmove(co, narg);
+    int status = co.resume(narg);
+    if (status == 0 || status == Lua.YIELD)
+    {
+      int nres = co.getTop();
+      // if (!L.checkStack...
+      co.xmove(L, nres);        // move yielded values
+      return nres;
+    }
+    co.xmove(L, 1);   // move error message
+    return -1;        // error flag;
   }
 
   /** Implements coroutine.yield. */
