@@ -199,7 +199,7 @@ public final class Lua
   public static final int TFUNCTION     = 6;
   /** Lua type tag, representing userdata. */
   public static final int TUSERDATA     = 7;
-  /** Lua type tag, representing threads.
+  /** Lua type tag, representing threads. */
   public static final int TTHREAD       = 8;
   /** Number of type tags.  Should correspond to last entry in the list
    * of tags.
@@ -439,11 +439,10 @@ public final class Lua
       LuaUserdata u = (LuaUserdata)o;
       return u.getEnv();
     }
-
-    if (false)
+    if (o instanceof Lua)
     {
-      // :todo: implement TTHREAD case;
-      return null;
+      Lua l = (Lua)o;
+      return l.global;
     }
     return null;
   }
@@ -630,8 +629,7 @@ public final class Lua
    */
   public static boolean isThread(Object o)
   {
-    // :todo: implement me.
-    return false;
+    return o instanceof Lua;
   }
 
   /**
@@ -1137,18 +1135,17 @@ protect:
       // :todo: implement this case.
       return false;
     }
-
     if (o instanceof LuaUserdata)
     {
       LuaUserdata u = (LuaUserdata)o;
       u.setEnv(t);
       return true;
     }
-
-    if (false)
+    if (o instanceof Lua)
     {
-      // :todo: implement TTHREAD case;
-      return false;
+      Lua l = (Lua)o;
+      l.global = t;
+      return true;
     }
     return false;
   }
@@ -1387,7 +1384,10 @@ protect:
     {
       return TUSERDATA;
     }
-    // :todo: thread
+    else if (o instanceof Lua)
+    {
+      return TTHREAD;
+    }
     return TNONE;
   }
 
@@ -2926,7 +2926,7 @@ reentry:
             int b = ARGB(i);
             int c = ARGC(i);
             savedpc = pc; // Protect
-            // :todo: It's possible that the compiler assumes that all
+            // :todo: The compiler assumes that all
             // stack locations _above_ b end up with junk in them.  In
             // which case we can improve the speed of vmConcat (by not
             // converting each stack slot, but simply using
