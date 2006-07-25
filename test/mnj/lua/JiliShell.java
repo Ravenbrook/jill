@@ -145,7 +145,6 @@ public class JiliShell extends MIDlet implements CommandListener
             {
             case Lua.ERRRUN:    result = result + " Runtime error" ; break ;
             case Lua.ERRSYNTAX: result = result + " Syntax error" ; break ;
-            case Lua.ERRMEM:    result = result + " Memory error" ; break ;
             case Lua.ERRERR:    result = result + " Error error" ; break ;
             case Lua.ERRFILE:   result = result + " File error" ; break ;
             }
