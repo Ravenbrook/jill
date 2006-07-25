@@ -59,6 +59,17 @@ public class CoroTest extends JiliTestCase
     assertTrue("Stack top", L.getTop() == 0);
   }
 
+  /** Thread that yields using coroutine.yield. */
+  public void test3()
+  {
+    Lua L = new Lua();
+    BaseLib.open(L);
+    L.push(L.getField(L.getGlobal("coroutine"), "yield"));
+    int status = L.resume(0);
+    assertTrue("Status is YIELD", status == Lua.YIELD);
+    assertTrue("Stack top", L.getTop() == 0);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -70,6 +81,10 @@ public class CoroTest extends JiliTestCase
     suite.addTest(new CoroTest("test2")
       {
         public void runTest() { test2(); }
+      });
+    suite.addTest(new CoroTest("test3")
+      {
+        public void runTest() { test3(); }
       });
 
     return suite;
