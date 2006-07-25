@@ -191,7 +191,7 @@ public final class Lua
   /** Status code, returned from pcall and friends, that indicates the
    * coroutine has yielded.
    */
-  private static final int YIELD         = 1;
+  public static final int YIELD         = 1;
   /** Status code, returned from pcall and friends, that indicates
    * a runtime error.
    */
