@@ -1402,7 +1402,7 @@ protect:
   /** Convert from Java API stack index to absolute index.
    * @return an index into <code>this.stack</code> or -1 if out of range.
    */
-  int absIndex(int idx)
+  private int absIndex(int idx)
   {
     int s = stack.size();
 
@@ -1975,7 +1975,7 @@ protect:
    * slots level or higher are closed.
    * @param level  Absolute stack index.
    */
-  void fClose(int level)
+  private void fClose(int level)
   {
     int i = openupval.size();
     while (--i >= 0)
@@ -1991,7 +1991,7 @@ protect:
     return;
   }
 
-  UpVal fFindupval(int idx)
+  private UpVal fFindupval(int idx)
   {
     /*
      * We search from the end of the Vector towards the beginning,
@@ -2067,7 +2067,7 @@ protect:
     return 0;
   }
 
-  boolean gOrdererror(Object p1, Object p2)
+  private boolean gOrdererror(Object p1, Object p2)
   {
     String t1 = typeName(type(p1));
     String t2 = typeName(type(p2));
