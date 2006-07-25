@@ -58,6 +58,15 @@ public final class BaseLib extends LuaJavaCallback
   private static final int IPAIRS_AUX = 27;
   private static final int PAIRS_AUX = 28;
 
+  // The coroutine functions (which reside in the table "coro") are also
+  // part of the base library.
+  private static final int CREATE = 50;
+  private static final int RESUME = 51;
+  private static final int RUNNING = 52;
+  private static final int STATUS = 53;
+  private static final int WRAP = 54;
+  private static final int YIELD = 55;
+
   /**
    * Lua value that represents the generator function for ipairs.  In
    * PUC-Rio this is implemented as an upvalue of ipairs.
@@ -145,6 +154,9 @@ public final class BaseLib extends LuaJavaCallback
         return ipairsaux(L);
       case PAIRS_AUX:
         return pairsaux(L);
+
+      case YIELD:
+        return yield(L);
     }
     return 0;
   }
@@ -186,6 +198,15 @@ public final class BaseLib extends LuaJavaCallback
     r(L, "type", TYPE);
     r(L, "unpack", UNPACK);
     r(L, "xpcall", XPCALL);
+
+    L.setGlobal("coroutine", L.newTable());
+
+    c(L, "create", CREATE);
+    c(L, "resume", RESUME);
+    c(L, "running", RUNNING);
+    c(L, "status", STATUS);
+    c(L, "wrap", WRAP);
+    c(L, "yield", YIELD);
   }
 
   /** Register a function. */
@@ -193,6 +214,13 @@ public final class BaseLib extends LuaJavaCallback
   {
     BaseLib f = new BaseLib(which);
     L.setGlobal(name, f);
+  }
+
+  /** Register a function in the coroutine table. */
+  private static void c(Lua L, String name, int which)
+  {
+    BaseLib f = new BaseLib(which);
+    L.setField(L.getGlobal("coroutine"), name, f);
   }
 
   /** Implements assert.  assert is a keyword in some versions of Java,
@@ -671,5 +699,11 @@ public final class BaseLib extends LuaJavaCallback
     int status = L.pcall(0, Lua.MULTRET, errfunc);
     L.insert(L.valueOfBoolean(status == 0), 1);
     return L.getTop();  // return status + all results
+  }
+
+  /** Implements coroutine.yield. */
+  private static int yield(Lua L)
+  {
+    return L.yield(L.getTop());
   }
 }
