@@ -7,7 +7,7 @@ import j2meunit.framework.Test;
 import j2meunit.framework.TestSuite;
 
 // Auxiliary files
-// none so far
+// CoroTest.lua
 
 /**
  * J2MEUnit tests for Jili's coroutine functionality.  DO NOT SUBCLASS.
@@ -70,6 +70,31 @@ public class CoroTest extends JiliTestCase
     assertTrue("Stack top", L.getTop() == 0);
   }
 
+  /** Yielding in a Lua script. */
+  public void test4()
+  {
+    Lua L = new Lua();
+    BaseLib.open(L);
+    L.loadFile("CoroTest.lua");
+    L.call(0, 0);
+    L.push(L.getGlobal("test4"));
+    final int n = 4;
+    for (int i=0; i<n; ++i)
+    {
+      int status = L.resume(0);
+      if (i < n-1)
+      {
+        assertTrue("Status is YIELD", status == Lua.YIELD);
+      }
+      else
+      {
+        assertTrue("Status is 0", status == 0);
+      }
+      double v = L.toNumber(L.getGlobal("v"));
+      assertTrue("v is " + i, v == i);
+    }
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -85,6 +110,10 @@ public class CoroTest extends JiliTestCase
     suite.addTest(new CoroTest("test3")
       {
         public void runTest() { test3(); }
+      });
+    suite.addTest(new CoroTest("test4")
+      {
+        public void runTest() { test4(); }
       });
 
     return suite;
