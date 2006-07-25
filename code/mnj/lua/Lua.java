@@ -1033,7 +1033,7 @@ protect:
       {
         // assert status == YIELD;
         status = 0;
-        if (isLua(ci()))        // 'common' yield
+        if (!isLua(ci()))       // 'common' yield
         {
           // finish interrupted execution of 'OP_CALL'
           // assert ...
