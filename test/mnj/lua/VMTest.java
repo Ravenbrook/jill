@@ -108,6 +108,7 @@ import j2meunit.framework.TestSuite;
 //   return x
 // VMTestRet.luc - test that OP_RET pads out correctly with nils
 //   local a,b,c=1,2,function()end a,b,c=c() return a,b,c
+// VMTest.lua - contains more tests
 
 /**
  * J2MEUnit tests for Jili's VM execution.  DO NOT SUBCLASS.  public
@@ -124,6 +125,17 @@ public class VMTest extends JiliTestCase
   private VMTest(String name)
   {
     super(name);
+  }
+
+  public void runTest()
+  {
+    Lua L = new Lua();
+    L.loadFile("VMTest.lua");
+    L.call(0, 0);
+    System.out.println(getName());
+    L.push(L.getGlobal(getName()));
+    L.call(0, 0);
+    assertTrue("Completed", true);
   }
 
   /**
@@ -648,6 +660,7 @@ public class VMTest extends JiliTestCase
     suite.addTest(new VMTest("testVMRet")
         {
         public void runTest() { testVMRet(); } });
+    suite.addTest(new VMTest("testvarlist"));
     return suite;
   }
 }
