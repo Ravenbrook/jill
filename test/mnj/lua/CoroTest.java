@@ -95,12 +95,14 @@ public class CoroTest extends JiliTestCase
     }
   }
 
-  /** Coroutine test from PUC-Rio test suite. */
-  public void test5()
+  public void runTest()
   {
+    // loads CoroTest.lua and calls a function defined therein
     Lua L = new Lua();
     BaseLib.open(L);
     StringLib.open(L);  // string.find is required.
+    TableLib.open(L);   // table.insert is required.
+    System.out.println(getName());
     L.loadFile("CoroTest.lua");
     L.call(0, 0);
     L.push(L.getGlobal(getName()));
@@ -129,10 +131,10 @@ public class CoroTest extends JiliTestCase
       {
         public void runTest() { test4(); }
       });
-    suite.addTest(new CoroTest("test5")
-      {
-        public void runTest() { test5(); }
-      });
+    suite.addTest(new CoroTest("test5"));
+    suite.addTest(new CoroTest("test6"));
+    suite.addTest(new CoroTest("test7"));
+    suite.addTest(new CoroTest("test8"));
 
     return suite;
   }

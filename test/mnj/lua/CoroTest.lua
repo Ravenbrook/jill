@@ -60,3 +60,68 @@ function test5()
   return true
 end
 
+-- From [LUA 2006-03-26]
+function test6()
+  -- yields in tail calls
+  local function foo (i) return coroutine.yield(i) end
+  f = coroutine.wrap(function ()
+    for i=1,10 do
+      assert(foo(i) == _G.x)
+    end
+    return 'a'
+  end)
+  for i=1,10 do _G.x = i; assert(f(i) == i) end
+  _G.x = 'xuxu'; assert(f('xuxu') == 'a')
+  return true
+end
+
+-- From [LUA 2006-03-26]
+function test7()
+  -- recursive
+  function pf (n, i)
+    coroutine.yield(n)
+    pf(n*i, i+1)
+  end
+
+  f = coroutine.wrap(pf)
+  local s=1
+  for i=1,10 do
+    assert(f(1, 1) == s)
+    s = s*i
+  end
+  return true
+end
+
+-- From [LUA 2006-03-26]
+function test8()
+  -- sieve
+  function gen (n)
+    return coroutine.wrap(function ()
+      for i=2,n do coroutine.yield(i) end
+    end)
+  end
+
+
+  function filter (p, g)
+    return coroutine.wrap(function ()
+      while 1 do
+        local n = g()
+        if n == nil then return end
+        if n % p ~= 0 then coroutine.yield(n) end
+      end
+    end)
+  end
+
+  local x = gen(100)
+  local a = {}
+  while 1 do
+    local n = x()
+    if n == nil then break end
+    table.insert(a, n)
+    x = filter(n, x)
+  end
+
+  assert(#a == 25 and a[#a] == 97)
+
+  return true
+end
