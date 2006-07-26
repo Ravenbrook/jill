@@ -3148,8 +3148,7 @@ reentry:
             if (0 == n)
             {
               n = (stack.size() - a) - 1;
-              // :todo: check this against PUC-Rio
-              // stack.setSize ??
+              stack.setSize(ci().top());
             }
             if (0 == c)
             {
