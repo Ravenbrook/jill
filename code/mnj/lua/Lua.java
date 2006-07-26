@@ -3143,19 +3143,17 @@ reentry:
           {
             int n = ARGB(i);
             int c = ARGC(i);
-            int last;
-            LuaTable t;
             if (0 == n)
             {
-              n = (stack.size() - a) - 1;
+              n = (stack.size() - (base + a)) - 1;
               stack.setSize(ci().top());
             }
             if (0 == c)
             {
               c = code[pc++];
             }
-            t = (LuaTable)stack.elementAt(base+a);
-            last = ((c-1)*LFIELDS_PER_FLUSH) + n;
+            LuaTable t = (LuaTable)stack.elementAt(base+a);
+            int last = ((c-1)*LFIELDS_PER_FLUSH) + n;
             // :todo: consider expanding space in table
             for (; n > 0; n--)
             {
