@@ -752,7 +752,7 @@ public final class BaseLib extends LuaJavaCallback
       L.insert(L.valueOfBoolean(false), -1);
       return 2; // return false + error message
     }
-    L.insert(L.valueOfBoolean(true), -r);
+    L.insert(L.valueOfBoolean(true), L.getTop()-r);
     return r + 1;       // return true + 'resume' returns
   }
 
