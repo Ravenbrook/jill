@@ -1710,6 +1710,46 @@ protect:
   }
 
   /**
+   * Equivalent to luaL_findtable.  Instead of the tabe being passed on
+   * the stack, it is passed as the argument <var>t</var>.
+   * Likes its PUC-Rio equivalent however, this method leaves a table on
+   * the Lua stack.
+   */
+  String findTable(LuaTable t, String fname, int szhint)
+  {
+    int e = 0;
+    int i = 0;
+    do
+    {
+      e = fname.indexOf('.', i);
+      String part;
+      if (e < 0)
+      {
+        part = fname.substring(i);
+      }
+      else
+      {
+        part = fname.substring(i, e);
+      }
+      Object v = rawGet(t, part);
+      if (isNil(v))     // no such field?
+      {
+        LuaTable nt = createTable(0,
+            (e >= 0) ? 1 : szhint);     // new table for field
+        setTable(t, part, nt);
+      }
+      else if (!isTable(v))     // field has a non-table value?
+      {
+        return part;
+      }
+      t = (LuaTable)v;
+      i = e + 1;
+    } while (e >= 0);
+    push(t);
+    return null;
+  }
+
+  /**
    * Get a field (event) from an Lua value's metatable.  Returns null
    * if there is no field nor metatable.
    * @param o           Lua value to get metafield for.
@@ -1895,7 +1935,7 @@ protect:
   // Methods equivalent to debug API.  In PUC-Rio most of these are in
   // ldebug.c
 
-  private boolean getInfo(String what, Debug ar)
+  boolean getInfo(String what, Debug ar)
   {
     Object f = null;
     CallInfo callinfo = null;
@@ -1906,7 +1946,19 @@ protect:
       f = stack.elementAt(callinfo.function());
       // assert isFunction(f);
     }
-    return auxgetinfo(what, ar, f, callinfo);
+    boolean status = auxgetinfo(what, ar, f, callinfo);
+    if (what.indexOf('f') >= 0)
+    {
+      if (f == null)
+      {
+        push(NIL);
+      }
+      else
+      {
+        push(f);
+      }
+    }
+    return status;
   }
 
   /**
@@ -1961,6 +2013,8 @@ protect:
           break;
         case 'l':
           ar.setCurrentline((ci != null) ? currentline(ci) : -1);
+          break;
+        case 'f':       // handled by getInfo
           break;
         // :todo: more cases.
         default:
