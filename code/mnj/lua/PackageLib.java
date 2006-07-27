@@ -102,6 +102,10 @@ public final class PackageLib extends LuaJavaCallback
     L.setField(t, "loaders", L.newTable());
     p(L, t, LOADER_PRELOAD);
     p(L, t, LOADER_LUA);
+    setpath(L, t, "path", PATH_DEFAULT);        // set field 'path'
+
+    L.setField(t, "loaded", L.newTable());
+    L.setField(t, "preload", L.newTable());
   }
 
   /** Register a function. */
@@ -130,6 +134,7 @@ public final class PackageLib extends LuaJavaCallback
   private static final String DIRSEP = "/";
   private static final char PATHSEP = ';';
   private static final String PATH_MARK = "?";
+  private static final String PATH_DEFAULT = "?.lua;?/init.lua";
 
   private static final Object SENTINEL = new Object();
 
@@ -297,7 +302,7 @@ public final class PackageLib extends LuaJavaCallback
 
   private static boolean readable(String filename)
   {
-    InputStream f = PackageLib.class.getClass().getResourceAsStream(filename);
+    InputStream f = PackageLib.class.getResourceAsStream(filename);
     if (f == null)
       return false;
     try
@@ -366,5 +371,16 @@ public final class PackageLib extends LuaJavaCallback
     }
     b.append(s.substring(i));
     return b.toString();
+  }
+
+  private static void setpath(Lua L,
+      LuaTable t,
+      String fieldname,
+      String def)
+  {
+    // :todo: consider implementing a user-specified path via
+    // javax.microedition.midlet.MIDlet.getAppProperty or similar.
+    // Currently we just the default path defined by Jili.
+    L.setField(t, fieldname, def);
   }
 }
