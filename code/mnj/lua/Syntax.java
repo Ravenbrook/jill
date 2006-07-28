@@ -1654,7 +1654,6 @@ loop:
     FuncState new_fs = new FuncState(this);
     open_func(new_fs);
     new_fs.f.linedefined = line;
-    new_fs.f.source = null ;
     checknext('(');
     if (needself)
     {
