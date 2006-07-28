@@ -23,9 +23,20 @@ class JiliTestCase extends TestCase
    */
   protected void loadFile(Lua L, String filename)
   {
-    filename += ".luc";
+    String suffix[] = { "", ".luc", ".lua" };
+    InputStream is = null;
+    String s = "";
+    for (int i=0; i<suffix.length; ++i)
+    {
+      s = filename + suffix[i];
+      is = getClass().getResourceAsStream(s);
+      if (is != null)
+      {
+        break;
+      }
+    }
     System.out.println(filename);
-    int status = L.load(getClass().getResourceAsStream(filename), filename);
+    int status = L.load(is, s);
     assertTrue("Loaded " + filename + " ok", status == 0);
   }
 
