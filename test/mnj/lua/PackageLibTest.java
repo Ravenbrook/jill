@@ -32,11 +32,8 @@ public class PackageLibTest extends JiliTestCase
     Lua L = new Lua();
     BaseLib.open(L);
     PackageLib.open(L);
-    System.out.println(getName());
-    L.loadFile("PackageLibTest.lua");
-    L.call(0, 0);
-    L.push(L.getGlobal(getName()));
-    L.call(0, 0);
+    StringLib.open(L);
+    loadFileAndRun(L, "PackageLibTest.lua", getName(), 0);
     assertTrue(true);
   }
 
@@ -46,6 +43,13 @@ public class PackageLibTest extends JiliTestCase
 
     suite.addTest(new PackageLibTest("test1"));
     suite.addTest(new PackageLibTest("test2"));
+    suite.addTest(new PackageLibTest("test3"));
+    suite.addTest(new PackageLibTest("test4"));
+    suite.addTest(new PackageLibTest("test5"));
+    suite.addTest(new PackageLibTest("test6"));
+    suite.addTest(new PackageLibTest("test7"));
+    suite.addTest(new PackageLibTest("test8"));
+    suite.addTest(new PackageLibTest("test9"));
 
     return suite;
   }
