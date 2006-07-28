@@ -1734,9 +1734,9 @@ protect:
       Object v = rawGet(t, part);
       if (isNil(v))     // no such field?
       {
-        LuaTable nt = createTable(0,
+        v = createTable(0,
             (e >= 0) ? 1 : szhint);     // new table for field
-        setTable(t, part, nt);
+        setTable(t, part, v);
       }
       else if (!isTable(v))     // field has a non-table value?
       {
