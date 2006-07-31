@@ -36,7 +36,7 @@ class JiliTestCase extends TestCase
       }
     }
     System.out.println(filename);
-    int status = L.load(is, s);
+    int status = L.load(is, "@" + s);
     assertTrue("Loaded " + filename + " ok", status == 0);
   }
 

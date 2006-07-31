@@ -2271,6 +2271,7 @@ protect:
     // else  "source" or "...source"
     if (source.startsWith("@"))
     {
+      source = source.substring(1);
       len -= " '...' ".length();
       int l = source.length();
       if (l > len)
