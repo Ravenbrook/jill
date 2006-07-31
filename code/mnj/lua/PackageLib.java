@@ -186,7 +186,7 @@ public final class PackageLib extends LuaJavaCallback
       // package.loaded = new table
       L.setField(loaded, modname, module);
     }
-    // check wether table already has a _NAME field
+    // check whether table already has a _NAME field
     if (L.isNil(L.getField(module, "_NAME")))
     {
       modinit(L, module, modname);
