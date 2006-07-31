@@ -174,4 +174,7 @@ function testpcall2()
   local a,b,c,d = pcall(pcall, function()return 1+{}end)
   return a == true, b == false, type(c) == 'string', d == nil
 end
-
+function testpcall3()
+  local a,b = pcall(function()end)
+  return a == true, b == nil
+end
