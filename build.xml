@@ -267,8 +267,11 @@
     </exec>
     <copy todir="test-compiled">
       <fileset dir="test">
+        <!-- Auxiliary lua (source and binary) files for the tests -->
         <include name="**/*.lua" />
         <include name="**/*.luc" />
+        <!-- Entire libs sub-directory is used by PackageLibTest -->
+        <include name="**/libs/*" />
       </fileset>
     </copy>
   </target>
