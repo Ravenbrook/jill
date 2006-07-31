@@ -530,7 +530,7 @@ public final class Lua
    */
   public void insert(Object o, int idx)
   {
-    idx = absIndex(idx);
+    idx = absIndexUnclamped(idx);
     stack.insertElementAt(o, idx);
   }
 
@@ -1500,6 +1500,25 @@ protect:
       return -1;
     }
     return s + idx;
+  }
+
+  /**
+   * As {@link Lua#absIndex} but does not return -1 for out of range
+   * indexes.  Essential for {@link Lua#insert} because an index equal
+   * to the size of the stack is valid for that call.
+   */
+  private int absIndexUnclamped(int idx)
+  {
+    if (idx == 0)
+    {
+      return -1;
+    }
+    if (idx > 0)
+    {
+      return base + idx - 1;
+    }
+    // idx < 0
+    return stack.size() + idx;
   }
 
 
