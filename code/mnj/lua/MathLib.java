@@ -151,6 +151,8 @@ public final class MathLib extends LuaJavaCallback
     r(L, "sqrt", SQRT);
     r(L, "tan", TAN);
 
+    L.setField(t, "pi", L.valueOfNumber(Math.PI));
+    L.setField(t, "huge", L.valueOfNumber(Double.POSITIVE_INFINITY));
   }
 
   /** Register a function. */
