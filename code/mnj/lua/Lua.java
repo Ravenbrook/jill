@@ -3274,7 +3274,7 @@ reentry:
     } /* reentry: while */
   }
 
-  double iNumpow(double a, double b)
+  static double iNumpow(double a, double b)
   {
     // :todo: this needs proper checking for boundary cases
     // EG, is currently wrong for (-0)^2.
