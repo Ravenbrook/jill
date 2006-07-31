@@ -271,7 +271,7 @@
         <include name="**/*.lua" />
         <include name="**/*.luc" />
         <!-- Entire libs sub-directory is used by PackageLibTest -->
-        <include name="**/libs/*" />
+        <include name="**/libs/**" />
       </fileset>
     </copy>
   </target>
