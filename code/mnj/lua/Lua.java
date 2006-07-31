@@ -112,10 +112,6 @@ public final class Lua
   /** Limit for table tag-method chains (to avoid loops) */
   private static final int MAXTAGLOOP = 100;
 
-  /** Used to communicate error status (ERRRUN, etc) from point where
-   * error is raised to the code that catches it.
-   */
-  private int errorStatus;
   /**
    * The current error handler (set by {@link Lua#pcall}).  A Lua
    * function to call.
@@ -871,27 +867,21 @@ public final class Lua
     Object old_errfunc = errfunc;
     errfunc = ef;
     // :todo: save and restore allowhooks
+    int errorStatus = 0;
     try
     {
-      errorStatus = 0;
       call(nargs, nresults);
     }
-    catch (RuntimeException e)
+    catch (LuaError e)
     {
-      if (e.getMessage() == LUA_ERROR)
-      {
-        fClose(restoreStack);   // close eventual pending closures
-        dSeterrorobj(errorStatus, restoreStack);
-        nCcalls = oldnCcalls;
-        civ.setSize(restoreCi);
-        CallInfo ci = ci();
-        base = ci.base();
-        savedpc = ci.savedpc();
-      }
-      else
-      {
-        throw e;
-      }
+      fClose(restoreStack);   // close eventual pending closures
+      dSeterrorobj(e.errorStatus, restoreStack);
+      nCcalls = oldnCcalls;
+      civ.setSize(restoreCi);
+      CallInfo ci = ci();
+      base = ci.base();
+      savedpc = ci.savedpc();
+      errorStatus = e.errorStatus;
     }
     errfunc = old_errfunc;
     return errorStatus;
@@ -1065,10 +1055,10 @@ public final class Lua
         return resume_error("cannot resume non-suspended coroutine");
     }
     // assert errfunc == 0 && nCcalls == 0;
+    int errorStatus = 0;
 protect:
     try
     {
-      errorStatus = 0;
       // This block is equivalent to resume from ldo.c
       int firstArg = stack.size() - narg;
       if (status == 0)  // start coroutine?
@@ -1093,18 +1083,11 @@ protect:
       }
       vmExecute(civ.size() - 1);
     }
-    catch (RuntimeException e)
+    catch (LuaError e)
     {
-      if (e.getMessage() == LUA_ERROR)  // error?
-      {
-        status = errorStatus;   // mark thread as 'dead'
-        dSeterrorobj(errorStatus, stack.size());
-        ci().setTop(stack.size());
-      }
-      else
-      {
-        throw e;
-      }
+      status = e.errorStatus;   // mark thread as 'dead'
+      dSeterrorobj(e.errorStatus, stack.size());
+      ci().setTop(stack.size());
     }
     return status;
   }
@@ -2108,8 +2091,7 @@ protect:
 
   void dThrow(int status)
   {
-    errorStatus = status;
-    throw new RuntimeException(LUA_ERROR);
+    throw new LuaError(status);
   }
 
 
