@@ -76,6 +76,8 @@ public final class PackageLib extends LuaJavaCallback
         return module(L);
       case REQUIRE:
         return require(L);
+      case SEEALL:
+        return seeall(L);
       case LOADER_LUA:
         return loaderLua(L);
       case LOADER_PRELOAD:
@@ -250,6 +252,20 @@ public final class PackageLib extends LuaJavaCallback
     }
     L.push(module);
     return 1;
+  }
+
+  /** Implements package.seeall. */
+  private static int seeall(Lua L)
+  {
+    L.checkType(1, Lua.TTABLE);
+    LuaTable mt = L.getMetatable(L.value(1));
+    if (mt == null)
+    {
+      mt = L.createTable(0, 1);
+      L.setMetatable(L.value(1), mt);
+    }
+    L.setField(mt, "__index", L.getGlobals());
+    return 0;
   }
 
   /**
