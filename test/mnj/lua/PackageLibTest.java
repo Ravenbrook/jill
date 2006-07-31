@@ -33,6 +33,8 @@ public class PackageLibTest extends JiliTestCase
     BaseLib.open(L);
     PackageLib.open(L);
     StringLib.open(L);
+    MathLib.open(L);    // required by test8
+
     loadFileAndRun(L, "PackageLibTest.lua", getName(), 0);
     assertTrue(true);
   }
