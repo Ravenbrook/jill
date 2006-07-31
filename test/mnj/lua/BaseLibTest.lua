@@ -170,4 +170,8 @@ function testerrormore()
   print(b)
   return a==false, b=='BaseLibTest.lua:166: spong'
 end
+function testpcall2()
+  local a,b,c,d = pcall(pcall, function()return 1+{}end)
+  return a == true, b == false, type(c) == 'string', d == nil
+end
 
