@@ -40,6 +40,8 @@ public class METest extends TestCase
     suite.addTest(t.suite());
     t = new PackageLibTest();
     suite.addTest(t.suite());
+    t = new MathLibTest();
+    suite.addTest(t.suite());
 
     return suite;
   }
