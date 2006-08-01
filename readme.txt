@@ -101,6 +101,27 @@ to adapt the build procedure.
 4. RELEASE NOTES
 
 
+RELEASE 0.9.0
+
+This release is intended to meet the planned "Module and Coroutine
+Library" release.
+
+The package (module), coroutine, and math libraries are provided.  All
+of them are cut down from their PUC-Rio counterparts to some extent.
+
+
+There are the following know bugs in this release:
+
+require"os" (and similar) does not work (Ravenbrook job001472)
+
+(and these from previous releases that are still present)
+
+load (in the base library) does not accept a file beginning with '#'.
+(Ravenbrook job001436).
+
+t[nil] does not work (Ravenbrook job001430).
+
+
 RELEASE 0.8.0
 
 This release is intended to meet the planned "String and Table Library"
