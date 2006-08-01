@@ -34,7 +34,7 @@ public final class LuaUserdata
   private LuaTable env;
   /**
    * Wraps an arbitrary Java reference.  To retrieve the reference that
-   * was wrapped, use @{link Lua.toUserdata}.
+   * was wrapped, use {@link Lua#toUserdata}.
    * @param  o The Java reference to wrap.
    */
   public LuaUserdata(Object o)

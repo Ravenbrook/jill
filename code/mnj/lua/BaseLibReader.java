@@ -16,7 +16,7 @@
 package mnj.lua;
 
 /**
- * Extends @{link java.io.Reader} to create a Reader from a Lua
+ * Extends {@link java.io.Reader} to create a Reader from a Lua
  * function.  So that the <code>load</code> function from Lua's base
  * library can be implemented.
  */
