@@ -13,23 +13,6 @@ function test2()
   assert(type(foo) == 'table')
 end
 
-function testx1()
-  assert(require"string" == string)
-  assert(require"math" == math)
-  assert(require"table" == table)
-  assert(require"io" == io)
-  assert(require"os" == os)
-  assert(require"debug" == debug)
-  assert(require"coroutine" == coroutine)
-end
-
-function testx2()
-  assert(type(package.path) == "string")
-  assert(type(package.cpath) == "string")
-  assert(type(package.loaded) == "table")
-  assert(type(package.preload) == "table")
-end
-
 local DIR = "libs/"
 
 
@@ -175,6 +158,22 @@ function test9()
 
   package = p
   assert(type(package.path) == "string")
+end
+
+function test10()
+  assert(type(package.path) == "string")
+  assert(type(package.loaded) == "table")
+  assert(type(package.preload) == "table")
+end
+
+function test11()
+  assert(require"string" == string)
+  assert(require"math" == math)
+  assert(require"table" == table)
+  -- assert(require"io" == io)
+  assert(require"os" == os)
+  -- assert(require"debug" == debug)
+  assert(require"coroutine" == coroutine)
 end
 
 return 7

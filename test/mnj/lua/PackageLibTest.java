@@ -52,6 +52,8 @@ public class PackageLibTest extends JiliTestCase
     suite.addTest(new PackageLibTest("test7"));
     suite.addTest(new PackageLibTest("test8"));
     suite.addTest(new PackageLibTest("test9"));
+    suite.addTest(new PackageLibTest("test10"));
+    suite.addTest(new PackageLibTest("test11"));
 
     return suite;
   }
