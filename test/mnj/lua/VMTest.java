@@ -566,6 +566,16 @@ public class VMTest extends JiliTestCase
     }
   }
 
+  /** Tests that the rule of Conway's life is correctly implemented. */
+  public void testliferule()
+  {
+    Lua L = new Lua();
+    loadFileAndRun(L, "VMTest.lua", "testliferule", 1);
+    double v = L.toNumber(L.value(-1));
+    System.out.println("" + v);
+    assertTrue("Result is 16480", v == 16480);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -661,6 +671,10 @@ public class VMTest extends JiliTestCase
         {
         public void runTest() { testVMRet(); } });
     suite.addTest(new VMTest("testvarlist"));
+    suite.addTest(new VMTest("testliferule")
+      {
+        public void runTest() { testliferule(); }
+      });
     return suite;
   }
 }
