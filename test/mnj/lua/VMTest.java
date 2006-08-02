@@ -1,6 +1,7 @@
 // $Header$
 
 package mnj.lua;
+
 // For j2meunit see http://j2meunit.sourceforge.net/
 import j2meunit.framework.Test;
 import j2meunit.framework.TestSuite;
@@ -567,10 +568,10 @@ public class VMTest extends JiliTestCase
   }
 
   /** Tests that the rule of Conway's life is correctly implemented. */
-  public void testliferule()
+  public void testliferule(String suffix)
   {
     Lua L = new Lua();
-    loadFileAndRun(L, "VMTest.lua", "testliferule", 1);
+    loadFileAndRun(L, "VMTest" + suffix, "testliferule", 1);
     double v = L.toNumber(L.value(-1));
     System.out.println("" + v);
     assertTrue("Result is 16480", v == 16480);
@@ -673,7 +674,11 @@ public class VMTest extends JiliTestCase
     suite.addTest(new VMTest("testvarlist"));
     suite.addTest(new VMTest("testliferule")
       {
-        public void runTest() { testliferule(); }
+        public void runTest() { testliferule(".lua"); }
+      });
+    suite.addTest(new VMTest("testliferule2")
+      {
+        public void runTest() { testliferule(".luc"); }
       });
     return suite;
   }
