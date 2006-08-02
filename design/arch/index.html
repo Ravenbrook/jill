@@ -139,7 +139,7 @@ Execution of VM instructions is suspended when Lua calls a function
 implemented in Java; when that function returns to the VM then the VM
 will resume execution of VM instructions.  If the called Java function
 requests a yield, which it will do with code similar to "return
-L.yield()", then the VM will remain suspended and return to its caller
+L.yield(n)", then the VM will remain suspended and return to its caller
 (the Java code that originally invoked <code>Lua.call</code>).
 </p>
 
@@ -661,6 +661,27 @@ in during the execution of g; it's only filled in when g calls another
 function.  So the diagram represents a point in the execution where g is
 about to call another function, but no stack nor <code>CallInfo</code>
 record has been allocation for the callee.
+</p>
+
+<h3 id="section-4.1">4.1 Coroutines and Yielding</h3>
+
+<p>
+Coroutines are represented by a separate <code>Lua</code> instance that
+share some global state with its parent (global table, registry,
+metamethods for string, nil, functions, etc).  Execution of coroutines
+thus proceeds in a completely natural fashion, two coroutines provided
+separate execution environments and do not interfere with each other.
+</p>
+
+<p>
+Intuwave have an additional yielding requirement related to their
+co-operative task implementation.  The requirement on Jili is that a Lua
+Java function can yield the coroutine that called it by throwing an
+<code>Exception</code>.  In such a circumstance Jili will catch the
+exception, arrange the Lua state so that the coroutine is effectively
+yielded (as if the Lua Java Function did a <code>return
+L.yield(0)</code>), and then rethrow the exception (or behaviour
+equivalent to this).
 </p>
 
 <h2 id="section-5">5. Errors</h2>
