@@ -32,8 +32,10 @@ public class PackageLibTest extends JiliTestCase
     Lua L = new Lua();
     BaseLib.open(L);
     PackageLib.open(L);
+    MathLib.open(L);
+    OSLib.open(L);
     StringLib.open(L);
-    MathLib.open(L);    // required by test8
+    TableLib.open(L);
 
     loadFileAndRun(L, "PackageLibTest.lua", getName(), 0);
     assertTrue(true);
