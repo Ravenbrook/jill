@@ -215,7 +215,8 @@ concat, equal, lessthan, rawequal.
 <h3>Representing Lua's nil, boolean, number, and string types</h3>
 
 <p>
-Lua's <code>nil</code> is represented by Java's <code>null</code>.
+Lua's <code>nil</code> is represented by Java's <code>null</code> (but
+see below for discusion).  
 </p>
 
 <p>
@@ -254,16 +255,30 @@ have to constantly create Java strings from Lua strings, convert Java
 doubles to Lua numbers and so forth.
 </p>
 
+<p>
+Representing <code>nil</code> by <code>null</code> has two problems.
+The first problem is that it may be confusing to
+Java programmers; <code>null</code> can creep into places accidentally
+and therefore may get passed into Lua unintentionally.
+The second
+problem is that in Lua 5.1 <code>nil</code> is a valid table index (for
+lookups) and <code>java.util.Hashtable</code> raises a
+<code>NullPointerException</code> for <code>null</code> keys.
+Because of this we may move to a non-<code>null</code> representation
+for <code>nil</code>.
+</p>
+
+
 <h3>Representing Functions</h3>
 
 
 <p>
-A function (implemented in Java or Lua) is represented by the class
-LuaFunction.  Implements a call method.  There are two sorts of
-functions, those implemented in Lua and those implemented in Java.  It's
-not yet clear how many classes will be used for the implementation.
-<code>.jar</code> file size concerns may lead to all types of functions
-being implemented in one class.
+A function implemented in Lua is represented by the class
+<code>LuaFunction</code>.
+A function implemented in Java is represented by (an instance of a
+subclass of) the class <code>LuaJavaCallback</code>.  The embedder of
+Lua will create Lua Java functions by subclassing
+<code>LuaJavaCallback</code> and instantiating it.
 </p>
 
 <h4>
@@ -439,92 +454,36 @@ does.
 <p>
 The code for functions that are implemented in Java, "Lua Java Functions",
 is represented by an instance of the abstract class
-<code>LuaJavaCallback</code> and an <code>int</code>.  An abstract class
+<code>LuaJavaCallback</code>.  An abstract class
 is preferred over an interface because method invocation is a shorter
 JVM bytecode sequence.
 </p>
 
 <pre>
-/**
- * This class encapsulates Java code that is invokable from within Lua.
- * To create a Lua extension in Java you must extend this class and
- * implement the <code>luaFunction</code> method.  An (indirect) instance
- * of this class is passed to {@link Lua.createLuaJavaFunction} or
- * @{link createLuaJavaClosure} to create a Lua function that calls Java
- * when invoked (the <code>luaFunction</code> method will be invoked).
- * Each Lua function that need creating must be created by calling
- * <code>createLuaJavaFunction</code> or
- * <code>createLuaJavaClosure</code>.
- */
 public abstract class LuaJavaCallback {
-  int luaFunction(Lua L, int c);
+  abstract int luaFunction(Lua L);
 }
 </pre>
 
 <p>
-They are manipulated as Lua values by creating an (indirect) instance of
-LuaFunction:
-</p>
-
-<pre>
-class Lua {
-  /**
-   * Creates a Lua function that invokes Java when called.
-   * Analagous to lua_pushcfunction in the PUC-Rio API.
-   * @param o  The object whose <code>luaFunction</code> method will be
-   *           invoked.  When Lua code calls the function created by
-   *           this method, the <code>LuaFunction</code> method of the
-   *           object o, specified by {@link LuaJavaCallback},
-   *           will be invoked.  The Lua object, the int c,
-   *           and the actual arguments to the function will be passed
-   *           to the <code>luaFunction</code> method.
-   * @param c  An int closure parameter.  This is passed to o's
-   *           <code>luaFunction</code>.  It can be used for any
-   *           purpose, but the intended purpose is so that one instance
-   *           of {@link LuaFunctionCallback} can implement many
-   *           different Lua functions (distinguishing between them by
-   *           using different choices for c), and thereby reduce the
-   *           proliferation of objects.
-   * @return   The Lua function.  Note: in order for this function to be
-   *           callable from Lua it must be stored somewhere accessible
-   *           to Lua, for example, in the global table.
-   */
-  LuaFunction createLuaJavaFunction(LuaJavaCallback o, int c) {
-    return null; }
-  /**
-   * Creates a Lua function that invokes Java when called.  The java
-   * code, when it is executed, will have access to an upvalue.
-   * @param o  As for {@link createLuaJavaFunction} an object that has a
-   *           <code>luaFunction</code> method.
-   * @param c  As for {@link createLuaJavaFunction} an int closure
-   *           parameter.
-   * @param upvalue  An arbitrary Java object that is made available to
-   *           the <code>luaFunction</code> (via the {@link
-   *           Lua.getUpvalue} method) when it is executed.  Because
-   *           this is an arbitrary object it is possible to store
-   *           multiple values, for example in an array.  Note that the
-   *           upvalue can be any Java object, it need not be a Lua
-   *           value.
-   * @return   The Lua function.
-   */
-  LuaFunction createLuaJavaClosure(LuaJavaCallback o,
-      int c,
-      Object upvalue) {
-    return null; }
-   
-}
-</pre>
-
-<p>
-To consider: get rid of the <code>int c</code> parameter from the
-<code>luaFunction</code> method and remove
-<code>createLuaJavaFunction</code> and <code>createLuaJavaClosure</code>
-methods from <code>Lua</code>.  Clients (Java programmers writing
-extensions) can subclass <code>LuaJavaCallback</code> and provide their
-own <code>int c</code> instance member if desired.  The client allocated
-instances (of <code>LuaJavaCallback</code>) will represent the functions
-directly.  Jili can use <code>instanceof LuaJavaCallback</code> to test
-an object for being a Lua Java Function.
+Generally we expect that the embedder of Lua will subclass
+<code>LuaJavaCallback</code> and create an instance for each Lua Java
+Function.  The implementation of a subclass's <code>luaFunction</code>
+method will need to distinguish between its instances (each instance
+represents a different Lua function such as <code>string.reverse</code>
+or <code>string.match</code>).  There are several strategies for this:
+extend the class with an instance member (an <code>int</code> say) that
+will be different for each instance and can be used to determine which
+function is intended; store each instance in a static member and use
+these to compare against; make each instance be the sole instance of
+a (possibly anonymous) subclass each of which implements
+<code>luaFunction</code>, Java method invocation will invoke the
+correct method.  Of these three the former (a discriminating instance
+member) is preferred.  For JME environments the latter approach of
+having a separate class for each instance (each Lua Java Function) is
+not recommended as it will lead to <code>.jar</code> bloat.  The
+libraries provided with Jili use the former approach; the instance
+member is called "which".
 </p>
 
 <h3>Representing Tables</h3>
@@ -566,6 +525,24 @@ will be added to the table.  Since we are representing many Lua values
 directly by corresponding Java objects, we will have no control over the
 hash function (which for most of the types we will be using is in fact
 specified by the Java platform.  EG <code>java.lang.String</code>).
+</p>
+
+<p>
+The semantics of the Java <code>equals</code> method affects how objects
+are keyed into a table.  If two Java objects are <code>.equals</code>
+then they cannot both be added to a <code>Hashtable</code>.  This is a
+concern when adding tables to tables.  In Lua each new table is a new
+object and value, no two tables compare equal and when adding a table to
+a table it will never clash with an existing key.  In JSE
+<code>java.util.Hashtable</code> implements <code>equals</code> such
+that tables are compared by the value of their contents when considering
+equality.  Two <code>Hashtable</code>s are equal if the mappings they
+implement are equal.  In JME (CLDC) <code>java.util.Hashtable</code>
+does not implement <code>equals</code>, so inherits the most
+discriminating <code>equals</code> method from <code>Object</code>.  The
+upshot is that Jili's <code>LuaTable</code> class must implement
+<code>equals</code> in JSE if it is to get the correct Lua table
+semantics, but need not do this in JME.
 </p>
 
 <h3>Representing Userdata</h3>
@@ -696,13 +673,10 @@ library has been used within Lua, but it uses the same mechanism).
 
 <p>
 The transfer of control is done using an <code>Exception</code> in Java.
-In order to avoid declaring another class, we re-use existing exception
-classes provided by CLDC.  In order to preserve sanity during debugging,
-exceptions that are used for Lua errors use a nonce message object as
-the exception's message (retrieved using
-<code>Exception.getMessage</code>).  This nonce is stored in
-<code>Lua.LUA_ERROR</code> and can be used to tell whether an exception
-is a result of a Lua error (which it should be), or a bug.
+A subclass of <code>Exception</code>, <code>LuaError</code>, is created
+to store the extra Lua <code>errorStatus</code> values which needs to
+get passed from the point where the error is generated to the catching
+code (<code>pcall</code>).
 </p>
 
 <p>
@@ -758,7 +732,8 @@ methods on the <code>FuncState</code> object.
 <p>
 Most of the lexical analysis and parsing routines are in the
 <code>Syntax</code> class.  This class effectively replaces
-<code>LexState</code> from the PUC-Rio implementation.
+<code>LexState</code> from the PUC-Rio implementation and implements
+code that is in the PUC-Rio files "llex.c" and "lparser.c".
 </p>
 
 <p>
@@ -768,7 +743,6 @@ way the <code>expdesc</code> struct is used.  A blank instance is
 created at the beginning of an expression parse, and filled in as the
 parse goes along (and sometimes modifed as well).
 </p>
-
 
 
 <h2 id="section-A">A. References</h2>
@@ -805,6 +779,12 @@ parse goes along (and sometimes modifed as well).
     <td>2006-05-16</td>
     <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
     <td>VM and stack diagram.</td>
+</tr>
+
+<tr valign="top">
+    <td>2006-08-02</td>
+    <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+    <td>Tidied up and brought more up to date.</td>
 </tr>
 
 </table>
