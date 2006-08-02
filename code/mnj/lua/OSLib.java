@@ -86,8 +86,7 @@ public final class OSLib extends LuaJavaCallback
    */
   public static void open(Lua L)
   {
-    Object lib = new LuaTable();
-    L.setGlobal("os", lib);
+    L.register("os");
 
     r(L, "clock", CLOCK);
     r(L, "date", DATE);

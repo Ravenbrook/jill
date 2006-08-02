@@ -73,6 +73,7 @@ public final class Lua
    * thread as an optimisation.
    */
   private LuaTable global;
+  private LuaTable registry;
 
   /** Reference the main Lua thread.  Itself if this is the main Lua
    * thread.
@@ -140,6 +141,11 @@ public final class Lua
   static final int MAXUPVALUES = 60;
 
   /**
+   * Registry key for loaded modules.
+   */
+  static final String LOADED = "_LOADED";
+
+  /**
    * Used to construct a Lua thread that shares its global state with
    * another Lua state.
    */
@@ -150,6 +156,7 @@ public final class Lua
     // Any more than this and the global state should be shunted to a
     // separate object (as it is in PUC-Rio).
     this.global = L.global;
+    this.registry = L.registry;
     this.metatable = L.metatable;
     this.main = L;
   }
@@ -163,6 +170,7 @@ public final class Lua
   public Lua()
   {
     this.global = new LuaTable();
+    this.registry = new LuaTable();
     this.metatable = new LuaTable[NUM_TAGS];
     this.main = this;
   }
@@ -499,6 +507,14 @@ public final class Lua
       mt = metatable[type(o)];
     }
     return mt;
+  }
+
+  /**
+   * Gets the registry table.
+   */
+  public LuaTable getRegistry()
+  {
+    return registry;
   }
 
   /**
@@ -1712,7 +1728,7 @@ protect:
   }
 
   /**
-   * Equivalent to luaL_findtable.  Instead of the tabe being passed on
+   * Equivalent to luaL_findtable.  Instead of the table being passed on
    * the stack, it is passed as the argument <var>t</var>.
    * Likes its PUC-Rio equivalent however, this method leaves a table on
    * the Lua stack.
@@ -1869,6 +1885,31 @@ protect:
       return def;
     }
     return checkString(narg);
+  }
+
+  /**
+   * Creates a table in the global namespace and registers it as a loaded
+   * module.
+   * @return the new table
+   */
+  LuaTable register(String name)
+  {
+    findTable(getRegistry(), LOADED, 1);
+    Object loaded = value(-1);
+    pop(1);
+    Object t = getField(loaded, name);
+    if (!isTable(t))    // not found?
+    {
+      // try global variable (and create one if it does not exist)
+      if (findTable(getGlobals(), name, 0) != null)
+      {
+        error("name conflict for module '" + name + "'");
+      }
+      t = value(-1);
+      pop(1);
+      setField(loaded, name, t);        // _LOADED[name] = new table
+    }
+    return (LuaTable)t;
   }
 
   private void tagError(int narg, int tag)

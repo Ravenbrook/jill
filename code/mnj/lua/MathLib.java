@@ -129,9 +129,7 @@ public final class MathLib extends LuaJavaCallback
    */
   public static void open(Lua L)
   {
-
-    LuaTable t = L.newTable();
-    L.setGlobal("math", t);
+    LuaTable t = L.register("math");
 
     r(L, "abs", ABS);
     r(L, "ceil", CEIL);

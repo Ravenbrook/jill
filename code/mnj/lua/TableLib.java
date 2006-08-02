@@ -77,8 +77,7 @@ public final class TableLib extends LuaJavaCallback
    */
   public static void open(Lua L)
   {
-    Object lib = new LuaTable();
-    L.setGlobal("table", lib);
+    L.register("table");
 
     r(L, "concat", CONCAT);
     r(L, "insert", INSERT);

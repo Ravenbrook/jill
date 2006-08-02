@@ -113,8 +113,7 @@ public final class StringLib extends LuaJavaCallback
    */
   public static void open(Lua L)
   {
-    Object lib = new LuaTable();
-    L.setGlobal("string", lib);
+    Object lib = L.register("string");
 
     r(L, "byte", BYTE);
     r(L, "char", CHAR);

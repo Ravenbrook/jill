@@ -58,7 +58,7 @@ public final class BaseLib extends LuaJavaCallback
   private static final int IPAIRS_AUX = 27;
   private static final int PAIRS_AUX = 28;
 
-  // The coroutine functions (which reside in the table "coro") are also
+  // The coroutine functions (which reside in the table "coroutine") are also
   // part of the base library.
   private static final int CREATE = 50;
   private static final int RESUME = 51;
@@ -226,7 +226,7 @@ public final class BaseLib extends LuaJavaCallback
     r(L, "unpack", UNPACK);
     r(L, "xpcall", XPCALL);
 
-    L.setGlobal("coroutine", L.newTable());
+    L.register("coroutine");
 
     c(L, "create", CREATE);
     c(L, "resume", RESUME);
