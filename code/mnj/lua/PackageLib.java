@@ -93,8 +93,7 @@ public final class PackageLib extends LuaJavaCallback
    */
   public static void open(Lua L)
   {
-    LuaTable t = L.newTable();
-    L.setGlobal("package", t);
+    LuaTable t = L.register("package");
 
     g(L, t, "module", MODULE);
     g(L, t, "require", REQUIRE);
@@ -106,7 +105,10 @@ public final class PackageLib extends LuaJavaCallback
     p(L, t, LOADER_LUA);
     setpath(L, t, "path", PATH_DEFAULT);        // set field 'path'
 
-    L.setField(t, "loaded", L.newTable());
+    // set field 'loaded'
+    L.findTable(L.getRegistry(), Lua.LOADED, 1);
+    L.setField(t, "loaded", L.value(-1));
+    L.pop(1);
     L.setField(t, "preload", L.newTable());
   }
 
