@@ -366,4 +366,14 @@
     </java>
   </target>
 
+  <target name="life-test" depends="compile,compile-test,include-extra"
+      description="Runs the life.lua tests using j2meunit.textui.TestRunner" >
+    <java fork="yes"
+        classname="j2meunit.textui.TestRunner"
+        classpath="compiled:test-compiled:${j2meunit}">
+      <arg value="mnj.lua.LifeTest" />
+    </java>
+  </target>
+
+
 </project>

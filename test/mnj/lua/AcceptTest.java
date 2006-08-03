@@ -16,7 +16,7 @@ public class AcceptTest extends JiliTestCase
   public AcceptTest() { }
 
   /** Clones constructor from superclass.  */
-  private AcceptTest(String name)
+  protected AcceptTest(String name)
   {
     super(name);
   }
@@ -47,7 +47,9 @@ public class AcceptTest extends JiliTestCase
     suite.addTest(new AcceptTest("factorial"));
     suite.addTest(new AcceptTest("fib"));
     suite.addTest(new AcceptTest("fibfor"));
-    suite.addTest(new AcceptTest("life"));
+    // The output from life.lua is too voluminous to run routinely.  See
+    // LifeTest.
+    // suite.addTest(new AcceptTest("life"));
     suite.addTest(new AcceptTest("readonly"));
     suite.addTest(new AcceptTest("sieve"));
     suite.addTest(new AcceptTest("sort"));
