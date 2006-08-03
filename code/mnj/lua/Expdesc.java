@@ -62,6 +62,17 @@ final class Expdesc
     this.info = i;
   }
 
+  void init(Expdesc e)
+  {
+    // Must initialise all members of this.
+    this.k = e.k;
+    this.info = e.info;
+    this.aux = e.aux;
+    this.nval = e.nval;
+    this.t = e.t;
+    this.f = e.f;
+  }
+
   int kind()
   {
     return k;

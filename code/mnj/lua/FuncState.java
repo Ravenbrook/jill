@@ -293,21 +293,15 @@ final class FuncState
       case Syntax.OPR_AND:
         lua_assert(e1.t == NO_JUMP, "kPosfix() and");  /* list must be closed */
         kDischargevars(e2);
-        e1.f = kConcat(e1.f, e2.f);
-        e1.k = e2.k;
-        e1.info = e2.info;
-        e1.aux = e2.aux;
-        e1.t = e2.t;
+        e2.f = kConcat(e2.f, e1.f);
+        e1.init(e2);
         break;
 
       case Syntax.OPR_OR:
         lua_assert(e1.f == NO_JUMP, "kPosfix() or");  /* list must be closed */
         kDischargevars(e2);
-        e1.t = kConcat(e1.t, e2.t);
-        e1.k = e2.k;
-        e1.info = e2.info;
-        e1.aux = e2.aux;
-        e1.f = e2.f;
+        e2.t = kConcat(e2.t, e1.t);
+        e1.init(e2);
         break;
 
       case Syntax.OPR_CONCAT:
