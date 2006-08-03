@@ -330,8 +330,24 @@ public final class BaseLib extends LuaJavaCallback
     {
       return o;
     }
-    // :todo: support integer args
-    throw new IllegalArgumentException();
+    else
+    {
+      int level = L.optInt(1, 1);
+      L.argCheck(level >= 0, 1, "level must be non-negative");
+      Debug ar = L.getStack(level);
+      if (ar == null)
+      {
+        L.argError(1, "invalid level");
+      }
+      L.getInfo("f", ar);
+      o = L.value(-1);
+      if (L.isNil(o))
+      {
+        L.error("no function environment for tail call at level " + level);
+      }
+      L.pop(1);
+      return o;
+    }
   }
 
   /** Implements getfenv. */
@@ -592,12 +608,11 @@ public final class BaseLib extends LuaJavaCallback
       // :todo: change environment of current thread.
       return 0;
     }
-    else if (L.isJavaFunction(o) || !L.setFenv(first, L.value(2)))
+    else if (L.isJavaFunction(o) || !L.setFenv(o, L.value(2)))
     {
-      // :todo: error
-      throw new IllegalArgumentException();
+      L.error("'setfenv' cannot change environment of given object");
     }
-    L.setTop(1);
+    L.push(o);
     return 1;
   }
 
