@@ -2141,8 +2141,9 @@ protect:
         stack.setElementAt("error in error handling", oldtop);
         break;
 
-      case ERRSYNTAX:
+      case ERRFILE:
       case ERRRUN:
+      case ERRSYNTAX:
         stack.setElementAt(stack.lastElement(), oldtop);
         break;
     }
