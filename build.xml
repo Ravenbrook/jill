@@ -375,5 +375,13 @@
     </java>
   </target>
 
+  <target name="advanced-test" depends="compile,compile-test,include-extra"
+      description="Runs the advanced acceptance tests" >
+    <java fork="yes"
+        classname="j2meunit.textui.TestRunner"
+        classpath="compiled:test-compiled:${j2meunit}">
+      <arg value="mnj.lua.AdvancedTest" />
+    </java>
+  </target>
 
 </project>
