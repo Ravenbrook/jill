@@ -30,7 +30,7 @@ public class AdvancedTest extends JiliTestCase
     OSLib.open(L);
     StringLib.open(L);
     TableLib.open(L);
-    L.loadFile("accept-advanced/" + getName());
+    loadFile(L, "accept-advanced/" + getName());
     int status = L.pcall(0, 0, new AddWhere());
     if (status != 0)
     {
@@ -42,22 +42,22 @@ public class AdvancedTest extends JiliTestCase
   {
     TestSuite suite = new TestSuite();
 
-    suite.addTest(new AdvancedTest("attrib.lua"));
-    suite.addTest(new AdvancedTest("big.lua"));
-    suite.addTest(new AdvancedTest("calls.lua"));
-    suite.addTest(new AdvancedTest("checktable.lua"));
-    suite.addTest(new AdvancedTest("closure.lua"));
-    suite.addTest(new AdvancedTest("constructs.lua"));
-    suite.addTest(new AdvancedTest("db.lua"));
-    suite.addTest(new AdvancedTest("events.lua"));
-    suite.addTest(new AdvancedTest("gc.lua"));
-    suite.addTest(new AdvancedTest("literals.lua"));
-    suite.addTest(new AdvancedTest("locals.lua"));
-    suite.addTest(new AdvancedTest("nextvar.lua"));
-    suite.addTest(new AdvancedTest("pm.lua"));
-    suite.addTest(new AdvancedTest("sort.lua"));
-    suite.addTest(new AdvancedTest("strings.lua"));
-    suite.addTest(new AdvancedTest("vararg.lua"));
+    suite.addTest(new AdvancedTest("attrib"));
+    suite.addTest(new AdvancedTest("big"));
+    suite.addTest(new AdvancedTest("calls"));
+    suite.addTest(new AdvancedTest("checktable"));
+    suite.addTest(new AdvancedTest("closure"));
+    suite.addTest(new AdvancedTest("constructs"));
+    suite.addTest(new AdvancedTest("db"));
+    suite.addTest(new AdvancedTest("events"));
+    suite.addTest(new AdvancedTest("gc"));
+    suite.addTest(new AdvancedTest("literals"));
+    suite.addTest(new AdvancedTest("locals"));
+    suite.addTest(new AdvancedTest("nextvar"));
+    suite.addTest(new AdvancedTest("pm"));
+    suite.addTest(new AdvancedTest("sort"));
+    suite.addTest(new AdvancedTest("strings"));
+    suite.addTest(new AdvancedTest("vararg"));
 
     return suite;
   }
