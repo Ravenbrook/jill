@@ -3241,10 +3241,11 @@ reentry:
           {
             int n = ARGB(i);
             int c = ARGC(i);
+            boolean setstack = false;
             if (0 == n)
             {
               n = (stack.size() - (base + a)) - 1;
-              stack.setSize(ci().top());
+              setstack = true;
             }
             if (0 == c)
             {
@@ -3257,6 +3258,10 @@ reentry:
             {
               Object val = stack.elementAt(base+a+n);
               t.putnum(last--, val);
+            }
+            if (setstack)
+            {
+              stack.setSize(ci().top());
             }
             continue;
           }
