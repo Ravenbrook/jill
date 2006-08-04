@@ -121,9 +121,9 @@ assert(select(lim, unpack(a)) == lim and select('#', unpack(a)) == lim)
 x = unpack(a)
 assert(x == 1)
 x = {unpack(a)}
-assert(table.getn(x) == lim and x[1] == 1 and x[lim] == lim)
+assert(#(x) == lim and x[1] == 1 and x[lim] == lim)
 x = {unpack(a, lim-2)}
-assert(table.getn(x) == 3 and x[1] == lim-2 and x[3] == lim)
+assert(#(x) == 3 and x[1] == lim-2 and x[3] == lim)
 x = {unpack(a, 10, 6)}
 assert(next(x) == nil)   -- no elements
 x = {unpack(a, 11, 10)}
@@ -179,13 +179,13 @@ print('+')
 
 function unlpack (t, i)
   i = i or 1
-  if (i <= table.getn(t)) then
+  if (i <= #(t)) then
     return t[i], unlpack(t, i+1)
   end
 end
 
 function equaltab (t1, t2)
-  assert(table.getn(t1) == table.getn(t2))
+  assert(#(t1) == #(t2))
   for i,v1 in ipairs(t1) do
     assert(v1 == t2[i])
   end
@@ -238,7 +238,7 @@ end
 
 a = assert(load(read1(x), "modname"))
 assert(a() == "\0" and _G.x == 33)
-assert(debug.getinfo(a).source == "modname")
+-- assert(debug.getinfo(a).source == "modname")
 
 x = string.dump(loadstring("x = 1; return x"))
 i = 0
@@ -266,23 +266,6 @@ x = [[
 a = assert(load(read1(x)))
 assert(a()(2)(3)(10) == 15)
 
-
--- test for dump/undump with upvalues
-local a, b = 20, 30
-x = loadstring(string.dump(function (x)
-  if x == "set" then a = 10+b; b = b+1 else
-  return a
-  end
-end))
-assert(x() == nil)
-assert(debug.setupvalue(x, 1, "hi") == "a")
-assert(x() == "hi")
-assert(debug.setupvalue(x, 2, 13) == "b")
-assert(not debug.setupvalue(x, 3, 10))   -- only 2 upvalues
-x("set")
-assert(x() == 23)
-x("set")
-assert(x() == 24)
 
 
 -- test for bug in parameter adjustment
