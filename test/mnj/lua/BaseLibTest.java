@@ -257,6 +257,11 @@ public class BaseLibTest extends JiliTestCase
     nTrue("testpcall3", 2);
   }
 
+  public void testunpackbig()
+  {
+    nTrue("testunpackbig", 1);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -355,6 +360,10 @@ public class BaseLibTest extends JiliTestCase
     suite.addTest(new BaseLibTest("testpcall3")
       {
         public void runTest() { testpcall3(); }
+      });
+    suite.addTest(new BaseLibTest("testunpackbig")
+      {
+        public void runTest() { testunpackbig(); }
       });
     return suite;
   }

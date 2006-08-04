@@ -178,3 +178,11 @@ function testpcall3()
   local a,b = pcall(function()end)
   return a == true, b == nil
 end
+function testunpackbig()
+  local a = {}
+  for i = 1,2000 do
+    a[i] = i
+  end
+  local x = {unpack(a)}
+  return x[2000] == 2000
+end
