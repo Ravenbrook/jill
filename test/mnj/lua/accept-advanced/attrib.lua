@@ -5,13 +5,13 @@ print "testing require"
 assert(require"string" == string)
 assert(require"math" == math)
 assert(require"table" == table)
-assert(require"io" == io)
+--assert(require"io" == io)
 assert(require"os" == os)
-assert(require"debug" == debug)
+--assert(require"debug" == debug)
 assert(require"coroutine" == coroutine)
 
 assert(type(package.path) == "string")
-assert(type(package.cpath) == "string")
+--assert(type(package.cpath) == "string")
 assert(type(package.loaded) == "table")
 assert(type(package.preload) == "table")
 
@@ -137,7 +137,7 @@ package.path = oldpath
 -- check 'require' error message
 local fname = "file_does_not_exist2"
 local m, err = pcall(require, fname)
-for t in string.gmatch(package.path..";"..package.cpath, "[^;]+") do
+for t in string.gmatch(package.path..";"..(package.cpath or ''), "[^;]+") do
   t = string.gsub(t, "?", fname)
   assert(string.find(err, t, 1, true))
 end
@@ -180,10 +180,6 @@ assert(not pcall(module, "math.sin"))
 
 
 local p = ""   -- On Mac OS X, redefine this to "_"
-
--- assert(loadlib == package.loadlib)   -- only for compatibility
-local f, err, when = package.loadlib("donotexist", p.."xuxu")
-assert(not f and type(err) == "string" and (when == "open" or when == "absent"))
 
 
 -- testing preload
