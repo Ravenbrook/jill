@@ -3,21 +3,21 @@ print('testing vararg')
 _G.arg = nil
 
 function f(a, ...)
-  assert(type(arg) == 'table')
-  assert(type(arg.n) == 'number')
-  for i=1,arg.n do assert(a[i]==arg[i]) end
-  return arg.n
+  local arg = {...}
+  local n = select('#', ...)
+  for i=1,n do assert(a[i]==arg[i]) end
+  return n
 end
 
 function c12 (...)
   assert(arg == nil)
-  local x = {...}; x.n = table.getn(x)
+  local x = {...}; x.n = #(x)
   local res = (x.n==2 and x[1] == 1 and x[2] == 2)
   if res then res = 55 end
   return res, 2
 end
 
-function vararg (...) return arg end
+function vararg (...) local x = {...} x.n = select('#', ...) return x end
 
 local call = function (f, args) return f(unpack(args, 1, args.n)) end
 
@@ -42,7 +42,7 @@ a = call(print, {'+'})
 assert(a == nil)
 
 local t = {1, 10}
-function t:f (...) return self[arg[1]]+arg.n end
+function t:f (...) return self[...]+select('#', ...) end
 assert(t:f(1,4) == 3 and t:f(2) == 11)
 print('+')
 
@@ -112,7 +112,7 @@ assert(f("a", "b", nil, {}, assert))
 assert(f())
 
 a = {select(3, unpack{10,20,30,40})}
-assert(table.getn(a) == 2 and a[1] == 30 and a[2] == 40)
+assert(#(a) == 2 and a[1] == 30 and a[2] == 40)
 a = {select(1)}
 assert(next(a) == nil)
 a = {select(-1, 3, 5, 7)}
