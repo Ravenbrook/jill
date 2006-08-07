@@ -171,21 +171,23 @@ end
 
 
 a = {x=90, y=8, z=23}
-assert(table.foreach(a, function(i,v) if i=='x' then return v end end) == 90)
-assert(table.foreach(a, function(i,v) if i=='a' then return v end end) == nil)
-table.foreach({}, error)
+for i,v in pairs(a) do
+  if i=='x' then assert(v == 90) end
+end
+for i,v in pairs(a) do
+  assert(i~='a')
+end
+for _ in pairs{} do error() end
 
-table.foreachi({x=10, y=20}, error)
+for _ in ipairs{x=10, y=20} do error() end
 local a = {n = 1}
-table.foreachi({n=3}, function (i, v)
-  assert(a.n == i and not v)
-  a.n=a.n+1
-end)
 a = {10,20,30,nil,50}
-table.foreachi(a, function (i,v) assert(a[i] == v) end)
-assert(table.foreachi({'a', 'b', 'c'}, function (i,v)
-         if i==2 then return v end
-       end) == 'b')
+for i,v in ipairs(a) do
+  assert(a[i] == v)
+end
+for i,v in ipairs{'a', 'b', 'c'} do
+  if i==2 then assert(v=='b') end
+end
 
 
 assert(print==find("print") and print == find1("print"))
@@ -201,7 +203,7 @@ print('+')
 
 a = {}
 for i=0,10000 do
-  if math.mod(i,10) ~= 0 then
+  if math.fmod(i,10) ~= 0 then
     a['x'..i] = i
   end
 end
@@ -249,7 +251,9 @@ print'+'
 
 local function checknext (a)
   local b = {}
-  table.foreach(a, function (k,v) b[k] = v end)
+  for k,v in pairs(a) do
+    b[k] = v
+  end
   for k,v in pairs(b) do assert(a[k] == v) end
   for k,v in pairs(a) do assert(b[k] == v) end
   b = {}
@@ -264,13 +268,13 @@ checknext{1,2,3,x=1,y=2,z=3}
 checknext{1,2,3,4,x=1,y=2,z=3}
 checknext{1,2,3,4,5,x=1,y=2,z=3}
 
-assert(table.getn{} == 0)
-assert(table.getn{[-1] = 2} == 0)
-assert(table.getn{1,2,3,nil,nil} == 3)
+assert(#{} == 0)
+assert(#{[-1] = 2} == 0)
+assert(#{1,2,3,nil,nil} == 3)
 for i=0,40 do
   local a = {}
   for j=1,i do a[j]=j end
-  assert(table.getn(a) == i)
+  assert(#(a) == i)
 end
 
 
@@ -284,7 +288,7 @@ assert(table.maxn{[10] = true, [100*math.pi] = print} == 100*math.pi)
 -- int overflow
 a = {}
 for i=0,50 do a[math.pow(2,i)] = true end
-assert(a[table.getn(a)])
+assert(a[#(a)])
 
 print("+")
 
@@ -307,7 +311,7 @@ assert(n == 5)
 local function test (a)
   table.insert(a, 10); table.insert(a, 2, 20);
   table.insert(a, 1, -1); table.insert(a, 40);
-  table.insert(a, table.getn(a)+1, 50)
+  table.insert(a, #(a)+1, 50)
   table.insert(a, 2, -2)
   assert(table.remove(a,1) == -1)
   assert(table.remove(a,1) == -2)
@@ -324,7 +328,7 @@ assert(a.n == 0 and a[-7] == "ban")
 
 a = {[-7] = "ban"};
 test(a)
-assert(a.n == nil and table.getn(a) == 0 and a[-7] == "ban")
+assert(a.n == nil and #(a) == 0 and a[-7] == "ban")
 
 
 table.insert(a, 1, 10); table.insert(a, 1, 20); table.insert(a, 1, -1)
@@ -339,7 +343,7 @@ assert(table.remove(a, 1) == 'c')
 assert(table.remove(a, 1) == 'd')
 assert(table.remove(a, 1) == 'a')
 assert(table.remove(a, 1) == 'b')
-assert(table.getn(a) == 0 and a.n == nil)
+assert(#(a) == 0 and a.n == nil)
 print("+")
 
 a = {}
