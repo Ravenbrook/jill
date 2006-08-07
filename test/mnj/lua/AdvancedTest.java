@@ -46,7 +46,7 @@ public class AdvancedTest extends JiliTestCase
     suite.addTest(new AdvancedTest("big"));
     suite.addTest(new AdvancedTest("calls"));
     suite.addTest(new AdvancedTest("checktable"));
-    suite.addTest(new AdvancedTest("closure"));
+    // suite.addTest(new AdvancedTest("closure"));
     suite.addTest(new AdvancedTest("constructs"));
     suite.addTest(new AdvancedTest("db"));
     suite.addTest(new AdvancedTest("events"));
@@ -58,6 +58,7 @@ public class AdvancedTest extends JiliTestCase
     suite.addTest(new AdvancedTest("sort"));
     suite.addTest(new AdvancedTest("strings"));
     suite.addTest(new AdvancedTest("vararg"));
+    suite.addTest(new AdvancedTest("closure"));
 
     return suite;
   }
