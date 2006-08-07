@@ -23,7 +23,7 @@ class JiliTestCase extends TestCase
    */
   protected void loadFile(Lua L, String filename)
   {
-    String suffix[] = { "", ".luc", ".lua" };
+    String suffix[] = { "", ".lua", ".luc" };
     InputStream is = null;
     String s = "";
     for (int i=0; i<suffix.length; ++i)
