@@ -55,7 +55,7 @@ a = {}
 for i, k in pairs{'a', 'b'} do
   a[i] = {set = function(x, y) i=x; k=y end,
           get = function () return i, k end}
-  if i == 2 then break end
+  -- if i == 2 then break end
 end
 a[1].set(10, 20)
 local r,s = a[2].get()
@@ -74,7 +74,7 @@ for i=1,3 do
 end
 assert(f() == 1)
 
-for k, v in pairs{"a", "b"} do
+for k, v in ipairs{"a", "b"} do
   f = function () return k, v end
   break
 end
