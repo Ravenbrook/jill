@@ -2132,9 +2132,16 @@ protect:
   // Methods equivalent to the file ldo.c.  Prefixed with d.
   // Some of these are in vm* instead.
 
-  /** Equivalent to luaD_seterrorobj. */
+  /** Equivalent to luaD_seterrorobj.  It is valid for oldtop to be
+   * equal to the current stack size (<code>stack.size()</code>).
+   * {@link Lua#resume} uses this value for oldtop.
+   */
   private void dSeterrorobj(int errcode, int oldtop)
   {
+    if (stack.size() == oldtop)
+    {
+      stack.setSize(oldtop + 1);
+    }
     switch (errcode)
     {
       case ERRERR:
