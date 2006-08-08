@@ -205,10 +205,10 @@ public final class Lua
   public static final int TUSERDATA     = 7;
   /** Lua type tag, representing threads. */
   public static final int TTHREAD       = 8;
-  /** Number of type tags.  Should correspond to last entry in the list
-   * of tags.
+  /** Number of type tags.  Should be one more than the
+   * last entry in the list of tags.
    */
-  private static final int NUM_TAGS     = 8;
+  private static final int NUM_TAGS     = 9;
   /** Names for above type tags, starting from {@link Lua#TNIL}.
    * Equivalent to luaT_typenames.
    */
