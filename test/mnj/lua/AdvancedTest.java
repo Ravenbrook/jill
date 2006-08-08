@@ -42,23 +42,35 @@ public class AdvancedTest extends JiliTestCase
   {
     TestSuite suite = new TestSuite();
 
-    suite.addTest(new AdvancedTest("attrib"));
-    suite.addTest(new AdvancedTest("big"));
-    suite.addTest(new AdvancedTest("calls"));
-    suite.addTest(new AdvancedTest("checktable"));
-    // suite.addTest(new AdvancedTest("closure"));
-    suite.addTest(new AdvancedTest("constructs"));
-    suite.addTest(new AdvancedTest("db"));
-    suite.addTest(new AdvancedTest("events"));
-    suite.addTest(new AdvancedTest("gc"));
-    suite.addTest(new AdvancedTest("literals"));
-    suite.addTest(new AdvancedTest("locals"));
-    suite.addTest(new AdvancedTest("nextvar"));
-    suite.addTest(new AdvancedTest("pm"));
-    suite.addTest(new AdvancedTest("sort"));
-    suite.addTest(new AdvancedTest("strings"));
-    suite.addTest(new AdvancedTest("vararg"));
-    suite.addTest(new AdvancedTest("closure"));
+    String[] script = new String[]
+      {
+        "attrib",
+        "big",
+        "calls",
+        "checktable",
+        "constructs",
+        "db",
+        "events",
+        "gc",
+        "literals",
+        "locals",
+        "nextvar",
+        "pm",
+        "sort",
+        "strings",
+        "vararg",
+        // closure comes last because it's not terminating as of
+        // 2006-08-08
+        "closure",
+      };
+
+    // In order to the compiler separately from the interpreter all the
+    // tests are executed in both lua source and compiled form.
+    for (int i=0; i<script.length; ++i)
+    {
+      suite.addTest(new AdvancedTest(script[i] + ".luc"));
+      suite.addTest(new AdvancedTest(script[i] + ".lua"));
+    }
 
     return suite;
   }
