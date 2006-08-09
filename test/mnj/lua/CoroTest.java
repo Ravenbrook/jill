@@ -102,11 +102,16 @@ public class CoroTest extends JiliTestCase
     BaseLib.open(L);
     StringLib.open(L);  // string.find is required.
     TableLib.open(L);   // table.insert is required.
-    System.out.println(getName());
+    System.out.println("CoroTest." + getName());
     L.loadFile("CoroTest.lua");
     L.call(0, 0);
     L.push(L.getGlobal(getName()));
-    L.call(0, 1);
+    int status = L.pcall(0, 1, new AddWhere());
+    if (status != 0)
+    {
+      System.out.println(L.value(-1));
+    }
+    assertTrue(status == 0);
     assertTrue("Result is true",
           L.valueOfBoolean(true).equals(L.value(-1)));
   }
@@ -135,6 +140,7 @@ public class CoroTest extends JiliTestCase
     suite.addTest(new CoroTest("test6"));
     suite.addTest(new CoroTest("test7"));
     suite.addTest(new CoroTest("test8"));
+    suite.addTest(new CoroTest("test9"));
 
     return suite;
   }

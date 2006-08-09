@@ -125,3 +125,16 @@ function test8()
 
   return true
 end
+
+-- test that errors inside coroutines appear properly.
+function test9()
+  local function f() error'foobar' end
+  local t = coroutine.create(f)
+  local a,b = coroutine.resume(t)
+  assert(a == false)
+  assert(type(b) == 'string')
+  assert(string.find(b, 'foobar'))
+  return true
+end
+
+
