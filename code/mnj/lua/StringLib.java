@@ -320,7 +320,11 @@ public final class StringLib extends LuaJavaCallback
     int sl = s.length();
     String p = L.checkString(2);
     int maxn = L.optInt(4, sl+1);
-    boolean anchor = p.charAt(0) == '^';
+    boolean anchor = false;
+    if (p.length() > 0)
+    {
+      anchor = p.charAt(0) == '^';
+    }
     if (anchor)
       p = p.substring(1);
     MatchState ms = new MatchState(L, s, sl);
