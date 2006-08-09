@@ -180,7 +180,7 @@ local a,b = pcall(f)
 -- tests for multiple yield/resume arguments
 
 local function eqtab (t1, t2)
-  assert(table.getn(t1) == table.getn(t2))
+  assert(#(t1) == #(t2))
   for i,v in ipairs(t1) do
     assert(t2[i] == v)
   end
@@ -191,7 +191,7 @@ function foo (a, ...)
   assert(coroutine.running() == f)
   assert(coroutine.status(f) == "running")
   local arg = {...}
-  for i=1,table.getn(arg) do
+  for i=1,#(arg) do
     _G.x = {coroutine.yield(unpack(arg[i]))}
   end
   return unpack(a)
@@ -268,7 +268,7 @@ while 1 do
   x = filter(n, x)
 end
 
-assert(table.getn(a) == 25 and a[table.getn(a)] == 97)
+assert(#(a) == 25 and a[#(a)] == 97)
 
 
 -- errors in coroutines
