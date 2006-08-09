@@ -132,6 +132,13 @@ function testformatx4()
   assert(s:sub(1,5) == '-000.')
   return true
 end
+function testformatx5()
+  local s = string.format('%i', 7)
+  assert(s == '7')
+  s = string.format('%u', 7)
+  assert(s == '7')
+  return true
+end
 -- from [LUA 2006-03-26] pm.lua
 function testgsub()
   assert(string.gsub('  alo alo  ', '^%s*(.-)%s*$', '%1') == 'alo alo') -- double trim
