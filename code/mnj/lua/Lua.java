@@ -2138,6 +2138,7 @@ protect:
    */
   private void dSeterrorobj(int errcode, int oldtop)
   {
+    Object msg = stack.lastElement();
     if (stack.size() == oldtop)
     {
       stack.setSize(oldtop + 1);
@@ -2151,7 +2152,7 @@ protect:
       case ERRFILE:
       case ERRRUN:
       case ERRSYNTAX:
-        stack.setElementAt(stack.lastElement(), oldtop);
+        stack.setElementAt(msg, oldtop);
         break;
     }
     stack.setSize(oldtop+1);
