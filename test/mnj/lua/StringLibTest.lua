@@ -154,6 +154,10 @@ function testgsub()
               "um (DOIS) tres (QUATRO)")
   return true
 end
+function testgsub2()
+  assert(string.gsub('foo', '', 'x') == 'xfxoxox')
+  return true
+end
 -- from [LUA 2006-03-26] pm.lua
 -- treated to remove references to table.*
 function testgmatch()
