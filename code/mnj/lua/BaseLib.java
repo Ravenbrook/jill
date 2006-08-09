@@ -852,7 +852,7 @@ public final class BaseLib extends LuaJavaCallback
         L.insert(w, -1);
         L.concat(2);
       }
-      L.error(L);       // propagate error
+      L.error(L.value(-1));     // propagate error
     }
     return r;
   }
