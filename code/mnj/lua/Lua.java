@@ -621,7 +621,7 @@ public final class Lua
    */
   public static boolean isString(Object o)
   {
-    return o instanceof String;
+    return o instanceof String || o instanceof Double;
   }
 
   /**
