@@ -273,8 +273,8 @@ assert(#(a) == 25 and a[#(a)] == 97)
 
 -- errors in coroutines
 function foo ()
-  assert(debug.getinfo(1).currentline == debug.getinfo(foo).linedefined + 1)
-  assert(debug.getinfo(2).currentline == debug.getinfo(goo).linedefined)
+--  assert(debug.getinfo(1).currentline == debug.getinfo(foo).linedefined + 1)
+--  assert(debug.getinfo(2).currentline == debug.getinfo(goo).linedefined)
   coroutine.yield(3)
   error(foo)
 end
@@ -381,10 +381,10 @@ co = coroutine.create(function ()
      end)
 
 a = {a = 15}
-debug.setfenv(co, a)
-assert(debug.getfenv(co) == a)
-assert(select(2, coroutine.resume(co)) == a)
-assert(select(2, coroutine.resume(co)) == a.a)
+--debug.setfenv(co, a)
+--assert(debug.getfenv(co) == a)
+--assert(select(2, coroutine.resume(co)) == a)
+--assert(select(2, coroutine.resume(co)) == a.a)
 
 
 print'OK'
