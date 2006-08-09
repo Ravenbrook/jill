@@ -154,8 +154,15 @@ function testgsub()
               "um (DOIS) tres (QUATRO)")
   return true
 end
+-- 0-length pattern
 function testgsub2()
   assert(string.gsub('foo', '', 'x') == 'xfxoxox')
+  return true
+end
+-- integers in substitution
+function testgsub3()
+  assert(string.gsub('foo', 'o', function()return 0 end) == 'f00')
+  assert(string.gsub('foo', 'o', 0) == 'f00')
   return true
 end
 -- from [LUA 2006-03-26] pm.lua
