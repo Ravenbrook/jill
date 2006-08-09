@@ -1286,7 +1286,7 @@ flag:
       case 'o':
         radix = 8;
         break;
-      case 'd':
+      case 'd': case 'i': case 'u':
         radix = 10;
         break;
       case 'x': case 'X':
