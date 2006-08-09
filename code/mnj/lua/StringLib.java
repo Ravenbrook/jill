@@ -1039,10 +1039,10 @@ init:   // labelled while loop emulates "goto init", which we use to
     return nlevels;     // number of strings pushed
   }
 
-  /** A helper for gsub. */
+  /** A helper for gsub.  Equivalent to add_s from lstrlib.c. */
   void adds(StringBuffer b, int si, int ei)
   {
-    String news = (String)L.value(3);
+    String news = L.toString(L.value(3));
     int l = news.length();
     for (int i=0; i<l; ++i)
     {
@@ -1070,7 +1070,7 @@ init:   // labelled while loop emulates "goto init", which we use to
     }
   }
 
-  /** A helper for gsub. */
+  /** A helper for gsub.  Equivalent to add_value from lstrlib.c. */
   void addvalue(StringBuffer b, int si, int ei)
   {
     switch (L.type(3))
@@ -1108,7 +1108,7 @@ init:   // labelled while loop emulates "goto init", which we use to
       L.error("invalid replacement value (a " +
           L.typeName(L.type(-1)) + ")");
     }
-    b.append(L.value(-1));      // add result to accumulator
+    b.append(L.toString(L.value(-1)));  // add result to accumulator
     L.pop(1);
   }
 }
