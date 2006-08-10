@@ -3610,6 +3610,12 @@ reentry:
     gRunerror("loop in settable");
   }
 
+  /**
+   * Printf format item used to convert numbers to strings (in {@link
+   * Lua#vmTostring}).  The initial '%' should be not specified.
+   */
+  private static final String NUMBER_FMT = ".14g";
+
   private static String vmTostring(Object o)
   {
     if (o instanceof String)
@@ -3623,15 +3629,21 @@ reentry:
     // Convert number to string.  PUC-Rio abstracts this operation into
     // a macro, lua_number2str.  The macro is only invoked from their
     // equivalent of this code.
+    // Formerly this code used Double.toString (and remove any trailing
+    // ".0") but this does not give an accurate emulation of the PUC-Rio
+    // behaviour which Intuwave require.  So now we use "%.14g" like
+    // PUC-Rio.
+    // :todo: consider optimisation of making FormatItem an immutable
+    // class and keeping a static reference to the required instance
+    // (which never changes).  A possible half-way house would be to
+    // create a copied instance from an already create prototype
+    // instance which would be faster than parsing the format string
+    // each time.
+    FormatItem f = new FormatItem(null, NUMBER_FMT);
+    StringBuffer b = new StringBuffer();
     Double d = (Double)o;
-    String repr = d.toString();
-    // Note: A naive conversion results in 3..4 == "3.04.0" which isn't
-    // good.  We special case the integers.
-    if (repr.endsWith(".0"))
-    {
-      repr = repr.substring(0, repr.length()-2);
-    }
-    return repr;
+    f.formatFloat(b, d.doubleValue());
+    return b.toString();
   }
 
   /** Equivalent of adjust_varargs in "ldo.c". */

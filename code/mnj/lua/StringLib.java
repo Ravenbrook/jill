@@ -1128,6 +1128,8 @@ final class FormatItem
 
   /**
    * Parse a format item (starting from after the <code>L_ESC</code>).
+   * If you promise that there won't be any format errors, then
+   * <var>L</var> can be <code>null</code>.
    */
   FormatItem(Lua L, String s)
   {
@@ -1268,6 +1270,8 @@ flag:
 
   // All the format* methods take a StringBuffer and append the
   // formatted representation of the value to it.
+  // Sadly after a format* method has been invoked the object is left in
+  // an unusable state and should not be used again.
 
   void formatChar(StringBuffer b, char c)
   {
