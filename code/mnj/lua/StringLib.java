@@ -1391,9 +1391,17 @@ flag:
 
     String s = Double.toString(d);
     StringBuffer t = new StringBuffer(s);
-    int ei = s.indexOf('E');
-    int e = Integer.parseInt(s.substring(ei+1));
-    t.delete(ei, Integer.MAX_VALUE);
+    int e;      // Exponent value
+    if (d == 0)
+    {
+      e = 0;
+    }
+    else
+    {
+      int ei = s.indexOf('E');
+      e = Integer.parseInt(s.substring(ei+1));
+      t.delete(ei, Integer.MAX_VALUE);
+    }
     
     precisionTrim(t);
 
@@ -1478,7 +1486,12 @@ flag:
     String s;
     // Decide whether to use %e or %f style.
     double m = Math.abs(d);
-    if (m < 1e-4 || m >= Lua.iNumpow(10, precision))
+    if (m == 0)
+    {
+      // :todo: Could test for -0 and use "-0" appropriately.
+      s = "0";
+    }
+    else if (m < 1e-4 || m >= Lua.iNumpow(10, precision))
     {
       // %e style
       --precision;
