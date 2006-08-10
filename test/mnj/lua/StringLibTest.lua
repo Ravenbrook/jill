@@ -148,6 +148,7 @@ function testformatx6()
   assert(not string.find(s, 'e'))
   s = string.format('%g', 0.00005)
   assert(string.find(s, 'e'))
+  assert(not string.find(s, '.', 1, true))
   s = string.format('%g', 0.0001000002)
   assert(string.find(s, '1$'))
   return true

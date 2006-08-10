@@ -1354,7 +1354,8 @@ flag:
     switch (type)
     {
       case 'g': case 'G':
-        // :todo: implement g separately
+        formatFloatG(b, d);
+        return;
       case 'f':
         formatFloatF(b, d);
         return;
@@ -1365,6 +1366,16 @@ flag:
   }
 
   private void formatFloatE(StringBuffer b, double d)
+  {
+    String s = formatFloatRawE(d);
+    format(b, s);
+  }
+
+  /**
+   * Returns the formatted string for the number without any padding
+   * (which can be added by invoking {@link FormatItem#format} later).
+   */
+  private String formatFloatRawE(double d)
   {
     double m = Math.abs(d);
     int offset = 0;
@@ -1383,7 +1394,14 @@ flag:
     precisionTrim(t);
 
     e -= offset;
-    t.append(type);
+    if (Character.isLowerCase(type))
+    {
+      t.append('e');
+    }
+    else
+    {
+      t.append('E');
+    }
     if (e >= 0)
     {
       t.append('+');
@@ -1391,11 +1409,20 @@ flag:
     t.append(Integer.toString(e));
 
     zeroPad(t);
-    s = t.toString();
-    format(b, s);
+    return t.toString();
   }
 
   private void formatFloatF(StringBuffer b, double d)
+  {
+    String s = formatFloatRawF(d);
+    format(b, s);
+  }
+
+  /**
+   * Returns the formatted string for the number without any padding
+   * (which can be added by invoking {@link FormatItem#format} later).
+   */
+  private String formatFloatRawF(double d)
   {
     String s = Double.toString(d);
     StringBuffer t = new StringBuffer(s);
@@ -1431,7 +1458,98 @@ flag:
     precisionTrim(t);
     zeroPad(t);
 
-    s = t.toString();
+    return t.toString();
+  }
+
+  private void formatFloatG(StringBuffer b, double d)
+  {
+    if (precision == 0)
+    {
+      precision = 1;
+    }
+    if (precision < 0)
+    {
+      precision = 6;
+    }
+    String s;
+    // Decide whether to use %e or %f style.
+    double m = Math.abs(d);
+    if (m < 1e-4 || m >= Lua.iNumpow(10, precision))
+    {
+      // %e style
+      --precision;
+      s = formatFloatRawE(d);
+      int di = s.indexOf('.');
+      if (di >= 0)
+      {
+        // Trim trailing zeroes from fractional part
+        int ei = s.indexOf('E');
+        if (ei < 0)
+        {
+          ei = s.indexOf('e');
+        }
+        int i = ei-1;
+        while (s.charAt(i) == '0')
+        {
+          --i;
+        }
+        if (s.charAt(i) != '.')
+        {
+          ++i;
+        }
+        StringBuffer a = new StringBuffer(s);
+        a.delete(i, ei);
+        s = a.toString();
+      }
+    }
+    else
+    {
+      // %f style
+      // For %g precision specifies the number of significant digits,
+      // for %f precision specified the number of fractional digits.
+      // There is a problem because it's not obvious how many fractional
+      // digits to format, it could be more than precision
+      // (when .0001 <= m < 1) or it could be less than precision
+      // (when m >= 1).
+      // Instead of trying to work out the correct precision to use for
+      // %f formatting we use a worse case to get at least all the
+      // necessary digits, then we trim using string editing.  The worst
+      // case is that 3 zeroes come after the decimal point before there
+      // are any significant digits.
+      // Save the required number of significant digits
+      int required = precision;
+      precision += 3;
+      s = formatFloatRawF(d);
+      int fsd = 0;      // First Significant Digit
+      while (s.charAt(fsd) == '0' || s.charAt(fsd) == '.')
+      {
+        ++fsd;
+      }
+      // Note that all the digits to the left of the decimal point in
+      // the formatted number are required digits (either significant
+      // when m >= 1 or 0 when m < 1).  We know this because otherwise 
+      // m >= (10**precision) and so formatting falls under the %e case.
+      // That means that we can always trim the string at fsd+required
+      // (this will remove the decimal point when m >=
+      // (10**(precision-1)).
+      StringBuffer a = new StringBuffer(s);
+      a.delete(fsd+required, Integer.MAX_VALUE);
+      if (s.indexOf('.') < a.length())
+      {
+        // Trim trailing zeroes
+        int i = a.length() - 1;
+        while (a.charAt(i) == '0')
+        {
+          a.deleteCharAt(i);
+          --i;
+        }
+        if (a.charAt(i) == '.')
+        {
+          a.deleteCharAt(i);
+        }
+      }
+      s = a.toString();
+    }
     format(b, s);
   }
 
