@@ -139,6 +139,19 @@ function testformatx5()
   assert(s == '7')
   return true
 end
+function testformatx6()
+  local s = string.format('%g', 7)
+  assert(s == '7')
+  s = string.format('%.3g', 123456)
+  assert(string.find(s, 'e'))
+  s = string.format('%g', 0.0002)
+  assert(not string.find(s, 'e'))
+  s = string.format('%g', 0.00005)
+  assert(string.find(s, 'e'))
+  s = string.format('%g', 0.0001000002)
+  assert(string.find(s, '1$'))
+  return true
+end
 -- from [LUA 2006-03-26] pm.lua
 function testgsub()
   assert(string.gsub('  alo alo  ', '^%s*(.-)%s*$', '%1') == 'alo alo') -- double trim
