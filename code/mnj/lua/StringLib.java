@@ -1456,7 +1456,11 @@ flag:
     String s = t.toString();
     int di = s.indexOf('.');
     int l = t.length();
-    if (l > di+precision)
+    if (0 == precision)
+    {
+      t.delete(di, Integer.MAX_VALUE);
+    }
+    else if (l > di+precision)
     {
       t.delete(di+precision+1, Integer.MAX_VALUE);
     }
