@@ -153,6 +153,11 @@ function testformatx6()
   assert(string.find(s, '1$'))
   return true
 end
+function testformatx7()
+  assert(type(string.format('%e', 0)) == 'string')
+  assert(type(string.format('%g', 0)) == 'string')
+  return true
+end
 -- from [LUA 2006-03-26] pm.lua
 function testgsub()
   assert(string.gsub('  alo alo  ', '^%s*(.-)%s*$', '%1') == 'alo alo') -- double trim
