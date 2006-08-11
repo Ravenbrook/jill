@@ -95,6 +95,14 @@ public class BaseLibTest extends JiliTestCase
   }
 
   /**
+   * Sometimes overridden by anon subclass.
+   */
+  public void runTest()
+  {
+    nTrue(getName(), 1);
+  }
+
+  /**
    * Tests print.  Not much we can reasonably do here apart from call
    * it.  We can't automatically check that the output appears anywhere
    * or is correct.  This also tests tostring to some extent; print
@@ -124,11 +132,6 @@ public class BaseLibTest extends JiliTestCase
   public void testSelect()
   {
     nTrue("testselect", 2);
-  }
-
-  public void testUnpack()
-  {
-    nTrue("testunpack", 1);
   }
 
   public void testPairs()
@@ -161,16 +164,6 @@ public class BaseLibTest extends JiliTestCase
     nTrue("testrawset", 2);
   }
 
-  public void testGetfenv()
-  {
-    nTrue("testgetfenv", 1);
-  }
-
-  public void testSetfenv()
-  {
-    nTrue("testsetfenv", 1);
-  }
-
   public void testPcall()
   {
     nTrue("testpcall", 2);
@@ -191,41 +184,6 @@ public class BaseLibTest extends JiliTestCase
     nTrue("test__metatable", 2);
   }
 
-  public void test__tostring()
-  {
-    nTrue("test__tostring", 1);
-  }
-
-  public void testCollectgarbage()
-  {
-    nTrue("testcollectgarbage", 1);
-  }
-
-  public void testAssert()
-  {
-    nTrue("testassert", 1);
-  }
-
-  public void testLoadstring()
-  {
-    nTrue("testloadstring", 1);
-  }
-
-  public void testLoadfile()
-  {
-    nTrue("testloadfile", 1);
-  }
-
-  public void testLoad()
-  {
-    nTrue("testload", 1);
-  }
-
-  public void testDofile()
-  {
-    nTrue("testdofile", 1);
-  }
-
   /** Tests _VERSION */
   public void testVersion()
   {
@@ -235,11 +193,6 @@ public class BaseLibTest extends JiliTestCase
     Object o = L.getGlobal("_VERSION");
     assertTrue("_VERSION exists", o != null);
     assertTrue("_VERSION is a string", L.isString(o));
-  }
-
-  public void testXpcall()
-  {
-    nTrue("testxpcall", 1);
   }
 
   public void testErrormore()
@@ -255,11 +208,6 @@ public class BaseLibTest extends JiliTestCase
   public void testpcall3()
   {
     nTrue("testpcall3", 2);
-  }
-
-  public void testunpackbig()
-  {
-    nTrue("testunpackbig", 1);
   }
 
   public Test suite()
@@ -284,9 +232,7 @@ public class BaseLibTest extends JiliTestCase
     suite.addTest(new BaseLibTest("testSelect")
         {
         public void runTest() { testSelect(); } });
-    suite.addTest(new BaseLibTest("testUnpack")
-        {
-        public void runTest() { testUnpack(); } });
+    suite.addTest(new BaseLibTest("testunpack"));
     suite.addTest(new BaseLibTest("testPairs")
         {
         public void runTest() { testPairs(); } });
@@ -302,12 +248,8 @@ public class BaseLibTest extends JiliTestCase
     suite.addTest(new BaseLibTest("testRawset")
         {
         public void runTest() { testRawset(); } });
-    suite.addTest(new BaseLibTest("testGetfenv")
-        {
-        public void runTest() { testGetfenv(); } });
-    suite.addTest(new BaseLibTest("testSetfenv")
-        {
-        public void runTest() { testSetfenv(); } });
+    suite.addTest(new BaseLibTest("testgetfenv"));
+    suite.addTest(new BaseLibTest("testsetfenv"));
     suite.addTest(new BaseLibTest("testNext")
         {
         public void runTest() { testNext(); } });
@@ -323,34 +265,18 @@ public class BaseLibTest extends JiliTestCase
     suite.addTest(new BaseLibTest("test__metatable")
         {
         public void runTest() { test__metatable(); } });
-    suite.addTest(new BaseLibTest("test__tostring")
-        {
-        public void runTest() { test__tostring(); } });
-    suite.addTest(new BaseLibTest("testCollectgarbage")
-        {
-        public void runTest() { testCollectgarbage(); } });
-    suite.addTest(new BaseLibTest("testAssert")
-        {
-        public void runTest() { testAssert(); } });
-    suite.addTest(new BaseLibTest("testLoadstring")
-        {
-        public void runTest() { testLoadstring(); } });
-    suite.addTest(new BaseLibTest("testLoadfile")
-        {
-        public void runTest() { testLoadfile(); } });
-    suite.addTest(new BaseLibTest("testLoad")
-        {
-        public void runTest() { testLoad(); } });
-    suite.addTest(new BaseLibTest("testDofile")
-        {
-        public void runTest() { testDofile(); } });
-    suite.addTest(new BaseLibTest("testVersion")
+    suite.addTest(new BaseLibTest("test__tostring"));
+    suite.addTest(new BaseLibTest("testcollectgarbage"));
+    suite.addTest(new BaseLibTest("testassert"));
+    suite.addTest(new BaseLibTest("testloadstring"));
+    suite.addTest(new BaseLibTest("testloadfile"));
+    suite.addTest(new BaseLibTest("testload"));
+    suite.addTest(new BaseLibTest("testdofile"));
+    suite.addTest(new BaseLibTest("testversion")
         {
         public void runTest() { testVersion(); } });
-    suite.addTest(new BaseLibTest("testXpcall")
-        {
-        public void runTest() { testXpcall(); } });
-    suite.addTest(new BaseLibTest("testErrormore")
+    suite.addTest(new BaseLibTest("testxpcall"));
+    suite.addTest(new BaseLibTest("testerrormore")
         {
         public void runTest() { testErrormore(); } });
     suite.addTest(new BaseLibTest("testpcall2")
@@ -361,10 +287,7 @@ public class BaseLibTest extends JiliTestCase
       {
         public void runTest() { testpcall3(); }
       });
-    suite.addTest(new BaseLibTest("testunpackbig")
-      {
-        public void runTest() { testunpackbig(); }
-      });
+    suite.addTest(new BaseLibTest("testunpackbig"));
     return suite;
   }
 }
