@@ -178,6 +178,19 @@ function testpcall3()
   local a,b = pcall(function()end)
   return a == true, b == nil
 end
+-- more of a test of error generation itself than of pcall
+function testpcall4()
+  local a,b = pcall(function()return 1>nil end)
+  assert(a == false)
+  assert(type(b) == 'string')
+  return true
+end
+function testpcall5()
+  local c,d = pcall(function()return pcall>_VERSION end)
+  assert(c == false)
+  assert(type(d) == 'string')
+  return true
+end
 function testunpackbig()
   local a = {}
   for i = 1,2000 do

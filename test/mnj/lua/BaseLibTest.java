@@ -287,6 +287,8 @@ public class BaseLibTest extends JiliTestCase
       {
         public void runTest() { testpcall3(); }
       });
+    suite.addTest(new BaseLibTest("testpcall4"));
+    suite.addTest(new BaseLibTest("testpcall5"));
     suite.addTest(new BaseLibTest("testunpackbig"));
     return suite;
   }
