@@ -184,6 +184,13 @@ function testgsub3()
   assert(string.gsub('foo', 'o', 0) == 'f00')
   return true
 end
+-- unbalanced brackets
+function testgsub4()
+  local a,b = string.gsub('foo', '%bfo', 'zon')
+  assert(a == 'zono')
+  assert(b == 1)
+  return true
+end
 -- from [LUA 2006-03-26] pm.lua
 -- treated to remove references to table.*
 function testgmatch()

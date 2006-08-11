@@ -204,6 +204,7 @@ public class StringLibTest extends JiliTestCase
     suite.addTest(new StringLibTest("testgsub"));
     suite.addTest(new StringLibTest("testgsub2"));
     suite.addTest(new StringLibTest("testgsub3"));
+    suite.addTest(new StringLibTest("testgsub4"));
     suite.addTest(new StringLibTest("testgmatch"));
     suite.addTest(new StringLibTest("testformatmore"));
     suite.addTest(new StringLibTest("testformatx1"));
