@@ -767,7 +767,7 @@ final class MatchState
   {
     if (pi+1 >= p.length())
       L.error("unbalanced pattern");
-    if (src.charAt(si) != p.charAt(pi))
+    if (si >= end || src.charAt(si) != p.charAt(pi))
     {
       return -1;
     }
