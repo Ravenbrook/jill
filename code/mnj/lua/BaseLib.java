@@ -24,6 +24,9 @@ import java.util.Enumeration;
  */
 public final class BaseLib extends LuaJavaCallback
 {
+  // :todo: consider making the enums contiguous so that the compiler
+  // uses the compact and faster form of switch.
+
   // Each function in the base library corresponds to an instance of
   // this class which is associated (the 'which' member) with an integer
   // which is unique within this class.  They are taken from the following
@@ -32,7 +35,7 @@ public final class BaseLib extends LuaJavaCallback
   private static final int COLLECTGARBAGE = 2;
   private static final int DOFILE = 3;
   private static final int ERROR = 4;
-  private static final int GCINFO = 5;
+  // private static final int GCINFO = 5;
   private static final int GETFENV = 6;
   private static final int GETMETATABLE = 7;
   private static final int LOADFILE = 8;
@@ -203,7 +206,6 @@ public final class BaseLib extends LuaJavaCallback
     r(L, "collectgarbage", COLLECTGARBAGE);
     r(L, "dofile", DOFILE);
     r(L, "error", ERROR);
-    r(L, "gcinfo", GCINFO);
     r(L, "getfenv", GETFENV);
     r(L, "getmetatable", GETMETATABLE);
     r(L, "ipairs", IPAIRS);
