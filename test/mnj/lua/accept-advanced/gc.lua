@@ -85,49 +85,6 @@ x = nil
 assert(_G["while"] == 234)
 
 
-local bytes = gcinfo()
-while 1 do
-  local nbytes = gcinfo()
-  if nbytes < bytes then break end   -- run until gc
-  bytes = nbytes
-  a = {}
-end
-
-
-local function dosteps (siz)
-  collectgarbage()
-  collectgarbage"stop"
-  local a = {}
-  for i=1,100 do a[i] = {{}}; local b = {} end
-  local x = gcinfo()
-  local i = 0
-  repeat
-    i = i+1
-  until collectgarbage("step", siz)
-  assert(gcinfo() < x)
-  return i
-end
-
-assert(dosteps(0) > 10)
-assert(dosteps(6) < dosteps(2))
-assert(dosteps(10000) == 1)
-assert(collectgarbage("step", 1000000) == true)
-assert(collectgarbage("step", 1000000))
-
-
-do
-  local x = gcinfo()
-  collectgarbage()
-  collectgarbage"stop"
-  repeat
-    local a = {}
-  until gcinfo() > 1000
-  collectgarbage"restart"
-  repeat
-    local a = {}
-  until gcinfo() < 1000
-end
-
 lim = 15
 a = {}
 -- fill a with `collectable' indices
