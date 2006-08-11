@@ -3409,8 +3409,7 @@ reentry:
     // :todo: currently goes wrong when comparing nil.  Fix it.
     if (l.getClass() != r.getClass())
     {
-      // :todo: Make Lua error
-      throw new IllegalArgumentException();
+      gOrdererror(l, r);
     }
     else if (l instanceof Double)
     {
@@ -3436,8 +3435,7 @@ reentry:
     // :todo: currently goes wrong when comparing nil.  Fix it.
     if (l.getClass() != r.getClass())
     {
-      // :todo: Make Lua error
-      throw new IllegalArgumentException();
+      gOrdererror(l, r);
     }
     else if (l instanceof Double)
     {
