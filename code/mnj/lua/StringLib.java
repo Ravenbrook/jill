@@ -718,6 +718,10 @@ final class MatchState
    */
   static boolean matchbracketclass(char c, String p, int pi, int ec)
   {
+    // :todo: consider changing char c to int c, then -1 could be used
+    // represent a guard value at the beginning and end of all strings (a
+    // better NUL).  -1 of course would match no positive class.
+
     // assert p.charAt(pi) == '[';
     // assert p.charAt(ec) == ']';
     boolean sig = true;
@@ -925,8 +929,9 @@ init:   // labelled while loop emulates "goto init", which we use to
                   return L.error("missing '[' after '%f' in pattern");
                 int ep = classend(p, pi);   // indexes what is next
                 char previous = (si == 0) ? '\0' : src.charAt(si-1);
+                char at = (si == end) ? '\0' : src.charAt(si);
                 if (matchbracketclass(previous, p, pi, ep-1) ||
-                    !matchbracketclass(src.charAt(si), p, pi, ep-1))
+                    !matchbracketclass(at, p, pi, ep-1))
                 {
                   return -1;
                 }
