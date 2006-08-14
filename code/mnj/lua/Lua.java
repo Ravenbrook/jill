@@ -2672,7 +2672,8 @@ protect:
       int n = 2;  // number of elements handled in this pass (at least 2)
       if (!tostring(top-2)|| !tostring(top-1))
       {
-        if (!call_binTM(top-2, top-1, top-2, "__concat"))
+        if (!call_binTM(stack.elementAt(top-2), stack.elementAt(top-1),
+            top-2, "__concat"))
         {
           gConcaterror(top-2, top-1);
         }
@@ -2875,8 +2876,7 @@ reentry:
               double sum = NUMOP[0] + NUMOP[1];
               stack.setElementAt(valueOfNumber(sum), base+a);
             }
-            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
-                "__add"))
+            else if (!call_binTM(rb, rc, base+a, "__add"))
             {
               gAritherror(base+ARGB(i), base+ARGC(i));
             }
@@ -2895,8 +2895,7 @@ reentry:
               double difference = NUMOP[0] - NUMOP[1];
               stack.setElementAt(valueOfNumber(difference), base+a);
             }
-            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
-                "__sub"))
+            else if (!call_binTM(rb, rc, base+a, "__sub"))
             {
               gAritherror(base+ARGB(i), base+ARGC(i));
             }
@@ -2915,8 +2914,7 @@ reentry:
               double product = NUMOP[0] * NUMOP[1];
               stack.setElementAt(valueOfNumber(product), base+a);
             }
-            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
-                "__mul"))
+            else if (!call_binTM(rb, rc, base+a, "__mul"))
             {
               gAritherror(base+ARGB(i), base+ARGC(i));
             }
@@ -2935,8 +2933,7 @@ reentry:
               double quotient = NUMOP[0] / NUMOP[1];
               stack.setElementAt(valueOfNumber(quotient), base+a);
             }
-            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
-                "__div"))
+            else if (!call_binTM(rb, rc, base+a, "__div"))
             {
               gAritherror(base+ARGB(i), base+ARGC(i));
             }
@@ -2956,8 +2953,7 @@ reentry:
               double modulus = modulus(NUMOP[0], NUMOP[1]);
               stack.setElementAt(valueOfNumber(modulus), base+a);
             }
-            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
-                "__mod"))
+            else if (!call_binTM(rb, rc, base+a, "__mod"))
             {
               gAritherror(base+ARGB(i), base+ARGC(i));
             }
@@ -2976,8 +2972,7 @@ reentry:
               double result = iNumpow(NUMOP[0], NUMOP[1]);
               stack.setElementAt(valueOfNumber(result), base+a);
             }
-            else if (!call_binTM(base+ARGB(i), base+ARGC(i), base+a,
-                "__pow"))
+            else if (!call_binTM(rb, rc, base+a, "__pow"))
             {
               gAritherror(base+ARGB(i), base+ARGC(i));
             }
@@ -2994,8 +2989,7 @@ reentry:
             {
               stack.setElementAt(valueOfNumber(-NUMOP[0]), base+a);
             }
-            else if (!call_binTM(base+ARGB(i), base+ARGB(i), base+a,
-                "__unm"))
+            else if (!call_binTM(rb, rb, base+a, "__unm"))
             {
               gAritherror(base+ARGB(i), base+ARGB(i));
             }
@@ -3022,7 +3016,7 @@ reentry:
               continue;
             }
             savedpc = pc; // Protect
-            if (!call_binTM(base+ARGB(i), base+ARGB(i), base+a, "__len"))
+            if (!call_binTM(rb, rb, base+a, "__len"))
             {
               gTypeerror(rb, "get length of");
             }
@@ -3666,23 +3660,23 @@ reentry:
   }
 
   /**
-   * @param p1  left hand operand.  Absolute stack index.
-   * @param p2  right hand operand.  Absolute stack index.
+   * @param p1  left hand operand.
+   * @param p2  right hand operand.
    * @param res absolute stack index of result.
    * @return false if no tagmethod, true otherwise
    */
-  private boolean call_binTM(int p1, int p2, int res, String event)
+  private boolean call_binTM(Object p1, Object p2, int res, String event)
   {
-    Object tm = tagmethod(value(p1), event);    // try first operand
+    Object tm = tagmethod(p1, event);   // try first operand
     if (isNil(tm))
     {
-      tm = tagmethod(value(p2), event); // try second operand
+      tm = tagmethod(p2, event);        // try second operand
     }
     if (!isFunction(tm))
     {
       return false;
     }
-    stack.setElementAt(callTMres(tm, value(p1), value(p2)), res);
+    stack.setElementAt(callTMres(tm, p1, p2), res);
     return true;
   }
 
