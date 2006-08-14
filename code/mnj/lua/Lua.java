@@ -3874,6 +3874,7 @@ reentry:
   }
 
   /**
+   * Equivalent to tryfuncTM from ldo.c.
    * @param func  absolute stack index of the function object.
    */
   private Object tryfuncTM(int func)
@@ -3883,7 +3884,7 @@ reentry:
     {
       gTypeerror(stack.elementAt(func), "call");
     }
-    insert(tm, func);
+    stack.insertElementAt(tm, func);
     return tm;
   }
 
