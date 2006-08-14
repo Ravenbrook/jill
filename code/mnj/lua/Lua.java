@@ -2221,14 +2221,23 @@ protect:
 
   // Methods equivalent to the file ldebug.c.  Prefixed with g.
 
-  /** p1 and p2 are absolute stack indexes.  Corrupts NUMOP[0]. */
-  private void gAritherror(int p1, int p2)
+  /** <var>f1</var> and <var>f2</var> are the raw B and C fields from
+   * the instruction.  Corrupts <code>NUMOP[0]</code>.  It receives the
+   * raw B and C
+   * fields so that there is at least the possibility of using them to
+   * identify (for example) for local variable being used in the
+   * computation (consider the error message for code like <code>local
+   * y='a'; return y+1</code> for example).  Currently the debug info is
+   * not used, and this opportunity is wasted (it would require changing
+   * or overloading gTypeerror).
+   */
+  private void gAritherror(int f1, int f2)
   {
-    if (!tonumber(value(p1), NUMOP))
+    if (!tonumber(RK(f1), NUMOP))
     {
-      p2 = p1;  // first operand is wrong
+      f2 = f1;  // first operand is wrong
     }
-    gTypeerror(value(p2), "perform arithmetic on");
+    gTypeerror(RK(f2), "perform arithmetic on");
   }
 
   /** p1 and p2 are absolute stack indexes. */
@@ -2556,6 +2565,18 @@ protect:
     return stack.elementAt(base + field);
   }
 
+  /**
+   * Slower version of RK that does not receive the constant array.  Not
+   * recommend for routine use, but is use to some error handling code
+   * to avoid having a constant array passed around too much.
+   */
+  private Object RK(int field)
+  {
+    LuaFunction function = (LuaFunction)stack.elementAt(ci().function());
+    Object[] k = function.proto().constant();
+    return RK(k, field);
+  }
+
   // CREATE functions are required by FuncState, so default access.
   static int CREATE_ABC(int o, int a, int b, int c)
   {
@@ -2878,7 +2899,7 @@ reentry:
             }
             else if (!call_binTM(rb, rc, base+a, "__add"))
             {
-              gAritherror(base+ARGB(i), base+ARGC(i));
+              gAritherror(ARGB(i), ARGC(i));
             }
             continue;
           case OP_SUB:
@@ -2897,7 +2918,7 @@ reentry:
             }
             else if (!call_binTM(rb, rc, base+a, "__sub"))
             {
-              gAritherror(base+ARGB(i), base+ARGC(i));
+              gAritherror(ARGB(i), ARGC(i));
             }
             continue;
           case OP_MUL:
@@ -2916,7 +2937,7 @@ reentry:
             }
             else if (!call_binTM(rb, rc, base+a, "__mul"))
             {
-              gAritherror(base+ARGB(i), base+ARGC(i));
+              gAritherror(ARGB(i), ARGC(i));
             }
             continue;
           case OP_DIV:
@@ -2935,7 +2956,7 @@ reentry:
             }
             else if (!call_binTM(rb, rc, base+a, "__div"))
             {
-              gAritherror(base+ARGB(i), base+ARGC(i));
+              gAritherror(ARGB(i), ARGC(i));
             }
             continue;
           case OP_MOD:
@@ -2955,7 +2976,7 @@ reentry:
             }
             else if (!call_binTM(rb, rc, base+a, "__mod"))
             {
-              gAritherror(base+ARGB(i), base+ARGC(i));
+              gAritherror(ARGB(i), ARGC(i));
             }
             continue;
           case OP_POW:
@@ -2974,7 +2995,7 @@ reentry:
             }
             else if (!call_binTM(rb, rc, base+a, "__pow"))
             {
-              gAritherror(base+ARGB(i), base+ARGC(i));
+              gAritherror(ARGB(i), ARGC(i));
             }
             continue;
           case OP_UNM:
@@ -2991,7 +3012,7 @@ reentry:
             }
             else if (!call_binTM(rb, rb, base+a, "__unm"))
             {
-              gAritherror(base+ARGB(i), base+ARGB(i));
+              gAritherror(ARGB(i), ARGB(i));
             }
             continue;
           }
