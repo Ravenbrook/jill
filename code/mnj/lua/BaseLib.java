@@ -430,9 +430,8 @@ public final class BaseLib extends LuaJavaCallback
     }
     else
     {
-      L.pushNil();
-      L.insert(L, -2);  // put before error message
-      return 2;         // return nil plus error message
+      L.insert(L.NIL, -1);      // put before error message
+      return 2; // return nil plus error message
     }
   }
 
