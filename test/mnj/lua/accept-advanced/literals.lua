@@ -109,12 +109,12 @@ hi
 y = "\
 hello\r\n\
 "
-return debug.getinfo(1).currentline
+return 4e4
 ]]
 
 for _, n in pairs{"\n", "\r", "\n\r", "\r\n"} do
   local prog, nn = string.gsub(prog, "\n", n)
-  assert(dostring(prog) == nn)
+  assert(dostring(prog) == 4e4)
   assert(_G.x == "hi\n" and _G.y == "\nhello\r\n\n")
 end
 
