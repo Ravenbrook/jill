@@ -228,6 +228,35 @@ end
 function testmetaconcat()
   return t..u == '1concat2', u..t == '2concat1'
 end
+-- test constant meta operands
+do
+  -- Adds a binary metamethod for the operator op, to the table t.
+  local function mm(op, t)
+    t['__'..op] = function(x, y) return{op,x,y}end
+  end
+  local mt = {}
+  mm('add', mt)
+  mm('sub', mt)
+  mm('mul', mt)
+  mm('div', mt)
+  mm('mod', mt)
+  mm('pow', mt)
+  mm('concat', mt)
+  otherbinarymt = mt
+end
+-- Indicative for Ravenbrook job001499
+function testmetaconst()
+  local t = {}
+  setmetatable(t, otherbinarymt)
+  local x
+  x = t+7
+  local a,b,c = x[1] == 'add', x[2] == t, x[3] == 7
+  x = t/3
+  local d,e,f = x[1] == 'div', x[2] == t, x[3] == 3
+  x = t..'x'
+  local g,h,i = x[1] == 'concat', x[2] == t, x[3] == 'x'
+  return a,b,c,d,e,f,g,h,i
+end
 -- test __eq
 function testmetaeq()
   local mt = { __eq = function(x, y) return #x == #y end }

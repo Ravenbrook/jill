@@ -161,6 +161,11 @@ public class MetaTest extends JiliTestCase
     nTrue("testmetaunm", 2);
   }
 
+  public void testmetaconst()
+  {
+    nTrue("testmetaconst", 9);
+  }
+
   public void testmetaeq()
   {
     nTrue("testmetaeq", 3);
@@ -252,6 +257,10 @@ public class MetaTest extends JiliTestCase
     suite.addTest(new MetaTest("testmetaconcat")
       {
         public void runTest() { testmetaconcat(); }
+      });
+    suite.addTest(new MetaTest("testmetaconst")
+      {
+        public void runTest() { testmetaconst(); }
       });
     suite.addTest(new MetaTest("testmetaeq")
       {
