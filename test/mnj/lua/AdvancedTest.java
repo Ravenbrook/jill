@@ -48,8 +48,8 @@ public class AdvancedTest extends JiliTestCase
         "big",
         "calls",
         "checktable",
+        "closure",
         "constructs",
-        "db",
         "events",
         "gc",
         "literals",
@@ -59,9 +59,6 @@ public class AdvancedTest extends JiliTestCase
         "sort",
         "strings",
         "vararg",
-        // closure comes last because it's not terminating as of
-        // 2006-08-08
-        "closure",
       };
 
     // In order to the compiler separately from the interpreter all the
