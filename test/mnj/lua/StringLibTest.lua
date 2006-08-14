@@ -229,3 +229,12 @@ function testdump()
   assert(loadstring(s)() == 7)
   return true
 end
+-- Doesn't realy belong here, but it is here because it's most
+-- convenient to use string.find and the String library gets opened by this
+-- test.
+function testaritherror()
+  local a,b = pcall(function()return 1+'x'end)
+  assert(a == false)
+  assert(string.find(b, 'string'))
+  return true
+end

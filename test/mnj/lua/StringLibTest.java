@@ -215,6 +215,7 @@ public class StringLibTest extends JiliTestCase
     suite.addTest(new StringLibTest("testformatx6"));
     suite.addTest(new StringLibTest("testformatx7"));
     suite.addTest(new StringLibTest("testdump"));
+    suite.addTest(new StringLibTest("testaritherror"));
     return suite;
   }
 }
