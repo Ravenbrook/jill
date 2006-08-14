@@ -199,3 +199,9 @@ function testunpackbig()
   local x = {unpack(a)}
   return x[2000] == 2000
 end
+function testloaderr()
+  local a,b = loadstring("'spong'", '')
+  assert(a == nil)
+  assert(type(b) == 'string')
+  return true
+end

@@ -290,6 +290,7 @@ public class BaseLibTest extends JiliTestCase
     suite.addTest(new BaseLibTest("testpcall4"));
     suite.addTest(new BaseLibTest("testpcall5"));
     suite.addTest(new BaseLibTest("testunpackbig"));
+    suite.addTest(new BaseLibTest("testloaderr"));
     return suite;
   }
 }
