@@ -101,6 +101,79 @@ to adapt the build procedure.
 4. RELEASE NOTES
 
 
+RELEASE 0.10.0
+
+This release is intended to meet the planned "Full Compiler" release.
+It was intended to be number 1.0.0, but the number of outstanding
+defects warrant an 0.x release.
+
+This release should be fully functional in all intended areas (the major
+lacuna being the debug and io library and weakness).
+
+The basic acceptance tests run to completion and should produce
+acceptable output.  Try "ant a-test"
+
+Many of the advanced acceptances tests have required modification to
+remove (or change) the use of deprecated features.  Modified versions
+can be found in test\mnj\lua\accept-advanced and the test suite can be
+run with "ant advanced" (there are several failures at the moment).
+
+
+There are the following known bugs in this release:
+
+The advanced acceptance tests do not run correctly (Ravenbrook
+job001480).  Really this is many separate bugs, some of which are
+mentioned here.
+
+Mystery string.dump/loadstring problem (Ravenbrook job001483).
+
+(and these from previous releases that are  still present)
+
+load (in the base library) does not accept a file beginning with '#'.
+(Ravenbrook job001436).
+
+t[nil] does not work (Ravenbrook job001430).
+
+
+Known bugs from previous releases that have been fixed:
+
+From release 0.9.0: require"os" (and similar) does not work
+(Ravenbrook job001472).
+
+
+Other bugs that have been fixed:
+
+tostring(-0) is now the same as PUC-Rio (Ravenbrook job001423).
+
+string.format should now handle all combinations of precision and %e,
+%f, and %g formats more correctly (Ravenbrook job001466). And also
+handles %i and %u (Ravenbrook job001484, Intuwave defect 10333).
+
+"x and 7" bug in the compiler.  Ravenbrook job001477 (this was reported
+by Intuwave too)
+
+getfenv now supports some numeric arguments.  Ravenbrook job001478.  We
+said we weren't going to do this, but it turned out to be simpler to add
+than to change the existing uses in the tests (Lua.where requires much
+of the internal mechanics anyway).
+
+Many bugs fixed, and some of the test's use of deprecated features
+removed, in support of getting the advanced acceptance tests running.
+Ravenbrook job001480.
+
+Expressions like "{unpack(x)}" failed when x had many elements.
+Ravenbrook job0001481, Intuwave defect 10332.
+
+Various errors on resuming on a coroutine were not handled correctly
+(Ravenbrook job001486).
+
+Can now get the metatable for a thread (coroutine) (Ravenbrook
+job001487).
+
+The 0-length pattern '' did not work for string.gsub, now it does
+(Ravenbrook job001489)
+
+
 RELEASE 0.9.0
 
 This release is intended to meet the planned "Module and Coroutine
@@ -110,7 +183,7 @@ The package (module), coroutine, and math libraries are provided.  All
 of them are cut down from their PUC-Rio counterparts to some extent.
 
 
-There are the following know bugs in this release:
+There are the following known bugs in this release:
 
 require"os" (and similar) does not work (Ravenbrook job001472)
 
