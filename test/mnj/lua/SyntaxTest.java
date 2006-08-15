@@ -238,6 +238,9 @@ public class SyntaxTest extends JiliTestCase
 
   public void testSyntax8()
   {
+    // Some of the tests here are a bit too chummy with the Object Model
+    // (for example, assuming that a LuaTable is a subclass of
+    // Hashtable).
     System.out.println ("Syntax8") ;
     Lua L = new Lua();
     BaseLib.open(L);
@@ -247,22 +250,27 @@ public class SyntaxTest extends JiliTestCase
         "local t = {} ; t.foo = 45 ; t[1] = 17 ; t[3] = 1 ; t[1] = 'laa' ; return t"
         ));
     Object res = L.value(1) ;
-    assertTrue("table 1 result test", res instanceof Hashtable &&
-               ((Hashtable)res).size() == 3 &&
-               double_equal (((Hashtable)res).get("foo"), 45) &&
-               double_equal (((Hashtable)res).get(new Double (3.0)), 1.0) &&
-               "laa".equals (((Hashtable)res).get(new Double (1.0)))) ;
+    assertTrue("table 1 result is LuaTable", res instanceof LuaTable);
+    assertTrue("table 1 result has size 3", ((Hashtable)res).size() == 3);
+    assertTrue("table 1, t.foo == 45",
+        double_equal (L.getTable(res, "foo"), 45));
+    assertTrue("table 1, t[3] == 1",
+        double_equal (L.getTable(res, L.valueOfNumber(3.0)), 1.0));
+    assertTrue("table 1, t[1] == 'laa'",
+        "laa".equals (L.getTable(res, L.valueOfNumber(1.0))));
     
     L.setTop(0) ;
     assertTrue("table 2 okay", 0 == dostring(L,
         "local t = {} ; t.foo = 45 ; t[1] = 17 ; t[2], t[3] = 2, 1 ; t[1] = 'laa' ; t['foo'] = t t[3] = t[3] + #t; return t"
         ));
     res = L.value(1) ;
-    assertTrue("table 2 result test", res instanceof Hashtable &&
-               ((Hashtable)res).size() == 4 &&
-               ((Hashtable)res).get("foo") == res &&
-               double_equal (((Hashtable)res).get(new Double (3.0)), 4.0) &&
-               "laa".equals (((Hashtable)res).get(new Double (1.0)))) ;
+    assertTrue("table 2 result is LuaTable", res instanceof LuaTable);
+    assertTrue("table 2 result has size 4", ((Hashtable)res).size() == 4);
+    assertTrue("table 2, t.foo == t", L.getTable(res, "foo") == res);
+    assertTrue("table 2, t[3] == 4",
+        double_equal (L.getTable(res, L.valueOfNumber(3.0)), 4.0));
+    assertTrue("table 2, t[1] == 'laa'",
+        "laa".equals (L.getTable(res, L.valueOfNumber(1.0))));
     
     L.setTop(0) ;
 

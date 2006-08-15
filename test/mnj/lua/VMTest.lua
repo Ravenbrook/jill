@@ -18,3 +18,9 @@ function testliferule()
   -- Therefore x should be 2^14 + 2^6 + 2^5 = 16480
   return x
 end
+
+-- Test that nil can be used as a index when reading.
+function testindexnil()
+  local t = {1,2,3}
+  return t[nil]
+end

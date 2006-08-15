@@ -167,7 +167,7 @@ final class Loader
       switch (t)
       {
         case 0: // LUA_TNIL
-          k[i] = null;
+          k[i] = Lua.NIL;
           break;
 
         case 1: // LUA_TBOOLEAN

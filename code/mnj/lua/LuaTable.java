@@ -88,7 +88,7 @@ public final class LuaTable extends java.util.Hashtable
   /** Like get for numeric (integer) keys. */
   Object getnum(int k)
   {
-    return get(new Double(k));
+    return getlua(new Double(k));
   }
 
   /**
@@ -96,7 +96,9 @@ public final class LuaTable extends java.util.Hashtable
    */
   void putnum(int k, Object v)
   {
-    put(new Double(k), v);
+    // The key can never be NIL so putlua will never notice that its L
+    // argument is null.
+    putlua(null, new Double(k), v);
   }
 
   /**
@@ -108,7 +110,9 @@ public final class LuaTable extends java.util.Hashtable
     int i = 0;
     int j = 1;
     // Find 'i' and 'j' such that i is present and j is not.
-    while (get(new Double(j)) != null)
+    // Note that this test goes to the superclass get method directly.
+    // This is unusual and only done in this case for speed.
+    while (super.get(new Double(j)) != null)
     {
       i = j;
       j *= 2;
@@ -116,7 +120,7 @@ public final class LuaTable extends java.util.Hashtable
       {
         // Pathological case.  Linear search.
         i = 1;
-        while (get(new Double(i)) != null)
+        while (super.get(new Double(i)) != null)
         {
           ++i;
         }
@@ -127,7 +131,7 @@ public final class LuaTable extends java.util.Hashtable
     while (j - i > 1)
     {
       int m = (i+j)/2;
-      if (get(new Double(m)) == null)
+      if (super.get(new Double(m)) == null)
       {
         j = m;
       }
@@ -140,10 +144,27 @@ public final class LuaTable extends java.util.Hashtable
   }
 
   /**
-   * Overrides {@link java.util.Hashtable#put} to enable Lua's semantics
+   * Like {@link java.util.Hashtable#get}.  Ensures that indexes
+   * with no value return {@link Lua#NIL}.  In order to get the correct
+   * behaviour for <code>t[nil]</code>, this code assumes that Lua.NIL
+   * is non-<code>null</code>.
+   */
+  Object getlua(Object key)
+  {
+    Object r = super.get(key);
+    if (r == null)
+    {
+      r = Lua.NIL;
+    }
+    return r;
+  }
+
+  /**
+   * Like {@link java.util.Hashtable#put} but enables Lua's semantics
    * for <code>nil</code>;
    * In particular that <code>x = nil</nil>
    * deletes <code>x</code>.
+   * And also that <code>t[nil]</code> raises an error.
    * Generally, users of Jili should be using
    * {@link Lua#setTable} instead of this.
    * In Jili it is dangerous to use the return
@@ -153,13 +174,37 @@ public final class LuaTable extends java.util.Hashtable
    * @param value value.
    * @return something not well defined.
    */
-  public Object put(Object key, Object value)
+  Object putlua(Lua L, Object key, Object value)
   {
-    // :todo: check key == Lua.NIL and raise an error
+    if (key == Lua.NIL)
+    {
+      L.gRunerror("table index is nil");
+    }
+    // :todo: Consider checking key for NaN (PUC-Rio does)
     if (value == Lua.NIL)
     {
       return remove(key);
     }
     return super.put(key, value);
+  }
+
+  /**
+   * Do not use, implementation exists only to generate deprecated
+   * warning.
+   * @deprecated Use getlua instead.
+   */
+  public Object get(Object key)
+  {
+    throw new IllegalArgumentException();
+  }
+
+  /**
+   * Do not use, implementation exists only to generate deprecated
+   * warning.
+   * @deprecated Use putlua instead.
+   */
+  public Object put(Object key, Object value)
+  {
+    throw new IllegalArgumentException();
   }
 }

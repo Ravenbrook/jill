@@ -379,7 +379,7 @@ public final class BaseLib extends LuaJavaCallback
       return 1;
     }
     Object protectedmt = L.getMetafield(L.value(1), "__metatable");
-    if (protectedmt == null)
+    if (L.isNil(protectedmt))
     {
       L.push(mt);               // return metatable
     }
@@ -507,7 +507,7 @@ public final class BaseLib extends LuaJavaCallback
     }
     Object key = e.nextElement();
     L.push(key);
-    L.push(t.get(key));
+    L.push(t.getlua(key));
     return 2;
   }
 
@@ -624,7 +624,7 @@ public final class BaseLib extends LuaJavaCallback
     int t = L.type(2);
     L.argCheck(t == Lua.TNIL || t == Lua.TTABLE, 2,
         "nil or table expected");
-    if (L.getMetafield(L.value(1), "__metatable") != null)
+    if (!L.isNil(L.getMetafield(L.value(1), "__metatable")))
     {
       L.error("cannot change a protected metatable");
     }

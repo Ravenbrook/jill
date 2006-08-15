@@ -183,7 +183,7 @@ public final class Lua
   /**
    * The Lua <code>nil</code> value.
    */
-  public static final Object NIL = null;
+  public static final Object NIL = new Object();
 
   // Lua type tags, from lua.h
   /** Lua type tag, representing no stack value. */
@@ -599,7 +599,7 @@ public final class Lua
    */
   public static boolean isNil(Object o)
   {
-    return null == o;
+    return NIL == o;
   }
 
   /**
@@ -675,7 +675,7 @@ public final class Lua
    */
   public static boolean isValue(Object o)
   {
-    return o == null ||
+    return o == NIL ||
         o instanceof Boolean ||
         o instanceof String ||
         o instanceof Double ||
@@ -772,7 +772,7 @@ public final class Lua
       {
         key = e.nextElement();
         push(key);
-        push(t.get(key));
+        push(t.getlua(key));
         return true;
       }
       return false;
@@ -786,7 +786,7 @@ public final class Lua
         {
           key = e.nextElement();
           push(key);
-          push(t.get(key));
+          push(t.getlua(key));
           return true;
         }
         return false;
@@ -913,7 +913,7 @@ public final class Lua
     {
       throw new IllegalArgumentException();
     }
-    stack.setSize(stack.size() - n);
+    stacksetsize(stack.size() - n);
   }
 
   /**
@@ -1001,7 +1001,7 @@ public final class Lua
   public static Object rawGet(Object t, Object k)
   {
     LuaTable table = (LuaTable)t;
-    return table.get(k);
+    return table.getlua(k);
   }
 
   /**
@@ -1022,14 +1022,10 @@ public final class Lua
    * @param k  The index into the table.
    * @param v  The new value to be stored at index <var>k</var>.
    */
-  public static void rawSet(Object t, Object k, Object v)
+  public void rawSet(Object t, Object k, Object v)
   {
-    if (k == NIL)
-    {
-      throw new NullPointerException();
-    }
     LuaTable table = (LuaTable)t;
-    table.put(k, v);
+    table.putlua(this, k, v);
   }
 
   /**
@@ -1092,7 +1088,7 @@ protect:
           // finish interrupted execution of 'OP_CALL'
           // assert ...
           if (vmPoscall(firstArg))      // complete it...
-            stack.setSize(ci().top());  // and correct top
+            stacksetsize(ci().top());  // and correct top
         }
         else    // yielded inside a hook: just continue its execution
           base = ci().base();
@@ -1223,7 +1219,7 @@ protect:
     {
       throw new IllegalArgumentException();
     }
-    stack.setSize(base+n);
+    stacksetsize(base+n);
   }
 
   /**
@@ -1292,7 +1288,8 @@ protect:
 
   /**
    * Convert to string and return it.  If value cannot be converted then
-   * null is returned.  Note that unlike <code>lua_tostring</code> this
+   * <code>null</code> is returned.  Note that unlike
+   * <code>lua_tostring</code> this
    * does not modify the Lua value.
    * @param o  Lua value to convert.
    * @return  The resulting string.
@@ -1597,7 +1594,7 @@ protect:
   {
     Object o = value(obj);
     Object ev = getMetafield(o, event);
-    if (ev == null)
+    if (ev == NIL)
     {
       return false;
     }
@@ -1768,20 +1765,20 @@ protect:
   }
 
   /**
-   * Get a field (event) from an Lua value's metatable.  Returns null
-   * if there is no field nor metatable.
+   * Get a field (event) from an Lua value's metatable.  Returns Lua
+   * <code>nil</code> if there is either no metatable or no field.
    * @param o           Lua value to get metafield for.
    * @param event       name of metafield (event).
-   * @return            the field from the metatable, or null.
+   * @return            the field from the metatable, or nil.
    */
   public Object getMetafield(Object o, String event)
   {
     LuaTable mt = getMetatable(o);
     if (mt == null)
     {
-      return null;
+      return NIL;
     }
-    return mt.get(event);
+    return mt.getlua(event);
   }
 
   boolean isNoneOrNil(int narg)
@@ -2141,7 +2138,7 @@ protect:
     Object msg = stack.lastElement();
     if (stack.size() == oldtop)
     {
-      stack.setSize(oldtop + 1);
+      stacksetsize(oldtop + 1);
     }
     switch (errcode)
     {
@@ -2155,7 +2152,7 @@ protect:
         stack.setElementAt(msg, oldtop);
         break;
     }
-    stack.setSize(oldtop+1);
+    stacksetsize(oldtop+1);
   }
 
   void dThrow(int status)
@@ -2756,7 +2753,7 @@ protect:
     {
       // Resort to metamethods.
       Object tm = get_compTM(getMetatable(a), getMetatable(b), "__eq");
-      if (null == tm)     // no TM?
+      if (NIL == tm)    // no TM?
       {
         return false;
       }
@@ -3112,7 +3109,7 @@ reentry:
             int nresults = ARGC(i) - 1;
             if (b != 0)
             {
-              stack.setSize(base+a+b);
+              stacksetsize(base+a+b);
             }
             savedpc = pc;
             switch (vmPrecall(base+a, nresults))
@@ -3124,7 +3121,7 @@ reentry:
                 // Was Java function called by precall, adjust result
                 if (nresults >= 0)
                 {
-                  stack.setSize(ci().top());
+                  stacksetsize(ci().top());
                 }
                 continue;
               default:
@@ -3136,7 +3133,7 @@ reentry:
             int b = ARGB(i);
             if (b != 0)
             {
-              stack.setSize(base+a+b);
+              stacksetsize(base+a+b);
             }
             savedpc = pc;
             // assert ARGC(i) - 1 == MULTRET
@@ -3157,7 +3154,7 @@ reentry:
                   // move frame down
                   stack.setElementAt(stack.elementAt(pfunc+aux), func+aux);
                 }
-                stack.setSize(func+aux);        // correct top
+                stacksetsize(func+aux);        // correct top
                 // assert stack.size() == base + ((LuaFunction)stack.elementAt(func)).proto().maxstacksize();
                 ci.tailcall(base, stack.size());
                 dec_ci();       // remove new frame.
@@ -3180,7 +3177,7 @@ reentry:
             if (b != 0)
             {
               int top = a + b - 1;
-              stack.setSize(base + top);
+              stacksetsize(base + top);
             }
             savedpc = pc;
             // 'adjust' replaces aliased 'b' in PUC-Rio code.
@@ -3191,7 +3188,7 @@ reentry:
             }
             if (adjust)
             {
-              stack.setSize(ci().top());
+              stacksetsize(ci().top());
             }
             continue reentry;
           }
@@ -3247,10 +3244,10 @@ reentry:
             stack.setElementAt(stack.elementAt(base+a+2), cb+2);
             stack.setElementAt(stack.elementAt(base+a+1), cb+1);
             stack.setElementAt(stack.elementAt(base+a), cb);
-            stack.setSize(cb+3);
+            stacksetsize(cb+3);
             savedpc = pc; // Protect
             vmCall(cb, ARGC(i));
-            stack.setSize(ci().top());
+            stacksetsize(ci().top());
             if (NIL != stack.elementAt(cb))     // continue loop
             {
               stack.setElementAt(stack.elementAt(cb), cb-1);
@@ -3284,7 +3281,7 @@ reentry:
             }
             if (setstack)
             {
-              stack.setSize(ci().top());
+              stacksetsize(ci().top());
             }
             continue;
           }
@@ -3323,7 +3320,7 @@ reentry:
               // :todo: Protect
               // :todo: check stack
               b = n;
-              stack.setSize(base+a+n);
+              stacksetsize(base+a+n);
             }
             for (int j=0; j<b; ++j)
             {
@@ -3394,19 +3391,19 @@ reentry:
       if (t instanceof LuaTable)        // 't' is a table?
       {
         LuaTable h = (LuaTable)t;
-        Object res = h.get(key);
+        Object res = h.getlua(key);
 
         if (!isNil(res))
           return res;
         tm = tagmethod(h, "__index");
-        if (tm == null)
+        if (tm == NIL)
           return res;
         // else will try the tag method
       }
       else
       {
         tm = tagmethod(t, "__index");
-        if (tm == null)
+        if (tm == NIL)
           gTypeerror(t, "index");
       }
       if (isFunction(tm))
@@ -3503,9 +3500,9 @@ reentry:
     }
     if (i > 0)
     {
-      stack.setSize(res+i);
+      stacksetsize(res+i);
     }
-    // :todo: consider using two stack.setSize calls to nil out
+    // :todo: consider using two stacksetsize calls to nil out
     // remaining required results.
     // This trick only works if Lua.NIL == null, whereas the current
     // code works regardless of what Lua.NIL is.
@@ -3513,7 +3510,7 @@ reentry:
     {
       stack.setElementAt(NIL, res++);
     }
-    stack.setSize(res);
+    stacksetsize(res);
     return wanted != MULTRET;
   }
 
@@ -3544,7 +3541,7 @@ reentry:
         if (stack.size() > base + p.numparams())
         {
           // trim stack to the argument list
-          stack.setSize(base + p.numparams());
+          stacksetsize(base + p.numparams());
         }
       }
       else
@@ -3558,7 +3555,7 @@ reentry:
 
       savedpc = 0;
       // expand stack to the function's max stack size.
-      stack.setSize(top);
+      stacksetsize(top);
       // :todo: implement call hook.
       return PCRLUA;
     }
@@ -3593,16 +3590,16 @@ reentry:
       if (t instanceof LuaTable) // 't' is a table
       {
         LuaTable h = (LuaTable)t;
-        Object o = h.get(key);
+        Object o = h.getlua(key);
         if (o != NIL)   // result is not nil?
         {
-          h.put(key, val);
+          h.putlua(this, key, val);
           return;
         }
         tm = tagmethod(h, "__newindex");
-        if (tm == null) // or no TM?
+        if (tm == NIL)  // or no TM?
         {
-          h.put(key, val);
+          h.putlua(this, key, val);
           return;
         }
         // else will try the tag method
@@ -3610,7 +3607,7 @@ reentry:
       else
       {
         tm = tagmethod(t, "__newindex");
-        if (tm == null)
+        if (tm == NIL)
           gTypeerror(t, "index");
       }
       if (isFunction(tm))
@@ -3744,12 +3741,12 @@ reentry:
   {
     if (mt1 == null)
     {
-      return null;
+      return NIL;
     }
-    Object tm1 = mt1.get(event);
+    Object tm1 = mt1.getlua(event);
     if (isNil(tm1))
     {
-      return null;      // no metamethod
+      return NIL;       // no metamethod
     }
     if (mt1 == mt2)
     {
@@ -3757,33 +3754,27 @@ reentry:
     }
     if (mt2 == null)
     {
-      return null;
+      return NIL;
     }
-    Object tm2 = mt2.get(event);
+    Object tm2 = mt2.getlua(event);
     if (isNil(tm2))
     {
-      return null;      // no metamethod
+      return NIL;       // no metamethod
     }
     if (oRawequal(tm1, tm2))    // same metamethods?
     {
       return tm1;
     }
-    return null;
+    return NIL;
   }
 
   /**
    * Gets tagmethod for object.
+   * @return method or nil.
    */
   private Object tagmethod(Object o, String event)
   {
-    LuaTable mt;
-
-    mt = getMetatable(o);
-    if (mt == null)
-    {
-      return null;
-    }
-    return mt.get(event);
+    return getMetafield(o, event);
   }
 
   /**
@@ -3793,6 +3784,23 @@ reentry:
   private static double modulus(double x, double y)
   {
     return x - Math.floor(x/y)*y;
+  }
+
+  /**
+   * Changes the stack size, padding with NIL where necessary.
+   */
+  private void stacksetsize(int n)
+  {
+    int old = stack.size();
+    stack.setSize(n);
+    if (n <= old)
+    {
+      return;
+    }
+    for (int i=old; i<n; ++i)
+    {
+      stack.setElementAt(NIL, i);
+    }
   }
 
   /**
@@ -3912,7 +3920,7 @@ reentry:
   /** Equivalent to resume_error from ldo.c */
   private int resume_error(String msg)
   {
-    stack.setSize(ci().base());
+    stacksetsize(ci().base());
     stack.addElement(msg);
     return ERRRUN;
   }
@@ -3999,7 +4007,7 @@ final class DumpState
     for (int i = 0 ; i < n ; i++)
     {
       Object o = k[i] ;
-      if (o == null)
+      if (o == Lua.NIL)
       {
         writer.writeByte(Lua.TNIL) ;
       }
