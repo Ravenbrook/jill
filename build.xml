@@ -313,6 +313,7 @@
 
   <target name="test-compiled-dir">
     <mkdir dir="test-compiled" />
+    <mkdir dir="test-compiled-se" />
   </target>
 
   <target name="compile-test"
@@ -323,6 +324,15 @@
         source="1.2"
         target="1.1"
     />
+    <!-- move JSE-only files elsewhere so that they don't break in the
+      preverify stage
+      -->
+    <move todir="test-compiled-se">
+      <fileset dir="test-compiled">
+        <include name="**/Luac.*" />
+        <include name="**/Luai.*" />
+      </fileset>
+    </move>
   </target>
 
   <target name="clean"
