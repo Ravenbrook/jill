@@ -107,9 +107,9 @@ public final class TableLib extends LuaJavaCallback
     {
       Object v = L.rawGetI(t, i);
       L.argCheck(L.isString(v), 1, "table contains non-strings");
-      b.append(v);
+      b.append(L.toString(v));
       if (i != last)
-        b.append(sep);
+        b.append(L.toString(sep));
     }
     L.pushString(b.toString());
     return 1;
