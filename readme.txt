@@ -53,6 +53,7 @@ directories:
   prejar/               - Staging area for building jars.
   preverified/		- Results of preverification (.class files).
   test-compiled/	- Results of compiling test/ .
+  test-compiled-se/     - Compiled test files that are JSE only.
   test-preverified/     - Results of preverifying test-compiled/ .
 
 
@@ -91,7 +92,8 @@ them into a .jar file (ant jar), converts that to RIM's .cod format (ant
 cod), and downloads the .cod file onto an attached device (ant load).
 
 Currently the "ant load" target builds the METestMIDlet which is a
-midlet that runs all the tests that run on JME, and also JiliShell which
+midlet that runs the same set of tests that "ant test" runs; all of
+these should run on JME; "ant load" also builds JiliShell which
 is an interactive interpreter.
 
 If you wish to incorporate Jili into your own software then you'll have
@@ -108,7 +110,7 @@ It was intended to be number 1.0.0, but the number of outstanding
 defects warrant an 0.x release.
 
 This release should be fully functional in all intended areas (the major
-lacuna being the debug and io library and weakness).
+lacunae being the debug and io library and weakness).
 
 The basic acceptance tests run to completion and should produce
 acceptable output.  Try "ant a-test"
@@ -116,7 +118,7 @@ acceptable output.  Try "ant a-test"
 Many of the advanced acceptances tests have required modification to
 remove (or change) the use of deprecated features.  Modified versions
 can be found in test\mnj\lua\accept-advanced and the test suite can be
-run with "ant advanced" (there are several failures at the moment).
+run with "ant advanced-test" (there are several failures at the moment).
 
 
 There are the following known bugs in this release:
