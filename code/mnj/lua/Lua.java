@@ -2564,7 +2564,7 @@ protect:
 
   /**
    * Slower version of RK that does not receive the constant array.  Not
-   * recommend for routine use, but is use to some error handling code
+   * recommend for routine use, but is used by some error handling code
    * to avoid having a constant array passed around too much.
    */
   private Object RK(int field)
