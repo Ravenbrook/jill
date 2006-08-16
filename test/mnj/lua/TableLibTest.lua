@@ -38,7 +38,12 @@ function testconcat()
   assert(table.concat(a, ",", 4) == "")
   return true
 end
-
+-- Indicator for Ravenbrook job001510
+function testconcat2()
+  assert(table.concat{1, 2, 3} == '123')
+  assert(table.concat({1,2,3}, 9) == '19293')
+  return true
+end
 -- From [Lua 2006-06-28] nextvar.lua
 function testinsertremove()
   local function test (a)

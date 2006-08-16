@@ -85,24 +85,13 @@ public class TableLibTest extends JiliTestCase
     }
   }
 
-  public void testconcat()
+  /**
+   * Used for many test case instances, others override this in an
+   * anonymous class.
+   */
+  public void runTest()
   {
-    nTrue("testconcat", 1);
-  }
-
-  public void testinsertremove()
-  {
-    nTrue("testinsertremove", 1);
-  }
-
-  public void testmaxn()
-  {
-    nTrue("testmaxn", 1);
-  }
-
-  public void testsort()
-  {
-    nTrue("testsort", 1);
+    nTrue(getName(), 1);
   }
 
   public Test suite()
@@ -113,22 +102,11 @@ public class TableLibTest extends JiliTestCase
       {
         public void runTest() { testTableLib(); }
       });
-    suite.addTest(new TableLibTest("testconcat")
-      {
-        public void runTest() { testconcat(); }
-      });
-    suite.addTest(new TableLibTest("testinsertremove")
-      {
-        public void runTest() { testinsertremove(); }
-      });
-    suite.addTest(new TableLibTest("testmaxn")
-      {
-        public void runTest() { testmaxn(); }
-      });
-    suite.addTest(new TableLibTest("testsort")
-      {
-        public void runTest() { testsort(); }
-      });
+    suite.addTest(new TableLibTest("testconcat"));
+    suite.addTest(new TableLibTest("testconcat2"));
+    suite.addTest(new TableLibTest("testinsertremove"));
+    suite.addTest(new TableLibTest("testmaxn"));
+    suite.addTest(new TableLibTest("testsort"));
 
     return suite;
   }
