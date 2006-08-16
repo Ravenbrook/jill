@@ -1,6 +1,7 @@
 JAVA IMPLEMENTATION OF LUA FOR INTUWAVE - README FOR RELEASE 0.X.Y
 
 David Jones, Ravenbrook Limited
+drj@ravenbrook.com
 
 $Date$
 
@@ -18,7 +19,10 @@ This is release 0.X.Y of the Java Implementation of Lua for Intuwave
 (Jili).
 
 Jili provides an implementation of the Lua language that runs in Java
-Mobile Edition environments (specifically, CLDC 1.1 and MIDP 2.0).
+Mobile Edition environments.  It is intended to run in an environment
+that supports CLDC 1.1 and MIDP 2.0.  Currently no features of MIDP 2.0
+are used in the core software (test harnesses and examples do use MIDP
+2.0 features).
 
 The readership of this document is anyone who intends to use the Jili
 software.
@@ -101,6 +105,83 @@ to adapt the build procedure.
 
 
 4. RELEASE NOTES
+
+
+RELEASE 0.11.0
+
+This release is a maintenance release, intended to improve quality.
+
+The advanced acceptance tests (as modified by Ravenbrook and executed
+with "ant advanced") run to completion almost without error.
+
+
+There are the following known bugs in this release:
+
+The advanced acceptance tests do not run correctly (Ravenbrook
+job001480).  There are two issues here: one is a string.dump/load issue
+(see below), the other is that Java out of memory errors do not get
+translated into Lua errors.
+
+The output of string.format when using scientific notation ('%e' or
+sufficiently big or small numbers using '%g') does not always produce
+two digits after the 'e' (or 'E').  This may differ from the output
+produced by PUC-Rio Lua (which in any case depends on the underlying C
+implementation, and that does differ between different implementations).
+Ravenbrook job001466.
+
+Jili allows a table to be indexed with NaN.  PUC-Rio does not allow this
+and raises a Lua error.  Ravenbrook job001470.
+
+Jili allows arithmetic on hex strings. [[1+'a']] produces a result when
+it should produce a Lua error.  Ravenbrook job001498.
+
+load cannot accept the output from string.dump.  This is one of the
+defects exhibited by the advanced acceptance tests.  Arguably, this
+behaviour falls outside the documented contract for string.dump. Ravenbrook
+job001505.
+
+(and this perennial from previous releases)
+
+load (in the base library) does not accept a file beginning with '#'.
+(Ravenbrook job001436).
+
+
+Known bugs from previous releases that have been fixed:
+
+Mystery string.dump/loadstring problem is no longer a mystery (was
+Ravenbrook job001483, but replaced by Ravenbrook job001505).
+
+t[nil] now works (Ravenbrook job001430).
+
+
+Other bugs that have been fixed:
+
+nil is now modelled by a nonce object, not by null.  Ravenbrook jobs
+job001391 and job001430.
+
+Errors for < (and <=) are now generated properly.  Ravenbrook job001419.
+
+Many bugs and test modifications in order to improve the execution of
+the advanced acceptance tests (Ravenbrook job001480).
+
+Fixed crash (Java exception) for some uses of '%bxy' in string.find and
+similar.  Ravenbrook job001492.
+
+Removed a stub implementation of the undocumented gcinfo function (this
+was used by an earlier version of the acceptance tests and caused a
+misleading error).
+Ravenbrook job001493.
+
+Error message for type errors in arithmetic expressions (like 1+'x')
+specified the incorrect type for the operand.  Now it's fixed.
+Ravenbrook job001497.
+
+Metamethod invocation was incorrect when one of the operands was a
+constant (eg t+1 where t had an __add metamethod).  Now it's fixed.
+Ravenbrook job001499.
+
+Error values produced by loadstring in error cases (syntax errors etc)
+were not correct.  Now they are.  Ravenbrook job001504.
 
 
 RELEASE 0.10.0
