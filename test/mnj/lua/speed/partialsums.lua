@@ -2,8 +2,8 @@
 -- http://shootout.alioth.debian.org/
 -- contributed by Mike Pall
 
-local n = tonumber(arg[1])
-local function pr(fmt, x) io.write(string.format(fmt, x)) end
+local n = tonumber((...)) or 100000
+local function pr(fmt, x) print(string.format(fmt, x)) end
 
 local a1, a2, a3, a4, a5, a6, a7, a8, a9, alt = 1, 0, 0, 0, 0, 0, 0, 0, 0, 1
 local sqrt, sin, cos = math.sqrt, math.sin, math.cos
@@ -21,13 +21,13 @@ for k=1,n do
   a9 = a9 + alt/(k+k-1)
   alt = -alt
 end
-pr("%.9f\t(2/3)^k\n", a1)
-pr("%.9f\tk^-0.5\n", a2)
-pr("%.9f\t1/k(k+1)\n", a3)
-pr("%.9f\tFlint Hills\n", a4)
-pr("%.9f\tCookson Hills\n", a5)
-pr("%.9f\tHarmonic\n", a6)
-pr("%.9f\tRiemann Zeta\n", a7)
-pr("%.9f\tAlternating Harmonic\n", a8)
-pr("%.9f\tGregory\n", a9)
+pr("%.9f\t(2/3)^k", a1)
+pr("%.9f\tk^-0.5", a2)
+pr("%.9f\t1/k(k+1)", a3)
+pr("%.9f\tFlint Hills", a4)
+pr("%.9f\tCookson Hills", a5)
+pr("%.9f\tHarmonic", a6)
+pr("%.9f\tRiemann Zeta", a7)
+pr("%.9f\tAlternating Harmonic", a8)
+pr("%.9f\tGregory", a9)
 

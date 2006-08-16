@@ -22,15 +22,15 @@ local function nsieve(m,isPrime)
 end
 
 
-local n = tonumber(arg and arg[1]) or 1
+local n = tonumber((...)) or 1
 if n < 2 then n = 2 end
 local flags = {}
 
 local m = (2^n)*10000
-io.write( string.format("Primes up to %8d %8d", m, nsieve(m,flags)), "\n")
+print( string.format("Primes up to %8d %8d", m, nsieve(m,flags)))
 
 m = (2^(n-1))*10000
-io.write( string.format("Primes up to %8d %8d", m, nsieve(m,flags)), "\n")
+print( string.format("Primes up to %8d %8d", m, nsieve(m,flags)))
 
 m = (2^(n-2))*10000
-io.write( string.format("Primes up to %8d %8d", m, nsieve(m,flags)), "\n")
+print( string.format("Primes up to %8d %8d", m, nsieve(m,flags)))

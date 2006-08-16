@@ -9,7 +9,8 @@ local function fannkuch(n)
     -- Print max. 30 permutations.
     if check < 30 then
       if not p[n] then return maxflips end	-- Catch n = 0, 1, 2.
-      for i=1,n do io.write(p[i]) end; io.write("\n")
+      local t = {}
+      for i=1,n do t[i] = p[i] end; print(table.concat(t))
       check = check + 1
     end
     -- Copy and flip.
@@ -45,5 +46,5 @@ local function fannkuch(n)
   until false
 end
 
-local n = tonumber(arg and arg[1]) or 1
-io.write("Pfannkuchen(", n, ") = ", fannkuch(n), "\n")
+local n = tonumber((...)) or 7
+print("Pfannkuchen("..n..") = ", fannkuch(n))
