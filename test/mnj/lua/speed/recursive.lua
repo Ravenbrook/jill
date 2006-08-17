@@ -19,10 +19,13 @@ local function tak(x, y, z)
 end
 
 local format = string.format
-local n = (tonumber((...)) or 3)- 1
-print(format("Ack(3,%d): %d", n+1, ack(3, n+1)))
-print(format("Fib(%.1f): %.1f", n+28.0, fib(n+28.0)))
-print(format("Tak(%d,%d,%d): %d", 3*n, 2*n, n, tak(3*n, 2*n, n)))
+local n = tonumber((...)) or 0
+local N = n+6
+print(format("Ack(3,%d): %d", N, ack(3, N)))
+local N = n+24
+print(format("Fib(%.1f): %.1f", N, fib(N)))
+local N = n+6
+print(format("Tak(%d,%d,%d): %d", 3*N, 2*N, N, tak(3*N, 2*N, N)))
 print(format("Fib(3): %d", fib(3)))
 print(format("Tak(3.0,2.0,1.0): %.1f", tak(3.0, 2.0, 1.0)))
 

@@ -331,6 +331,7 @@
       <fileset dir="test-compiled">
         <include name="**/Luac.*" />
         <include name="**/Luai.*" />
+        <include name="**/Speed.*" />
       </fileset>
     </move>
   </target>
@@ -391,6 +392,19 @@
         classname="j2meunit.textui.TestRunner"
         classpath="compiled:test-compiled:${j2meunit}">
       <arg value="mnj.lua.AdvancedTest" />
+    </java>
+  </target>
+
+  <target name="speed" depends="compile,compile-test,include-extra"
+      description="Runs a bogus speed test using JSE" >
+    <java fork="yes"
+        classname="mnj.lua.Speed"
+        classpath="compiled:test-compiled:test-compiled-se">
+      <!--
+        Sun JDK JVM option to disable HotSpot.  Attempting to give a
+        more realistic performance ratio.
+        -->
+      <jvmarg value="-Xint" />
     </java>
   </target>
 

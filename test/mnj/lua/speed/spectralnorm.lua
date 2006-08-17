@@ -29,7 +29,7 @@ local function AtAv(n, x, y, t)
 end
 
 
-local n = tonumber((...)) or 99
+local n = tonumber((...)) or 70
 local u, v, t = {}, {}, {}
 for i = 0,n-1 do u[i] = 1 end
 
