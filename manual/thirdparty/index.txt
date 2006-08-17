@@ -23,11 +23,18 @@ This document is Intuwave confidential.
   his MIT style license.  See http://luaforge.net/projects/chunkspy/
 - Other tests are (possibly derived from) portions of the Lua
   test-suite, http://www.inf.puc-rio.br/~roberto/lua/lua5.1-tests.tar.gz
+- test/mnj/lua/speed/ contains Lua tests scripts from The Computer
+  Language Shootout [1], used under their modified BSD license [2].
 - lib/j2meunit.jar is from j2meunit project at
   http://j2meunit.sourceforge.net/.  It's licensed under the Common
   Public License Version 1.0 (which is a bit long for my liking).
 
 A. REFERENCES
+
+[1] Computer Language Shootout, http://shootout.alioth.debian.org/
+[2] Computer Language Shootout's Modified BSD license,
+  http://shootout.alioth.debian.org/gp4/miscfile.php?file=license&title=Revised%20BSD%20license
+
 
 B. HISTORY
 
