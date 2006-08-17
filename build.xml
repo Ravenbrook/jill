@@ -186,6 +186,12 @@
     <exec executable="rapc" dir="bin" >
       <arg value="import=${rim}/lib/net_rim_api.jar" />
       <arg value="-midlet" />
+      <arg value="codename=speed" />
+      <arg value="speed.jar" />
+    </exec>
+    <exec executable="rapc" dir="bin" >
+      <arg value="import=${rim}/lib/net_rim_api.jar" />
+      <arg value="-midlet" />
       <arg value="codename=jilishell" />
       <arg value="jilishell.jar" />
     </exec>
@@ -206,6 +212,19 @@
       destfile="bin/jilit.jar"
       basedir="prejar/jilit"
       manifest="test/metest-manifest"
+      />
+
+    <!--
+      Gather files for SpeedMIDlet.  Take everything.  (lazy but ok)
+    -->
+    <copy todir="prejar/speed" >
+      <fileset dir="preverified" />
+      <fileset dir="test-preverified" />
+    </copy>
+    <jar
+      destfile="bin/speed.jar"
+      basedir="prejar/speed"
+      manifest="test/speed-manifest"
       />
 
     <!--
