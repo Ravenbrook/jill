@@ -350,7 +350,7 @@
       <fileset dir="test-compiled">
         <include name="**/Luac.*" />
         <include name="**/Luai.*" />
-        <include name="**/Speed.*" />
+        <include name="**/*SE.*" />
       </fileset>
     </move>
   </target>
@@ -359,6 +359,7 @@
       description="Cleans intermediate build products (not bin/)" >
     <delete dir="compiled" quiet="true" />
     <delete dir="test-compiled" quiet="true" />
+    <delete dir="test-compiled-se" quiet="true" />
     <delete dir="preverified" quiet="true" />
     <delete dir="test-preverified" quiet="true" />
     <delete dir="prejar" quiet="true" />
