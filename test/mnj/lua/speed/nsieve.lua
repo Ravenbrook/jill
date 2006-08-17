@@ -23,7 +23,6 @@ end
 
 
 local n = tonumber((...)) or 1
-if n < 2 then n = 2 end
 local flags = {}
 
 local m = (2^n)*10000

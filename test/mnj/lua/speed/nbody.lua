@@ -113,7 +113,7 @@ local function offsetMomentum(b, nbody)
   b[1].vz = -pz / SOLAR_MASS
 end
 
-local N = tonumber((...)) or 5000
+local N = tonumber((...)) or 1000
 local bodies = { Sun, Jupiter, Saturn, Uranus, Neptune }
 local nbody = #(bodies)
 

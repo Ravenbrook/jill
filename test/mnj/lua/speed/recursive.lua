@@ -20,11 +20,11 @@ end
 
 local format = string.format
 local n = tonumber((...)) or 0
-local N = n+6
+local N = n+4
 print(format("Ack(3,%d): %d", N, ack(3, N)))
-local N = n+24
+local N = n+20
 print(format("Fib(%.1f): %.1f", N, fib(N)))
-local N = n+6
+local N = n+5
 print(format("Tak(%d,%d,%d): %d", 3*N, 2*N, N, tak(3*N, 2*N, N)))
 print(format("Fib(3): %d", fib(3)))
 print(format("Tak(3.0,2.0,1.0): %.1f", tak(3.0, 2.0, 1.0)))
