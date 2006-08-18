@@ -336,7 +336,7 @@
   </target>
 
   <target name="compile-test"
-      depends="test-compiled-dir" >
+      depends="test-compiled-dir,compile" >
     <javac destdir="test-compiled" srcdir="test"
         debug="true"
         classpath="${jme.jar}:${j2meunit}:compiled"
