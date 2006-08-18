@@ -107,6 +107,31 @@ to adapt the build procedure.
 4. RELEASE NOTES
 
 
+RELEASE 0.12.0
+
+This release is a maintenance release.
+
+Executable example of how to run multiple cooperating Lua scripts is in
+test/mnj/lua/MultiTask.java (and .lua) and can be executed (in JSE) by
+running "ant multitask".
+
+
+The following bugs have been fixed in this release:
+
+Ravenbrook job001510.  table.concat{1,2,3} and similar produced the
+wrong results.  This is now fixed.  This bug was present ever since 
+table.concat was provided in release 0.8.0 but no test invoked this
+case.
+
+Ravenbrook job001514.  It is not clear Intuwave use Jili as an m-Network
+task.  This is hopefully clarified somewhat by the
+test/mnj/lua/MultiTask.java example, but the job is left open, as I
+expect more work / support.
+
+
+Plus loads of previous bugs still open and unfixed.
+
+
 RELEASE 0.11.0
 
 This release is a maintenance release, intended to improve quality.
