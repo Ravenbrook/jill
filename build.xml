@@ -428,4 +428,11 @@
     </java>
   </target>
 
+  <target name="multitask" depends="compile,compile-test,include-extra"
+      description="Runs the MultiTask example using JSE" >
+    <java fork="yes"
+        classname="mnj.lua.MultiTask"
+        classpath="compiled:test-compiled" />
+  </target>
+
 </project>
