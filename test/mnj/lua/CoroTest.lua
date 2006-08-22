@@ -137,4 +137,12 @@ function test9()
   return true
 end
 
-
+-- test that yielding is possible by throwing exception.
+function test10(a, b)
+  local sa,sb = 0,0
+  for i=1,4 do
+    sa = sa + a(i)
+    sb = sb + b(i)
+  end
+  return sa, sb
+end

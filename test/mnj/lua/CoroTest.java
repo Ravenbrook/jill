@@ -95,6 +95,71 @@ public class CoroTest extends JiliTestCase
     }
   }
 
+  /** Yielding by throw exception. */
+  public void test10()
+  {
+    System.out.println("CoroTest." + getName());
+    Lua L = new Lua();
+    L.loadFile("CoroTest.lua");
+    L.call(0, 0);
+    L.push(L.getGlobal(getName()));
+    L.push(new LuaJavaCallback()
+      {
+        public int luaFunction(Lua L)
+        {
+          return L.yield(0);
+        }
+      });
+    L.push(new LuaJavaCallback()
+      {
+        public int luaFunction(Lua L)
+        {
+          throw new RuntimeException("spong") { };
+        }
+      });
+    boolean start = true;
+    int status = 0;
+    int n = 0;
+    int k = 0;
+    while (true)
+    {
+      int nargs = 0;
+      if (start)
+      {
+        nargs = 2;
+        start = false;
+      }
+      else
+      {
+        nargs = 1;
+        L.pushNumber(n);
+      }
+      ++n;
+      try
+      {
+        status = L.resume(nargs);
+        if (status != Lua.YIELD)
+        {
+          break;
+        }
+      }
+      catch (RuntimeException e)
+      {
+        ++k;
+        assertTrue("e.getMessage()",
+            e.getMessage().indexOf("spong") >= 0);
+      }
+    }
+    if (status != 0)
+    {
+      System.out.println(L.value(-1));
+    }
+    assertTrue("status is 0", status == 0);
+    assertTrue("k is 4", k == 4);
+    assertTrue("first return value is 16", L.toNumber(L.value(-2)) == 16);
+    assertTrue("second return value is 20", L.toNumber(L.value(-1)) == 20);
+  }
+
   public void runTest()
   {
     // loads CoroTest.lua and calls a function defined therein
@@ -141,6 +206,10 @@ public class CoroTest extends JiliTestCase
     suite.addTest(new CoroTest("test7"));
     suite.addTest(new CoroTest("test8"));
     suite.addTest(new CoroTest("test9"));
+    suite.addTest(new CoroTest("test10")
+      {
+        public void runTest() { test10(); }
+      });
 
     return suite;
   }
