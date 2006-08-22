@@ -26,6 +26,7 @@ final class Debug
   private int ici;
 
   // public accessors may be defined for these.
+  private int event;
   private String what;
   private String source;
   private int currentline;
@@ -47,6 +48,14 @@ final class Debug
   int ici()
   {
     return ici;
+  }
+
+  /**
+   * Setter for event.
+   */
+  void setEvent(int event)
+  {
+    this.event = event;
   }
 
   /**

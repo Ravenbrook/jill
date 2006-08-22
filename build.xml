@@ -435,4 +435,11 @@
         classpath="compiled:test-compiled" />
   </target>
 
+  <target name="hook-test" depends="compile,compile-test,include-extra"
+      description="Runs the HookTest example using JSE" >
+    <java fork="yes"
+        classname="mnj.lua.HookTest"
+        classpath="compiled:test-compiled" />
+  </target>
+
 </project>

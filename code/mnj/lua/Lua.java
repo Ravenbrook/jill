@@ -107,6 +107,12 @@ public final class Lua
    */
   private Vector openupval = new Vector();
 
+  int hookcount;
+  int basehookcount;
+  boolean allowhook = true;
+  Hook hook;
+  int hookmask;
+
   /** Number of list items to accumulate before a SETLIST instruction. */
   static final int LFIELDS_PER_FLUSH = 50;
 
@@ -276,6 +282,26 @@ public final class Lua
    * <var>step multiplier</var> of the collector.
    */
   public static final int GCSETSTEPMUL  = 7;
+
+  // Some of the hooks, etc, aren't implemented, so remain private.
+  private static final int HOOKCALL = 0;
+  private static final int HOOKRET = 1;
+  private static final int HOOKLINE = 2;
+  /**
+   * When {@link Hook} callback is called as a line hook, its
+   * <var>ar.event</var> field is <code>HOOKCOUNT</code>.
+   */
+  public static final int HOOKCOUNT = 3;
+  private static final int HOOKTAILRET = 4;
+
+  private static final int MASKCALL = 1 << HOOKCALL;
+  private static final int MASKRET  = 1 << HOOKRET;
+  private static final int MASKLINE = 1 << HOOKLINE;
+  /**
+   * Bitmask that specifies count hook in call to {@link Lua#setHook}.
+   */
+  public static final int MASKCOUNT = 1 << HOOKCOUNT;
+
 
   /**
    * Calls a Lua value.  Normally this is called on functions, but the
@@ -882,7 +908,7 @@ public final class Lua
     int oldnCcalls = nCcalls;
     Object old_errfunc = errfunc;
     errfunc = ef;
-    // :todo: save and restore allowhooks
+    boolean old_allowhook = allowhook;
     int errorStatus = 0;
     try
     {
@@ -897,6 +923,7 @@ public final class Lua
       CallInfo ci = ci();
       base = ci.base();
       savedpc = ci.savedpc();
+      allowhook = old_allowhook;
       errorStatus = e.errorStatus;
     }
     errfunc = old_errfunc;
@@ -2034,6 +2061,22 @@ protect:
   }
 
   /**
+   * Sets the debug hook.
+   */
+  public void setHook(Hook func, int mask, int count)
+  {
+    if (func == null || mask == 0)      // turn off hooks?
+    {
+      mask = 0;
+      func = null;
+    }
+    hook = func;
+    basehookcount = count;
+    resethookcount();
+    hookmask = mask;
+  }
+
+  /**
    * @return true is okay, false otherwise (for example, error).
    */
   private boolean auxgetinfo(String what, Debug ar, Object f, CallInfo ci)
@@ -2128,6 +2171,34 @@ protect:
 
   // Methods equivalent to the file ldo.c.  Prefixed with d.
   // Some of these are in vm* instead.
+
+  /**
+   * Equivalent to luaD_callhook.
+   */
+  private void dCallhook(int event, int line)
+  {
+    Hook hook = this.hook;
+    if (hook != null && allowhook)
+    {
+      int top = stack.size();
+      int ci_top = ci().top();
+      int ici = civ.size() - 1;
+      if (event == HOOKTAILRET) // not supported yet
+      {
+        ici = 0;
+      }
+      Debug ar = new Debug(ici);
+      ar.setEvent(event);
+      ar.setCurrentline(line);
+      ci().setTop(stack.size());
+      allowhook = false;        // cannot call hooks inside a hook
+      hook.luaHook(this, ar);
+      //# assert !allowhook
+      allowhook = true;
+      ci().setTop(ci_top);
+      stack.setSize(top);
+    }
+  }
 
   /** Equivalent to luaD_seterrorobj.  It is valid for oldtop to be
    * equal to the current stack size (<code>stack.size()</code>).
@@ -2797,7 +2868,18 @@ reentry:
         // "//dojump" comment.
 
         int i = code[pc++];       // VM instruction.
-        // :todo: count and line hook
+        // :todo: line hook
+        if ((hookmask & MASKCOUNT) != 0 && --hookcount == 0)
+        {
+          traceexec(pc);
+          if (status == YIELD)  // did hook yield?
+          {
+            savedpc = pc - 1;
+            return;
+          }
+          // base = this.base
+        }
+
         int a = ARGA(i);          // its A field.
         Object rb;
         Object rc;
@@ -3801,6 +3883,33 @@ reentry:
     {
       stack.setElementAt(NIL, i);
     }
+  }
+
+  /**
+   * Equivalent of macro in ldebug.h.
+   */
+  private void resethookcount()
+  {
+    hookcount = basehookcount;
+  }
+
+  /**
+   * Equivalent of traceexec in lvm.c.
+   */
+  private void traceexec(int pc)
+  {
+    int mask = hookmask;
+    int oldpc = savedpc;
+    savedpc = pc;
+    if (mask > MASKLINE)        // instruction-hook set?
+    {
+      if (hookcount == 0)
+      {
+        resethookcount();
+        dCallhook(HOOKCOUNT, -1);
+      }
+    }
+    // :todo: line hook.
   }
 
   /**

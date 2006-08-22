@@ -16,8 +16,11 @@ import j2meunit.framework.TestSuite;
  * J2MEUnit tests for Jili's public API.  DO NOT SUBCLASS.  public
  * access granted only because j2meunit makes it necessary.
  */
-public class LuaTest extends JiliTestCase
+public class LuaTest extends JiliTestCase implements Hook
 {
+  private int n;        // used by luaHook
+  private boolean error;        // used by luaHook
+
   /** void constructor, necessary for running using
    * <code>java j2meunit.textui.TestRunner LuaTest</code>
    */
@@ -27,6 +30,23 @@ public class LuaTest extends JiliTestCase
   private LuaTest(String name)
   {
     super(name);
+  }
+
+  /** Constructor used when Hook is required. */
+  private LuaTest(boolean error)
+  {
+    this.error = error;
+  }
+
+  /** From Hook interface. */
+  public int luaHook(Lua L, Debug ar)
+  {
+    ++n;
+    if (error)
+    {
+      return L.error("spong in hook");
+    }
+    return 0;
   }
 
   /** Tests that we can create a Lua state. */
@@ -127,6 +147,37 @@ public class LuaTest extends JiliTestCase
       L.valueOfBoolean(true).equals(L.value(1)));
   }
 
+  /**
+   * Tests that an error in a hook does not prevent subsequent hooks
+   * from running.
+   */
+  public void testlua6()
+  {
+    Lua L = new Lua();
+    BaseLib.open(L);
+    MathLib.open(L);
+    OSLib.open(L);
+    StringLib.open(L);
+    TableLib.open(L);
+
+    L.setHook(new LuaTest(true), Lua.MASKCOUNT, 100);
+    L.loadFile("speed/fannkuch.lua");
+    int status = L.pcall(0, 0, null);
+    assertTrue("status not 0", status != 0);
+    assertTrue("status not Lua.YIELD", status != Lua.YIELD);
+    assertTrue("error value is a string",
+        L.value(-1) instanceof String);
+    String s = (String)L.value(-1);
+    assertTrue("error message contains spong", s.indexOf("spong") >= 0);
+
+    LuaTest hook = new LuaTest(false);
+    L.setHook(hook, Lua.MASKCOUNT, 100);
+    L.loadFile("speed/fannkuch.lua");
+    status = L.pcall(0, 0, null);
+    assertTrue("status is 0", status == 0);
+    assertTrue("hook ran many times", hook.n > 99);
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -154,6 +205,10 @@ public class LuaTest extends JiliTestCase
     suite.addTest(new LuaTest("testLua5")
       {
         public void runTest() { testLua5(); }
+      });
+    suite.addTest(new LuaTest("testlua6")
+      {
+        public void runTest() { testlua6(); }
       });
     return suite;
   }

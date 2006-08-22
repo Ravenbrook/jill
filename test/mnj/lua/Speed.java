@@ -14,9 +14,7 @@ final class Speed
     System.out.println(Speed.report());
   }
 
-  static String report()
-  {
-    String[] script =  {
+  static final String[] script = {
         "fannkuch",
         "nbody",
         "nsieve",
@@ -25,6 +23,8 @@ final class Speed
         "spectralnorm",
     };
 
+  static String report()
+  {
     long t[] = new long[script.length];
 
     for (int i=0; i < script.length; ++i)
