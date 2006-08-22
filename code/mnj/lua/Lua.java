@@ -3648,7 +3648,20 @@ reentry:
       base = func + 1;
       inc_ci(func, base, stack.size()+MINSTACK, r);
       // :todo: call hook
-      int n = fj.luaFunction(this);
+      int n = 99;
+      try
+      {
+        n = fj.luaFunction(this);
+      }
+      catch (LuaError e)
+      {
+        throw e;
+      }
+      catch (RuntimeException e)
+      {
+        yield(0);
+        throw e;
+      }
       if (n < 0)        // yielding?
       {
         return PCRYIELD;
