@@ -18,7 +18,7 @@ package mnj.lua;
 /**
  * Equivalent of lua_Hook.  Callback for debug hooks.
  */
-interface Hook
+public interface Hook
 {
   public int luaHook(Lua L, Debug ar);
 }
