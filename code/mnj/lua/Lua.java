@@ -69,7 +69,7 @@ public final class Lua
   public static final String VERSION = "Lua 5.1 (Jili 0.X.Y)";
 
   /** Table of globals (global variables).  This actually shared across
-   * all coroutines (with the same main thread), but kept in each Lua
+   * all threads (with the same main thread), but kept in each Lua
    * thread as an optimisation.
    */
   private LuaTable global;
@@ -126,7 +126,7 @@ public final class Lua
   private Object errfunc;
 
   /**
-   * coroutine activation status.
+   * thread activation status.
    */
   private int status;
 
@@ -134,7 +134,7 @@ public final class Lua
    * exception is a Lua error). */
   private static final String LUA_ERROR = "";
 
-  /** Metatable for primitive types.  Shared between all coroutines. */
+  /** Metatable for primitive types.  Shared between all threads. */
   private LuaTable[] metatable;
 
   /**
@@ -157,7 +157,7 @@ public final class Lua
    */
   private Lua(Lua L)
   {
-    // Copy the global state, that's shared across all coroutines that
+    // Copy the global state, that's shared across all threads that
     // share the same main thread, into the new Lua thread.
     // Any more than this and the global state should be shunted to a
     // separate object (as it is in PUC-Rio).
@@ -231,7 +231,7 @@ public final class Lua
   public static final int MINSTACK = 20;
 
   /** Status code, returned from pcall and friends, that indicates the
-   * coroutine has yielded.
+   * thread has yielded.
    */
   public static final int YIELD         = 1;
   /** Status code, returned from pcall and friends, that indicates
@@ -1080,8 +1080,11 @@ public final class Lua
   }
 
   /**
-   * Starts and resumes a coroutine.
-   * @param narg  Number of values to pass to coroutine.
+   * Starts and resumes a Lua thread.  Threads can be created using
+   * {@link Lua#newThread}.  Once a thread has begun executing it will
+   * run until it either completes (with error or normally) or has been
+   * suspended by invoking {@link Lua#yield}.
+   * @param narg  Number of values to pass to thread.
    * @return Lua.YIELD, 0, or an error code.
    */
   public int resume(int narg)
@@ -1499,9 +1502,15 @@ protect:
   }
 
   /**
-   * Yields a coroutine.  Should only be called as the return expression
+   * Yields a thread.  Should only be called as the return expression
    * of a Lua Java function: <code>return L.yield(nresults);</code>.
-   * @param nresults  Number of results to return to L.resume.
+   * A {@link RuntimeException} can also be thrown to yield.  If the
+   * Java code that is executing throws an instance of {@link
+   * RuntimeException} (direct or indirect) then this causes the Lua 
+   * thread to be suspended, as if <code>L.yield(0);</code> had been
+   * executed, and the exception is re-thrown to the code that invoked
+   * {@link Lua#resume}.
+   * @param nresults  Number of results to return to {@link Lua#resume}.
    * @return  a secret value.
    */
   public int yield(int nresults)
