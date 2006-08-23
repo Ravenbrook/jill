@@ -77,19 +77,15 @@ public class ObjectModelTest extends TestCase
     Proto p = new Proto(new Object[0],
         new int[0],
         new Proto[0],
-        2,
+        0,
         0,
         false,
         0);
-    UpVal[] upval = new UpVal[2];
     Vector v;
     v = new Vector();
     v.setSize(1);
-    upval[0] = new UpVal(v, 0);
-    v = new Vector();
-    v.setSize(2);
-    upval[1] = new UpVal(v, 1);
-    LuaFunction f = new LuaFunction(p, upval, new LuaTable());
+
+    LuaFunction f = new LuaFunction(p, new UpVal[0], new LuaTable());
     assertNotNull(f);
 
     // Check that the type is correct, according to the API.
@@ -103,8 +99,6 @@ public class ObjectModelTest extends TestCase
     assertTrue(!Lua.isUserdata(f));
 
     assertSame("{Proto passed, Proto returned}", p, f.proto());
-    assertSame("{upval[0], f.upVal(0)}", upval[0], f.upVal(0));
-    assertSame("{upval[1], f.upVal(1)}", upval[1], f.upVal(1));
 
     LuaTable e = new LuaTable();
     f.setEnv(e);

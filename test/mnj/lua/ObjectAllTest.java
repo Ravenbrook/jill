@@ -18,8 +18,6 @@ public class ObjectAllTest extends TestCase
 
     t = new ObjectModelTest();
     suite.addTest(t.suite());
-    t = new UpValTest();
-    suite.addTest(t.suite());
 
     return suite;
   }

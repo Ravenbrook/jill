@@ -34,27 +34,33 @@ import java.util.Vector;
  */
 final class UpVal
 {
-  private Vector a;
+  // An open UpVal (referencing the VM stack) has valid L and offset
+  // fields, v is null.
+  // A closed UpVal has a valid v field, L is null.
+  // (L == null) is used to characterise a closed UpVal.
+  private Lua L;
   private int offset;
+  private Object v;
+
   /**
-   * A fresh upvalue from a Vector and an offset.
-   * @param a  Vector of Lua values (usually the VM stack).
-   * @param offset index into vector, must be a valid index.
-   * @throws NullPointerException if a is null.
+   * A fresh upvalue from a Lua state and an offset.
+   * @param L The Lua thread.
+   * @param offset index into Lua thread's VM stack, must be a valid index.
+   * @throws NullPointerException if L is null.
    * @throws IllegalArgumentException if offset is negative or too big.
    */
-  UpVal(Vector a, int offset)
+  UpVal(Lua L, int offset)
   {
-    if (null == a)
+    if (null == L)
     {
       throw new NullPointerException();
     }
-    if (offset < 0 || offset >= a.size())
+    if (offset < 0 || offset >= L.stack().length)
     {
       throw new IllegalArgumentException();
     }
 
-    this.a = a;
+    this.L = L;
     this.offset = offset;
   }
 
@@ -63,15 +69,26 @@ final class UpVal
    */
   Object getValue()
   {
-    return a.elementAt(offset);
+    if (L == null)
+    {
+      return v;
+    }
+    return L.stack()[offset];
   }
+
   /**
    * Setter for underlying value.
    */
   void setValue(Object o)
   {
-    a.setElementAt(o, offset);
+    if (L == null)
+    {
+      v = o;
+      return;
+    }
+    L.stack()[offset] = o;
   }
+
   /**
    * The stack offset.
    */
@@ -90,9 +107,8 @@ final class UpVal
    */
   void close()
   {
-    Object o = getValue();
-    a = new Vector(1, 0);
-    a.addElement(o);
-    offset = 0;
+    v = getValue();
+    L = null;
+    offset = -1;
   }
 }

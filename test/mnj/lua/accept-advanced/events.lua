@@ -42,7 +42,10 @@ end
 t.__index = f
 
 a.parent = {z=25, x=12, [4] = 24}
-assert(a[1] == 10 and a.z == 28 and a[4] == 27 and a.x == "10")
+assert(a[1] == 10)
+assert(a.z == 28)
+assert(a[4] == 27)
+assert(a.x == "10")
 
 collectgarbage()
 

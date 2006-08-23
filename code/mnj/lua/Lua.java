@@ -81,8 +81,16 @@ public final class Lua
   private Lua main;
 
   /** VM data stack. */
-  private Vector stack = new Vector();
+  private Object[] stack = new Object[0];
+  /** Accessor only required by {@link UpVal}.  Do not use anywhere
+   * else. */
+  Object[] stack()
+  {
+    return stack;
+  }
+  private int stackSize;        // = 0;
   private int base;     // = 0;
+
   int nCcalls;  // = 0;
   /** Instruction to resume execution at.  Index into code array. */
   private int savedpc;  // = 0;
@@ -329,7 +337,7 @@ public final class Lua
   public void call(int nargs, int nresults)
   {
     apiChecknelems(nargs+1);
-    int func = stack.size() - (nargs + 1);
+    int func = stackSize - (nargs + 1);
     this.vmCall(func, nresults);
   }
 
@@ -352,7 +360,7 @@ public final class Lua
     apiChecknelems(n);
     if (n >= 2)
     {
-      vmConcat(n, (stack.size() - base) - 1);
+      vmConcat(n, (stackSize - base) - 1);
       pop(n-1);
     }
     else if (n == 0)          // push empty string
@@ -561,7 +569,7 @@ public final class Lua
    */
   public int getTop()
   {
-    return stack.size() - base;
+    return stackSize - base;
   }
 
   /**
@@ -573,7 +581,7 @@ public final class Lua
   public void insert(Object o, int idx)
   {
     idx = absIndexUnclamped(idx);
-    stack.insertElementAt(o, idx);
+    stackInsertAt(o, idx);
   }
 
   /**
@@ -902,7 +910,7 @@ public final class Lua
   public int pcall(int nargs, int nresults, Object ef)
   {
     apiChecknelems(nargs+1);
-    int restoreStack = stack.size() - (nargs + 1);
+    int restoreStack = stackSize - (nargs + 1);
     // Most of this code comes from luaD_pcall
     int restoreCi = civ.size();
     int oldnCcalls = nCcalls;
@@ -940,7 +948,7 @@ public final class Lua
     {
       throw new IllegalArgumentException();
     }
-    stacksetsize(stack.size() - n);
+    stacksetsize(stackSize - n);
   }
 
   /**
@@ -953,7 +961,7 @@ public final class Lua
    */
   public void push(Object o)
   {
-    stack.addElement(o);
+    stackAdd(o);
   }
 
   /**
@@ -1102,7 +1110,7 @@ protect:
     try
     {
       // This block is equivalent to resume from ldo.c
-      int firstArg = stack.size() - narg;
+      int firstArg = stackSize - narg;
       if (status == 0)  // start coroutine?
       {
         // assert civ.size() == 1 && firstArg > base);
@@ -1128,8 +1136,8 @@ protect:
     catch (LuaError e)
     {
       status = e.errorStatus;   // mark thread as 'dead'
-      dSeterrorobj(e.errorStatus, stack.size());
-      ci().setTop(stack.size());
+      dSeterrorobj(e.errorStatus, stackSize);
+      ci().setTop(stackSize);
     }
     return status;
   }
@@ -1371,7 +1379,7 @@ protect:
     {
       return TNONE;
     }
-    Object o = stack.elementAt(idx);
+    Object o = stack[idx];
     return type(o);
   }
 
@@ -1445,7 +1453,7 @@ protect:
     {
       return NIL;
     }
-    return stack.elementAt(idx);
+    return stack[idx];
   }
 
   /**
@@ -1517,7 +1525,7 @@ protect:
   {
     if (nCcalls > 0)
       gRunerror("attempt to yield across metamethod/Java-call boundary");
-    base = stack.size() - nresults;     // protect stack slots below
+    base = stackSize - nresults;     // protect stack slots below
     status = YIELD;
     return -1;
   }
@@ -1529,7 +1537,7 @@ protect:
    */
   private int absIndex(int idx)
   {
-    int s = stack.size();
+    int s = stackSize;
 
     if (idx == 0)
     {
@@ -1567,7 +1575,7 @@ protect:
       return base + idx - 1;
     }
     // idx < 0
-    return stack.size() + idx;
+    return stackSize + idx;
   }
 
 
@@ -1586,7 +1594,7 @@ protect:
 
   private void apiChecknelems(int n)
   {
-    apiCheck(n <= stack.size() - base);
+    apiCheck(n <= stackSize - base);
   }
 
   /**
@@ -2019,7 +2027,7 @@ protect:
     if (ar.ici() > 0)   // no tail call?
     {
       callinfo = (CallInfo)civ.elementAt(ar.ici());
-      f = stack.elementAt(callinfo.function());
+      f = stack[callinfo.function()];
       // assert isFunction(f);
     }
     boolean status = auxgetinfo(what, ar, f, callinfo);
@@ -2125,7 +2133,7 @@ protect:
     }
     else
     {
-      Object faso = stack.elementAt(ci.function());
+      Object faso = stack[ci.function()];
       LuaFunction f = (LuaFunction)faso;
       return f.proto().getline(pc);
     }
@@ -2166,7 +2174,7 @@ protect:
   /** Equivalent to macro isLua _and_ f_isLua from lstate.h. */
   private boolean isLua(CallInfo callinfo)
   {
-    Object f = stack.elementAt(callinfo.function());
+    Object f = stack[callinfo.function()];
     return f instanceof LuaFunction;
   }
 
@@ -2189,7 +2197,7 @@ protect:
     Hook hook = this.hook;
     if (hook != null && allowhook)
     {
-      int top = stack.size();
+      int top = stackSize;
       int ci_top = ci().top();
       int ici = civ.size() - 1;
       if (event == HOOKTAILRET) // not supported yet
@@ -2199,37 +2207,37 @@ protect:
       Debug ar = new Debug(ici);
       ar.setEvent(event);
       ar.setCurrentline(line);
-      ci().setTop(stack.size());
+      ci().setTop(stackSize);
       allowhook = false;        // cannot call hooks inside a hook
       hook.luaHook(this, ar);
       //# assert !allowhook
       allowhook = true;
       ci().setTop(ci_top);
-      stack.setSize(top);
+      stacksetsize(top);
     }
   }
 
   /** Equivalent to luaD_seterrorobj.  It is valid for oldtop to be
-   * equal to the current stack size (<code>stack.size()</code>).
+   * equal to the current stack size (<code>stackSize</code>).
    * {@link Lua#resume} uses this value for oldtop.
    */
   private void dSeterrorobj(int errcode, int oldtop)
   {
-    Object msg = stack.lastElement();
-    if (stack.size() == oldtop)
+    Object msg = stack[stackSize-1];
+    if (stackSize == oldtop)
     {
       stacksetsize(oldtop + 1);
     }
     switch (errcode)
     {
       case ERRERR:
-        stack.setElementAt("error in error handling", oldtop);
+        stack[oldtop] = "error in error handling";
         break;
 
       case ERRFILE:
       case ERRRUN:
       case ERRSYNTAX:
-        stack.setElementAt(msg, oldtop);
+        stack[oldtop] = msg;
         break;
     }
     stacksetsize(oldtop+1);
@@ -2287,7 +2295,7 @@ protect:
     }
     // i points to be position _after_ which we want to insert a new
     // UpVal (it's -1 when we want to insert at the beginning).
-    UpVal uv = new UpVal(stack, idx);
+    UpVal uv = new UpVal(this, idx);
     openupval.insertElementAt(uv, i+1);
     return uv;
   }
@@ -2317,15 +2325,15 @@ protect:
     gTypeerror(RK(f2), "perform arithmetic on");
   }
 
-  /** p1 and p2 are absolute stack indexes. */
+  /** <var>p1</var> and <var>p2</var> are absolute stack indexes. */
   private void gConcaterror(int p1, int p2)
   {
-    if (stack.elementAt(p1) instanceof String)
+    if (stack[p1] instanceof String)
     {
       p1 = p2;
     }
     // assert !(p1 instanceof String);
-    gTypeerror(stack.elementAt(p1), "concatenate");
+    gTypeerror(stack[p1], "concatenate");
   }
 
   boolean gCheckcode(Proto p)
@@ -2344,7 +2352,7 @@ protect:
         dThrow(ERRERR);
       }
       insert(errfunc, getTop());        // push function (under error arg)
-      vmCall(stack.size()-2, 1);        // call it
+      vmCall(stackSize-2, 1);        // call it
     }
     dThrow(ERRRUN);
     // NOTREACHED
@@ -2639,7 +2647,7 @@ protect:
     {
       return k[field & 0xff];
     }
-    return stack.elementAt(base + field);
+    return stack[base + field];
   }
 
   /**
@@ -2649,7 +2657,7 @@ protect:
    */
   private Object RK(int field)
   {
-    LuaFunction function = (LuaFunction)stack.elementAt(ci().function());
+    LuaFunction function = (LuaFunction)stack[ci().function()];
     Object[] k = function.proto().constant();
     return RK(k, field);
   }
@@ -2770,18 +2778,18 @@ protect:
       int n = 2;  // number of elements handled in this pass (at least 2)
       if (!tostring(top-2)|| !tostring(top-1))
       {
-        if (!call_binTM(stack.elementAt(top-2), stack.elementAt(top-1),
+        if (!call_binTM(stack[top-2], stack[top-1],
             top-2, "__concat"))
         {
           gConcaterror(top-2, top-1);
         }
       }
-      else if (((String)stack.elementAt(top-1)).length() > 0)
+      else if (((String)stack[top-1]).length() > 0)
       {
-        int tl = ((String)stack.elementAt(top-1)).length();
+        int tl = ((String)stack[top-1]).length();
         for (n = 1; n < total && tostring(top-n-1); ++n)
         {
-          tl += ((String)stack.elementAt(top-n-1)).length();
+          tl += ((String)stack[top-n-1]).length();
           if (tl < 0)
           {
             gRunerror("string length overflow");
@@ -2790,9 +2798,9 @@ protect:
         StringBuffer buffer = new StringBuffer(tl);
         for (int i=n; i>0; i--)         // concat all strings
         {
-          buffer.append(stack.elementAt(top-i));
+          buffer.append(stack[top-i]);
         }
-        stack.setElementAt(buffer.toString(), top-n);
+        stack[top-n] = buffer.toString();
       }
       total -= n-1;     // got n strings to create 1 new
       last -= n-1;
@@ -2859,8 +2867,8 @@ protect:
 reentry:
     while (true)
     {
-      // assert stack.elementAt[ci.function()] instanceof LuaFunction;
-      LuaFunction function = (LuaFunction)stack.elementAt(ci().function());
+      // assert stack[ci.function()] instanceof LuaFunction;
+      LuaFunction function = (LuaFunction)stack[ci().function()];
       Proto proto = function.proto();
       int[] code = proto.code();
       Object[] k = proto.constant();
@@ -2896,13 +2904,13 @@ reentry:
         switch (OPCODE(i))
         {
           case OP_MOVE:
-            stack.setElementAt(stack.elementAt(base+ARGB(i)), base+a);
+            stack[base+a] = stack[base+ARGB(i)];
             continue;
           case OP_LOADK:
-            stack.setElementAt(k[ARGBx(i)], base+a);
+            stack[base+a] = k[ARGBx(i)];
             continue;
           case OP_LOADBOOL:
-            stack.setElementAt(valueOfBoolean(ARGB(i) != 0), base+a);
+            stack[base+a] = valueOfBoolean(ARGB(i) != 0);
             if (ARGC(i) != 0)
             {
               ++pc;
@@ -2913,44 +2921,53 @@ reentry:
             int b = base + ARGB(i);
             do
             {
-              stack.setElementAt(NIL, b--);
+              stack[b--] = NIL;
             } while (b >= base + a);
             continue;
           }
           case OP_GETUPVAL:
           {
             int b = ARGB(i);
-            stack.setElementAt(function.upVal(b).getValue(), base+a);
+            stack[base+a] = function.upVal(b).getValue();
             continue;
           }
           case OP_GETGLOBAL:
             rb = k[ARGBx(i)];
             // assert rb instance of String;
             savedpc = pc; // Protect
-            stack.setElementAt(vmGettable(function.getEnv(), rb), base+a);
+            {
+              // :stack:temp:
+              // Extra local avoids the problem of the member variable
+              // 'stack' changing during the evaluation of vmGettable.
+              // Which would otherwise cause a bug.
+              Object t = vmGettable(function.getEnv(), rb);
+              stack[base+a] = t;
+            }
             continue;
           case OP_GETTABLE:
           {
             savedpc = pc; // Protect
-            Object t = stack.elementAt(base+ARGB(i));
-            stack.setElementAt(vmGettable(t, RK(k, ARGC(i))), base+a);
+            Object t = stack[base+ARGB(i)];
+            // See :stack:temp (in OP_GETGLOBAL) for why extra temp is used.
+            t = vmGettable(t, RK(k, ARGC(i)));
+            stack[base+a] = t;
             continue;
           }
           case OP_SETUPVAL:
           {
             UpVal uv = function.upVal(ARGB(i));
-            uv.setValue(stack.elementAt(base+a));
+            uv.setValue(stack[base+a]);
             continue;
           }
           case OP_SETGLOBAL:
             savedpc = pc; // Protect
             vmSettable(function.getEnv(), k[ARGBx(i)],
-                stack.elementAt(base+a));
+                stack[base+a]);
             continue;
           case OP_SETTABLE:
           {
             savedpc = pc; // Protect
-            Object t = stack.elementAt(base+a);
+            Object t = stack[base+a];
             vmSettable(t, RK(k, ARGB(i)), RK(k, ARGC(i)));
             continue;
           }
@@ -2959,16 +2976,18 @@ reentry:
             // :todo: use the b and c hints, currently ignored.
             int b = ARGB(i);
             int c = ARGC(i);
-            stack.setElementAt(new LuaTable(), base+a);
+            stack[base+a] = new LuaTable();
             continue;
           }
           case OP_SELF:
           {
             int b = ARGB(i);
-            rb = stack.elementAt(base+b);
-            stack.setElementAt(rb, base+a+1);
+            rb = stack[base+b];
+            stack[base+a+1] = rb;
             savedpc = pc; // Protect
-            stack.setElementAt(vmGettable(rb, RK(k, ARGC(i))), base+a);
+            // See :stack:temp (in OP_GETGLOBAL) for why extra temp is used.
+            Object t = vmGettable(rb, RK(k, ARGC(i)));
+            stack[base+a] = t;
             continue;
           }
           case OP_ADD:
@@ -2978,12 +2997,12 @@ reentry:
             {
               double sum = ((Double)rb).doubleValue() +
                   ((Double)rc).doubleValue();
-              stack.setElementAt(valueOfNumber(sum), base+a);
+              stack[base+a] = valueOfNumber(sum);
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double sum = NUMOP[0] + NUMOP[1];
-              stack.setElementAt(valueOfNumber(sum), base+a);
+              stack[base+a] = valueOfNumber(sum);
             }
             else if (!call_binTM(rb, rc, base+a, "__add"))
             {
@@ -2997,12 +3016,12 @@ reentry:
             {
               double difference = ((Double)rb).doubleValue() -
                   ((Double)rc).doubleValue();
-              stack.setElementAt(valueOfNumber(difference), base+a);
+              stack[base+a] = valueOfNumber(difference);
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double difference = NUMOP[0] - NUMOP[1];
-              stack.setElementAt(valueOfNumber(difference), base+a);
+              stack[base+a] = valueOfNumber(difference);
             }
             else if (!call_binTM(rb, rc, base+a, "__sub"))
             {
@@ -3016,12 +3035,12 @@ reentry:
             {
               double product = ((Double)rb).doubleValue() *
                 ((Double)rc).doubleValue();
-              stack.setElementAt(valueOfNumber(product), base+a);
+              stack[base+a] = valueOfNumber(product);
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double product = NUMOP[0] * NUMOP[1];
-              stack.setElementAt(valueOfNumber(product), base+a);
+              stack[base+a] = valueOfNumber(product);
             }
             else if (!call_binTM(rb, rc, base+a, "__mul"))
             {
@@ -3035,12 +3054,12 @@ reentry:
             {
               double quotient = ((Double)rb).doubleValue() /
                 ((Double)rc).doubleValue();
-              stack.setElementAt(valueOfNumber(quotient), base+a);
+              stack[base+a] = valueOfNumber(quotient);
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double quotient = NUMOP[0] / NUMOP[1];
-              stack.setElementAt(valueOfNumber(quotient), base+a);
+              stack[base+a] = valueOfNumber(quotient);
             }
             else if (!call_binTM(rb, rc, base+a, "__div"))
             {
@@ -3055,12 +3074,12 @@ reentry:
               double db = ((Double)rb).doubleValue();
               double dc = ((Double)rc).doubleValue();
               double modulus = modulus(db, dc);
-              stack.setElementAt(valueOfNumber(modulus), base+a);
+              stack[base+a] = valueOfNumber(modulus);
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double modulus = modulus(NUMOP[0], NUMOP[1]);
-              stack.setElementAt(valueOfNumber(modulus), base+a);
+              stack[base+a] = valueOfNumber(modulus);
             }
             else if (!call_binTM(rb, rc, base+a, "__mod"))
             {
@@ -3074,12 +3093,12 @@ reentry:
             {
               double result = iNumpow(((Double)rb).doubleValue(),
                                       ((Double)rc).doubleValue());
-              stack.setElementAt(valueOfNumber(result), base+a);
+              stack[base+a] = valueOfNumber(result);
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double result = iNumpow(NUMOP[0], NUMOP[1]);
-              stack.setElementAt(valueOfNumber(result), base+a);
+              stack[base+a] = valueOfNumber(result);
             }
             else if (!call_binTM(rb, rc, base+a, "__pow"))
             {
@@ -3088,15 +3107,15 @@ reentry:
             continue;
           case OP_UNM:
           {
-            rb = stack.elementAt(base+ARGB(i));
+            rb = stack[base+ARGB(i)];
             if (rb instanceof Double)
             {
               double db = ((Double)rb).doubleValue();
-              stack.setElementAt(valueOfNumber(-db), base+a);
+              stack[base+a] = valueOfNumber(-db);
             }
             else if (tonumber(rb, NUMOP))
             {
-              stack.setElementAt(valueOfNumber(-NUMOP[0]), base+a);
+              stack[base+a] = valueOfNumber(-NUMOP[0]);
             }
             else if (!call_binTM(rb, rb, base+a, "__unm"))
             {
@@ -3106,22 +3125,22 @@ reentry:
           }
           case OP_NOT:
           {
-            Object ra = stack.elementAt(base+ARGB(i));
-            stack.setElementAt(valueOfBoolean(isFalse(ra)), base+a);
+            Object ra = stack[base+ARGB(i)];
+            stack[base+a] = valueOfBoolean(isFalse(ra));
             continue;
           }
           case OP_LEN:
-            rb = stack.elementAt(base+ARGB(i));
+            rb = stack[base+ARGB(i)];
             if (rb instanceof LuaTable)
             {
               LuaTable t = (LuaTable)rb;
-              stack.setElementAt(new Double(t.getn()), base+a);
+              stack[base+a] = new Double(t.getn());
               continue;
             }
             else if (rb instanceof String)
             {
               String s = (String)rb;
-              stack.setElementAt(new Double(s.length()), base+a);
+              stack[base+a] = new Double(s.length());
               continue;
             }
             savedpc = pc; // Protect
@@ -3141,7 +3160,7 @@ reentry:
             // converting each stack slot, but simply using
             // StringBuffer.append on whatever is there).
             vmConcat(c - b + 1, c);
-            stack.setElementAt(stack.elementAt(base+b), base+a);
+            stack[base+a] = stack[base+b];
             continue;
           }
           case OP_JMP:
@@ -3177,7 +3196,7 @@ reentry:
             ++pc;
             continue;
           case OP_TEST:
-            if (isFalse(stack.elementAt(base+a)) != (ARGC(i) != 0))
+            if (isFalse(stack[base+a]) != (ARGC(i) != 0))
             {
               // dojump
               pc += ARGsBx(code[pc]);
@@ -3185,10 +3204,10 @@ reentry:
             ++pc;
             continue;
           case OP_TESTSET:
-            rb = stack.elementAt(base+ARGB(i));
+            rb = stack[base+ARGB(i)];
             if (isFalse(rb) != (ARGC(i) != 0))
             {
-              stack.setElementAt(rb, base+a);
+              stack[base+a] = rb;
               // dojump
               pc += ARGsBx(code[pc]);
             }
@@ -3240,14 +3259,15 @@ reentry:
                 fClose(ci.base());
                 base = func + (fci.base() - pfunc);
                 int aux;        // loop index is used after loop ends
-                for (aux=0; pfunc+aux < stack.size(); ++aux)
+                for (aux=0; pfunc+aux < stackSize; ++aux)
                 {
                   // move frame down
-                  stack.setElementAt(stack.elementAt(pfunc+aux), func+aux);
+                  // :todo:@@ arraycopy?
+                  stack[func+aux] = stack[pfunc+aux];
                 }
                 stacksetsize(func+aux);        // correct top
-                // assert stack.size() == base + ((LuaFunction)stack.elementAt(func)).proto().maxstacksize();
-                ci.tailcall(base, stack.size());
+                // assert stackSize == base + ((LuaFunction)stack[func]).proto().maxstacksize();
+                ci.tailcall(base, stackSize);
                 dec_ci();       // remove new frame.
                 continue reentry;
               }
@@ -3286,19 +3306,19 @@ reentry:
           case OP_FORLOOP:
           {
             double step =
-                ((Double)stack.elementAt(base+a+2)).doubleValue();
+                ((Double)stack[base+a+2]).doubleValue();
             double idx =
-                ((Double)stack.elementAt(base+a)).doubleValue() + step;
+                ((Double)stack[base+a]).doubleValue() + step;
             double limit =
-                ((Double)stack.elementAt(base+a+1)).doubleValue();
+                ((Double)stack[base+a+1]).doubleValue();
             if ((0 < step && idx <= limit) ||
                 (step <= 0 && limit <= idx))
             {
               // dojump
               pc += ARGsBx(i);
               Object d = valueOfNumber(idx);
-              stack.setElementAt(d, base+a);    // internal index
-              stack.setElementAt(d, base+a+3);  // external index
+              stack[base+a] = d;        // internal index
+              stack[base+a+3] = d;      // external index
             }
             continue;
           }
@@ -3321,10 +3341,10 @@ reentry:
               gRunerror("'for' step must be a number");
             }
             double step =
-                ((Double)stack.elementAt(pstep)).doubleValue();
+                ((Double)stack[pstep]).doubleValue();
             double idx =
-                ((Double)stack.elementAt(init)).doubleValue() - step;
-            stack.setElementAt(new Double(idx), init);
+                ((Double)stack[init]).doubleValue() - step;
+            stack[init] = new Double(idx);
             // dojump
             pc += ARGsBx(i);
             continue;
@@ -3332,16 +3352,16 @@ reentry:
           case OP_TFORLOOP:
           {
             int cb = base+a+3;  // call base
-            stack.setElementAt(stack.elementAt(base+a+2), cb+2);
-            stack.setElementAt(stack.elementAt(base+a+1), cb+1);
-            stack.setElementAt(stack.elementAt(base+a), cb);
+            stack[cb+2] = stack[base+a+2];
+            stack[cb+1] = stack[base+a+1];
+            stack[cb] = stack[base+a];
             stacksetsize(cb+3);
             savedpc = pc; // Protect
             vmCall(cb, ARGC(i));
             stacksetsize(ci().top());
-            if (NIL != stack.elementAt(cb))     // continue loop
+            if (NIL != stack[cb])     // continue loop
             {
-              stack.setElementAt(stack.elementAt(cb), cb-1);
+              stack[cb-1] = stack[cb];
               // dojump
               pc += ARGsBx(code[pc]);
             }
@@ -3355,19 +3375,19 @@ reentry:
             boolean setstack = false;
             if (0 == n)
             {
-              n = (stack.size() - (base + a)) - 1;
+              n = (stackSize - (base + a)) - 1;
               setstack = true;
             }
             if (0 == c)
             {
               c = code[pc++];
             }
-            LuaTable t = (LuaTable)stack.elementAt(base+a);
+            LuaTable t = (LuaTable)stack[base+a];
             int last = ((c-1)*LFIELDS_PER_FLUSH) + n;
             // :todo: consider expanding space in table
             for (; n > 0; n--)
             {
-              Object val = stack.elementAt(base+a+n);
+              Object val = stack[base+a+n];
               t.putnum(last--, val);
             }
             if (setstack)
@@ -3398,7 +3418,7 @@ reentry:
               }
             }
             LuaFunction nf = new LuaFunction(p, up, function.getEnv());
-            stack.setElementAt(nf, base+a);
+            stack[base+a] = nf;
             continue;
           }
           case OP_VARARG:
@@ -3417,12 +3437,13 @@ reentry:
             {
               if (j < n)
               {
-                Object src = stack.elementAt(base - n + j);
-                stack.setElementAt(src, base+a+j);
+                // :todo:@@ arraycopy?
+                Object src = stack[base - n + j];
+                stack[base+a+j] = src;
               }
               else
               {
-                stack.setElementAt(NIL, base+a+j);
+                stack[base+a+j] = NIL;
               }
             }
             continue;
@@ -3581,12 +3602,13 @@ reentry:
     savedpc = cci.savedpc();
     // Move results (and pad with nils to required number if necessary)
     int i = wanted;
-    int top = stack.size();
+    int top = stackSize;
     // The movement is always downwards, so copying from the top-most
     // result first is always correct.
     while (i != 0 && firstResult < top)
     {
-      stack.setElementAt(stack.elementAt(firstResult++), res++);
+      // :todo: @@ arraycopy?
+      stack[res++] = stack[firstResult++];
       i--;
     }
     if (i > 0)
@@ -3599,7 +3621,7 @@ reentry:
     // code works regardless of what Lua.NIL is.
     while (i-- > 0)
     {
-      stack.setElementAt(NIL, res++);
+      stack[res++] = NIL;
     }
     stacksetsize(res);
     return wanted != MULTRET;
@@ -3614,7 +3636,7 @@ reentry:
   private int vmPrecall(int func, int r)
   {
     Object faso;        // Function AS Object
-    faso = stack.elementAt(func);
+    faso = stack[func];
     if (!isFunction(faso))
     {
       faso = tryfuncTM(func);
@@ -3629,7 +3651,7 @@ reentry:
       if (!p.isVararg())
       {
         base = func + 1;
-        if (stack.size() > base + p.numparams())
+        if (stackSize > base + p.numparams())
         {
           // trim stack to the argument list
           stacksetsize(base + p.numparams());
@@ -3637,7 +3659,7 @@ reentry:
       }
       else
       {
-        int nargs = (stack.size() - func) - 1;
+        int nargs = (stackSize - func) - 1;
         base = adjust_varargs(p, nargs);
       }
 
@@ -3655,7 +3677,7 @@ reentry:
       LuaJavaCallback fj = (LuaJavaCallback)faso;
       // :todo: checkstack (not sure it's necessary)
       base = func + 1;
-      inc_ci(func, base, stack.size()+MINSTACK, r);
+      inc_ci(func, base, stackSize+MINSTACK, r);
       // :todo: call hook
       int n = 99;
       try
@@ -3677,7 +3699,7 @@ reentry:
       }
       else
       {
-        vmPoscall(stack.size() - n);
+        vmPoscall(stackSize - n);
         return PCRJ;
       }
     }
@@ -3766,17 +3788,18 @@ reentry:
     int nfixargs = p.numparams();
     for (; actual < nfixargs; ++actual)
     {
-      stack.addElement(NIL);
+      stackAdd(NIL);
     }
     // PUC-Rio's LUA_COMPAT_VARARG is not supported here.
 
     // Move fixed parameters to final position
-    int fixed = stack.size() - actual;  // first fixed argument
-    int newbase = stack.size(); // final position of first argument
+    int fixed = stackSize - actual;  // first fixed argument
+    int newbase = stackSize; // final position of first argument
     for (int i=0; i<nfixargs; ++i)
     {
-      stack.addElement(stack.elementAt(fixed+i));
-      stack.setElementAt(NIL, fixed+i);
+      // :todo: arraycopy?
+      stackAdd(stack[fixed+i]);
+      stack[fixed+i] = NIL;
     }
     return newbase;
   }
@@ -3798,7 +3821,7 @@ reentry:
     {
       return false;
     }
-    stack.setElementAt(callTMres(tm, p1, p2), res);
+    stack[res] = callTMres(tm, p1, p2);
     return true;
   }
 
@@ -3826,7 +3849,7 @@ reentry:
     push(p1);
     push(p2);
     push(p3);
-    vmCall(stack.size()-4, 0);
+    vmCall(stackSize-4, 0);
   }
 
   private Object callTMres(Object f, Object p1, Object p2)
@@ -3834,9 +3857,9 @@ reentry:
     push(f);
     push(p1);
     push(p2);
-    vmCall(stack.size()-3, 1);
+    vmCall(stackSize-3, 1);
 
-    Object res = stack.lastElement();
+    Object res = stack[stackSize-1];
     pop(1);
     return res;
   }
@@ -3891,20 +3914,52 @@ reentry:
   }
 
   /**
-   * Changes the stack size, padding with NIL where necessary.
+   * Changes the stack size, padding with NIL where necessary, and
+   * allocate a new stack array if necessary.
    */
   private void stacksetsize(int n)
   {
-    int old = stack.size();
-    stack.setSize(n);
+    // First implementation of this simply ensures that the stack array
+    // has at least the required size number of elements.
+    // :todo: consider policies where the stack may also shrink.
+    int old = stackSize;
+    if (n > stack.length)
+    {
+      int newLength = Math.max(n, 2 * stack.length);
+      Object[] newStack = new Object[newLength];
+      // Currently the stack only ever grows, so the number of items to
+      // copy is the length of the old stack.
+      int toCopy = stack.length;
+      System.arraycopy(stack, 0, newStack, 0, toCopy);
+      stack = newStack;
+    }
+    stackSize = n;
     if (n <= old)
     {
       return;
     }
     for (int i=old; i<n; ++i)
     {
-      stack.setElementAt(NIL, i);
+      stack[i] = NIL;
     }
+  }
+
+  /**
+   * Pushes a Lua value onto the stack.
+   */
+  private void stackAdd(Object o)
+  {
+    int i = stackSize;
+    stacksetsize(i+1);
+    stack[i] = o;
+  }
+
+  private void stackInsertAt(Object o, int i)
+  {
+    int n = stackSize - i;
+    stacksetsize(stackSize+1);
+    System.arraycopy(stack, i, stack, i+1, n);
+    stack[i] = o;
   }
 
   /**
@@ -3968,9 +4023,9 @@ reentry:
    */
   private boolean tonumber(int idx)
   {
-    if (tonumber(stack.elementAt(idx), NUMOP))
+    if (tonumber(stack[idx], NUMOP))
     {
-      stack.setElementAt(new Double(NUMOP[0]), idx);
+      stack[idx] = new Double(NUMOP[0]);
       return true;
     }
     return false;
@@ -4002,13 +4057,13 @@ reentry:
    */
   private boolean tostring(int idx)
   {
-    Object o = stack.elementAt(idx);
+    Object o = stack[idx];
     String s = vmTostring(o);
     if (s == null)
     {
       return false;
     }
-    stack.setElementAt(s, idx);
+    stack[idx] = s;
     return true;
   }
 
@@ -4018,12 +4073,12 @@ reentry:
    */
   private Object tryfuncTM(int func)
   {
-    Object tm = tagmethod(stack.elementAt(func), "__call");
+    Object tm = tagmethod(stack[func], "__call");
     if (!isFunction(tm))
     {
-      gTypeerror(stack.elementAt(func), "call");
+      gTypeerror(stack[func], "call");
     }
-    stack.insertElementAt(tm, func);
+    stackInsertAt(tm, func);
     return tm;
   }
 
@@ -4052,7 +4107,7 @@ reentry:
   private int resume_error(String msg)
   {
     stacksetsize(ci().base());
-    stack.addElement(msg);
+    stackAdd(msg);
     return ERRRUN;
   }
 
