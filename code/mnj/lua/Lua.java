@@ -88,6 +88,17 @@ public final class Lua
   {
     return stack;
   }
+  /**
+   * One more than the highest stack slot that has been written to
+   * (ever).
+   * Used by {@link Lua#stacksetsize} to determine which stack slots
+   * need nilling when growing the stack.
+   */
+  int stackhighwater;   // = 0;
+  /**
+   * Number of active elemements in {@link Lua#stack}.  Should always be
+   * <code><= stack.length</code>.
+   */
   private int stackSize;        // = 0;
   private int base;     // = 0;
 
@@ -3934,13 +3945,35 @@ reentry:
       stack = newStack;
     }
     stackSize = n;
+    // Nilling out.  The VM requires that fresh stack slots allocated
+    // for a new function activation are initialised to nil (which is
+    // Lua.NIL, which is not Java null).
+    // There are basically two approaches: nil out when the stack grows,
+    // or nil out when it shrinks.  Nilling out when the stack grows is
+    // slightly simpler, but nilling out when the stack shrinks means
+    // that semantic garbage is not retained by the GC.
+    // We nil out slots when the stack shrinks, but we also need to make
+    // sure they are nil initially.
+    // In order to avoid nilling the entire array when we allocate one
+    // we maintain a stackhighwater which is 1 more than that largest
+    // stack slot that has been nilled.  We use this to nil out stacks
+    // slow when we grow.
     if (n <= old)
     {
-      return;
+      // when shrinking
+      for(int i=n; i<old; ++i)
+      {
+        stack[i] = NIL;
+      }
     }
-    for (int i=old; i<n; ++i)
+    if (n > stackhighwater)
     {
-      stack[i] = NIL;
+      // when growing above stackhighwater for the first time
+      for (int i=stackhighwater; i<n; ++i)
+      {
+        stack[i] = NIL;
+      }
+      stackhighwater = n;
     }
   }
 
