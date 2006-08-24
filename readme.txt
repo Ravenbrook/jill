@@ -106,6 +106,21 @@ to adapt the build procedure.
 
 4. RELEASE NOTES
 
+RELEASE 0.13.0
+
+This release is a maintenance release.
+
+Lua threads can now be pre-empted by installing a hook.  See Lua.setHook
+and (more usefully probably) the example in test/mnj/lua/HookTest, the
+preempt method runs the scripts in the speed/ directory concurrently.
+
+A Lua thread can now be suspended by throwing an instance of
+java.lang.RuntimeException.  See the documentation for Lua.yield and the
+test program mnj.lua.LuaTest.test10.
+
+No other bugs have been fixed, nor have any new ones been discovered
+since release 0.12.0.
+
 
 RELEASE 0.12.0
 
