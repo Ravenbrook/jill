@@ -116,7 +116,7 @@ preempt method runs the scripts in the speed/ directory concurrently.
 
 A Lua thread can now be suspended by throwing an instance of
 java.lang.RuntimeException.  See the documentation for Lua.yield and the
-test program mnj.lua.LuaTest.test10.
+test program mnj.lua.CoroTest.test10.
 
 No other bugs have been fixed, nor have any new ones been discovered
 since release 0.12.0.
