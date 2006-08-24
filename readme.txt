@@ -106,6 +106,16 @@ to adapt the build procedure.
 
 4. RELEASE NOTES
 
+
+RELEASE 0.14.0
+
+This release is intended to improve the speed of execution of Lua
+scripts.
+
+Measurements taken by Ravenbrook, using SpeedMIDlet, indicate a speed
+increase over 0.13.0 of approximately 20% on the BlackBerry 8700g.
+
+
 RELEASE 0.13.0
 
 This release is a maintenance release.
