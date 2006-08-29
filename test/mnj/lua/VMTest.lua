@@ -24,3 +24,30 @@ function testindexnil()
   local t = {1,2,3}
   return t[nil]
 end
+
+-- Test #t a bit harder.
+function testlentable(N)
+  N = N or 999
+  local t={}
+  for i=1,N do
+    t[i]=i
+  end
+  for i=10,N do
+    t[i] = nil
+  end
+  return #t
+end
+
+-- Test table rehashing
+function testrehash(N)
+  local a = {}
+  N = N or 99
+  for i=N,-N,-1 do a[i] = i; end
+  a[10e30] = "alo"; a[true] = 10; a[false] = 20
+  for i=N,-N,-1 do
+    if a[i] ~= i then
+      return i
+    end
+  end
+  return true
+end

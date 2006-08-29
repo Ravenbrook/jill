@@ -15,13 +15,37 @@
 
 package mnj.lua;
 
+import java.util.Enumeration;
+
 /**
  * Class that models Lua's tables.  Each Lua table is an instance of
  * this class.
  */
 public final class LuaTable extends java.util.Hashtable
 {
-  private LuaTable metatable;
+  private static final int MAXBITS = 26;
+  private static final int MAXASIZE = 1 << MAXBITS;
+
+  private LuaTable metatable;   // = null;
+  /**
+   * Array used so that tables accessed like arrays are more efficient.
+   * All elements stored at an integer index, <var>i</var>, in the
+   * range [1,sizeArray] are stored at <code>array[i-1]</code>.
+   * This speed and space usage for array-like access.
+   * When the table is rehashed the array's size is chosen to be the
+   * largest power of 2 such that at least half the entries are
+   * occupied.
+   */
+  private Object[] array = new Object[0];
+  /**
+   * Equal to <code>array.length</code>.
+   */
+  private int sizeArray;        // = 0;
+  /**
+   * <code>true</code> whenever we are in the {@link LuaTable#rehash}
+   * method.  Avoids infinite rehash loops.
+   */
+  private boolean inrehash;     // = false;
 
   LuaTable()
   {
@@ -63,6 +87,178 @@ public final class LuaTable extends java.util.Hashtable
     return System.identityHashCode(this);
   }
 
+  private static int arrayindex(Object key)
+  {
+    if (key instanceof Double)
+    {
+      double d = ((Double)key).doubleValue();
+      int k = (int)d;
+      if (k == d)
+      {
+        return k;
+      }
+    }
+    return -1;  // 'key' did not match some condition
+  }
+
+  private static int computesizes(int[] nums, int[] narray)
+  {
+    final int t = narray[0];
+    int a = 0;  // number of elements smaller than 2^i
+    int na = 0; // number of elements to go to array part
+    int n = 0;  // optimal size for array part
+    int twotoi = 1;     // 2^i
+    for (int i=0; twotoi/2 < t; ++i)
+    {
+      if (nums[i] > 0)
+      {
+        a += nums[i];
+        if (a > twotoi/2)       // more than half elements present?
+        {
+          n = twotoi;   // optimal size (till now)
+          na = a;       // all elements smaller than n will go to array part
+        }
+      }
+      if (a == t)       // all elements already counted
+      {
+        break;
+      }
+      twotoi *= 2;
+    }
+    narray[0] = n;
+    //# assert narray[0]/2 <= na && na <= narray[0]
+    return na;
+  }
+
+  private int countint(Object key, int[] nums)
+  {
+    int k = arrayindex(key);
+    if (0 < k && k <= MAXASIZE) // is 'key' an appropriate array index?
+    {
+      ++nums[ceillog2(k)];      // count as such
+      return 1;
+    }
+    return 0;
+  }
+
+  private int numusearray(int[] nums)
+  {
+    int ause = 0;       // summation of 'nums'
+    int i = 1;  // count to traverse all array keys
+    int ttlg = 1;       // 2^lg
+    for(int lg = 0; lg <= MAXBITS; ++lg)        // for each slice
+    {
+      int lc = 0;       // counter
+      int lim = ttlg;
+      if (lim > sizeArray)
+      {
+        lim = sizeArray;        // adjust upper limit
+        if (i > lim)
+        {
+          break;        // no more elements to count
+        }
+      }
+      // count elements in range (2^(lg-1), 2^lg]
+      for (; i <= lim; ++i)
+      {
+        if (array[i-1] != Lua.NIL)
+        {
+          ++lc;
+        }
+      }
+      nums[lg] += lc;
+      ause += lc;
+      ttlg *= 2;
+    }
+    return ause;
+  }
+
+  private int numusehash(int[] nums, int[] pnasize)
+  {
+    int totaluse = 0;   // total number of elements
+    int ause = 0;       // summation of nums
+    Enumeration e;
+    e = super.keys();
+    while (e.hasMoreElements())
+    {
+      Object o =e. nextElement();
+      ause += countint(o, nums);
+      ++totaluse;
+    }
+    pnasize[0] += ause;
+    return totaluse;
+  }
+
+  /**
+   * @param nasize  (new) size of array part
+   */
+  private void resize(int nasize)
+  {
+    if (nasize == sizeArray)
+    {
+      return;
+    }
+    Object[] newarray = new Object[nasize];
+    if (nasize > sizeArray)     // array part must grow?
+    {
+      // The new array slots, from sizeArray to nasize-1, must
+      // be filled with their values from the hash part.
+      // There are two strategies:
+      // Iterate over the new array slots, and look up each index in the
+      // hash part to see if it has a value; or,
+      // Iterate over the hash part and see if each key belongs in the
+      // array part.
+      // For now we choose the first algorithm.
+      // :todo: consider using second algorithm, possibly dynamically.
+      System.arraycopy(array, 0, newarray, 0, array.length);
+      for (int i=array.length; i<nasize; ++i)
+      {
+        Object key = new Double(i+1);
+        Object v = super.remove(key);
+        if (v == null)
+        {
+          v = Lua.NIL;
+        }
+        newarray[i] = v;
+      }
+    }
+    if (nasize < sizeArray)     // array part must shrink?
+    {
+      // move elements from array slots nasize to sizeArray-1 to the
+      // hash part.
+      for (int i=nasize; i<sizeArray; ++i)
+      {
+        if (array[i] != Lua.NIL)
+        {
+          Object key = new Double(i+1);
+          super.put(key, array[i]);
+        }
+      }
+      System.arraycopy(array, 0, newarray, 0, newarray.length);
+    }
+    array = newarray;
+    sizeArray = array.length;
+  }
+
+  protected void rehash()
+  {
+    boolean oldinrehash = inrehash;
+    inrehash = true;
+    if (!oldinrehash)
+    {
+      int[] nasize = new int[1];
+      int[] nums = new int[MAXBITS+1];
+      nasize[0] = numusearray(nums);      // count keys in array part
+      int totaluse = nasize[0];
+      totaluse += numusehash(nums, nasize);
+      int na = computesizes(nums, nasize);
+
+      resize(nasize[0]);
+    }
+    super.rehash();
+    inrehash = oldinrehash;
+  }
+
   /**
    * Getter for metatable member.
    * @return  The metatable.
@@ -88,6 +284,7 @@ public final class LuaTable extends java.util.Hashtable
   /** Like get for numeric (integer) keys. */
   Object getnum(int k)
   {
+    // :todo: optimisation to try array directly.
     return getlua(new Double(k));
   }
 
@@ -110,9 +307,7 @@ public final class LuaTable extends java.util.Hashtable
     int i = 0;
     int j = 1;
     // Find 'i' and 'j' such that i is present and j is not.
-    // Note that this test goes to the superclass get method directly.
-    // This is unusual and only done in this case for speed.
-    while (super.get(new Double(j)) != null)
+    while (this.getlua(new Double(j)) != Lua.NIL)
     {
       i = j;
       j *= 2;
@@ -120,7 +315,7 @@ public final class LuaTable extends java.util.Hashtable
       {
         // Pathological case.  Linear search.
         i = 1;
-        while (super.get(new Double(i)) != null)
+        while (this.getlua(new Double(i)) != Lua.NIL)
         {
           ++i;
         }
@@ -131,7 +326,7 @@ public final class LuaTable extends java.util.Hashtable
     while (j - i > 1)
     {
       int m = (i+j)/2;
-      if (super.get(new Double(m)) == null)
+      if (this.getlua(new Double(m)) == Lua.NIL)
       {
         j = m;
       }
@@ -151,6 +346,16 @@ public final class LuaTable extends java.util.Hashtable
    */
   Object getlua(Object key)
   {
+    if (key instanceof Double)
+    {
+      double d = ((Double)key).doubleValue();
+      int i = (int)d;
+
+      if (i == d && i >= 1 && i <= sizeArray)
+      {
+        return array[i-1];
+      }
+    }
     Object r = super.get(key);
     if (r == null)
     {
@@ -167,25 +372,49 @@ public final class LuaTable extends java.util.Hashtable
    * And also that <code>t[nil]</code> raises an error.
    * Generally, users of Jili should be using
    * {@link Lua#setTable} instead of this.
-   * In Jili it is dangerous to use the return
-   * value from this method (because it may be <code>null</code> which
-   * is not a Lua value).
    * @param key key.
    * @param value value.
-   * @return something not well defined.
    */
-  Object putlua(Lua L, Object key, Object value)
+  void putlua(Lua L, Object key, Object value)
   {
+    boolean checkagain = false;
+    double d = 0.0;
+    int i = 0;
+
     if (key == Lua.NIL)
     {
       L.gRunerror("table index is nil");
     }
+    if (key instanceof Double)
+    {
+      d = ((Double)key).doubleValue();
+      i = (int)d;
+
+      if (i == d && i >= 1)
+      {
+        checkagain = true;
+        if (i <= sizeArray)
+        {
+          array[i-1] = value;
+          return;
+        }
+      }
+    }
     // :todo: Consider checking key for NaN (PUC-Rio does)
     if (value == Lua.NIL)
     {
-      return remove(key);
+      remove(key);
+      return;
     }
-    return super.put(key, value);
+    super.put(key, value);
+    // This check is necessary because sometimes the call to super.put
+    // can rehash and the new (k,v) pair should be in the array part
+    // after the rehash, but is still in the hash part.
+    if (checkagain && i <= sizeArray)
+    {
+      remove(key);
+      array[i-1] = value;
+    }
   }
 
   /**
@@ -206,5 +435,40 @@ public final class LuaTable extends java.util.Hashtable
   public Object put(Object key, Object value)
   {
     throw new IllegalArgumentException();
+  }
+  
+  /**
+   * Used by oLog2.  DO NOT MODIFY.
+   */
+  private static final byte[] LOG2 = new byte[] {
+    0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
+    6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+    7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+    8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+    8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+    8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,
+    8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8
+  };
+
+  /**
+   * Equivalent to luaO_log2.
+   */
+  private static int oLog2(int x)
+  {
+    //# assert x >= 0
+
+    int l = -1;
+    while (x >= 256)
+    {
+      l += 8;
+      x >>>= 8;
+    }
+    return l + LOG2[x];
+  }
+
+  private static int ceillog2(int x)
+  {
+    return oLog2(x-1)+1;
   }
 }

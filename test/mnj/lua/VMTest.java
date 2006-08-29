@@ -584,6 +584,21 @@ public class VMTest extends JiliTestCase
     assertTrue("Result is nil", L.isNil(L.value(-1)));
   }
 
+  public void testlentable()
+  {
+    Lua L = new Lua();
+    loadFileAndRun(L, "VMTest.lua", getName(), 1);
+    assertTrue("Result is 9", L.toNumber(L.value(-1)) == 9);
+  }
+
+  public void testrehash()
+  {
+    Lua L = new Lua();
+    loadFileAndRun(L, "VMTest.lua", getName(), 1);
+    assertTrue("Result is true",
+        L.value(-1).equals(L.valueOfBoolean(true)));
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -690,6 +705,14 @@ public class VMTest extends JiliTestCase
     suite.addTest(new VMTest("testindexnil")
       {
         public void runTest() { testindexnil(); }
+      });
+    suite.addTest(new VMTest("testlentable")
+      {
+        public void runTest() { testlentable(); }
+      });
+    suite.addTest(new VMTest("testrehash")
+      {
+        public void runTest() { testrehash(); }
       });
     return suite;
   }
