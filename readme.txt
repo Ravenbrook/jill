@@ -107,6 +107,17 @@ to adapt the build procedure.
 4. RELEASE NOTES
 
 
+RELEASE 0.15.0
+
+This release is intended to improve the speed of execution of Lua
+scripts.
+
+The implementation of tables has been revisied to improve the case when
+a Lua table is used like an array (many integer keys contiguous with 1).
+
+Some scripts run in 23% of the time they took in release 0.14.0.
+
+
 RELEASE 0.14.0
 
 This release is intended to improve the speed of execution of Lua
