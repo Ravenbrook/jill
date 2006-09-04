@@ -74,7 +74,7 @@ public class ObjectModelTest extends TestCase
   {
     System.out.println("ObjectModelTest.testFunction()");
 
-    Proto p = new Proto(new Object[0],
+    Proto p = new Proto(new Slot[0],
         new int[0],
         new Proto[0],
         0,

@@ -148,10 +148,10 @@ final class Loader
    * <code>proto</code> for the second half of
    * <code>LoadConstants</code>.
    */
-  private Object[] constant() throws IOException
+  private Slot[] constant() throws IOException
   {
     int n = intLoad();
-    Object[] k = new Object[n];
+    Slot[] k = new Slot[n];
 
     // Load each constant one by one.  We use the following values for
     // the Lua tagtypes (taken from <code>lua.h</code> from the PUC-Rio
@@ -161,13 +161,21 @@ final class Loader
     // LUA_TNUMBER      3
     // LUA_TSTRING      4
     // All other tagtypes are invalid
+
+    // :todo: Currently a new Slot is created for each constant.
+    // Consider a space optimisation whereby identical constants have
+    // the same Slot.  Constants are pooled per function anyway (so a
+    // function never has 2 identical constants), so would have to work
+    // across functions.  The easy cases of nil, true, false, might be
+    // worth doing since that doesn't require a global table.
+    // 
     for (int i=0; i<n; ++i)
     {
       int t = byteLoad();
       switch (t)
       {
         case 0: // LUA_TNIL
-          k[i] = Lua.NIL;
+          k[i] = new Slot(Lua.NIL);
           break;
 
         case 1: // LUA_TBOOLEAN
@@ -176,15 +184,15 @@ final class Loader
           if (b > 1)
             throw new IOException();
 
-          k[i] = Lua.valueOfBoolean(b != 0);
+          k[i] = new Slot(Lua.valueOfBoolean(b != 0));
           break;
 
         case 3: // LUA_TNUMBER
-          k[i] = number();
+          k[i] = new Slot(number());
           break;
 
         case 4: // LUA_TSTRING
-          k[i] = string();
+          k[i] = new Slot(string());
           break;
 
         default:
@@ -251,7 +259,7 @@ final class Loader
     boolean vararg;
     int maxstacksize;
     int[] code;
-    Object[] constant;
+    Slot[] constant;
     Proto[] proto;
 
     source = this.string();
@@ -488,6 +496,7 @@ final class Loader
     if (in.read() == -1)
       throw new EOFException() ;
 
+    // :todo: consider interning string.
     return new String(buf, "UTF-8");
   }
 

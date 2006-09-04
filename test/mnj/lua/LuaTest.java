@@ -153,6 +153,7 @@ public class LuaTest extends JiliTestCase implements Hook
    */
   public void testlua6()
   {
+    System.out.println(getName());
     Lua L = new Lua();
     BaseLib.open(L);
     MathLib.open(L);

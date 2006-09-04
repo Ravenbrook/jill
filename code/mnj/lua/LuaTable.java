@@ -293,6 +293,7 @@ public final class LuaTable extends java.util.Hashtable
    */
   void putnum(int k, Object v)
   {
+    // :todo: optimisation to try array directly.
     // The key can never be NIL so putlua will never notice that its L
     // argument is null.
     putlua(null, new Double(k), v);
@@ -365,6 +366,29 @@ public final class LuaTable extends java.util.Hashtable
   }
 
   /**
+   * Like {@link LuaTable#getlua(Object)} but the result is written into
+   * the <var>value</var> {@link Slot}.
+   */
+  void getlua(Slot key, Slot value)
+  {
+    if (key.r == Lua.NUMBER)
+    {
+      int i = (int)key.d;
+      if (i == key.d && i >= 1 && i <= sizeArray)
+      {
+        value.setObject(array[i-1]);
+        return;
+      }
+    }
+    Object r = super.get(key.asObject());
+    if (r == null)
+    {
+      r = Lua.NIL;
+    }
+    value.setObject(r);
+  }
+
+  /**
    * Like {@link java.util.Hashtable#put} but enables Lua's semantics
    * for <code>nil</code>;
    * In particular that <code>x = nil</nil>
@@ -415,6 +439,12 @@ public final class LuaTable extends java.util.Hashtable
       remove(key);
       array[i-1] = value;
     }
+  }
+
+  void putlua(Lua L, Slot key, Object value)
+  {
+    // :todo: consider optimising.
+    putlua(L, key.asObject(), value);
   }
 
   /**

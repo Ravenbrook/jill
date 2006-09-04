@@ -53,14 +53,14 @@ import java.util.Vector;
  * </p>
  *
  * <p>
- * The protocol for calling a function is described in the {@link Lua#call}
+ * The protocol for calling a function is described in the {@link #call}
  * method.  In brief: push the function onto the stack, then push the
  * arguments to the call.
  * </p>
  *
  * <p>
- * The methods {@link Lua#push}, {@link Lua#pop}, {@link Lua#value},
- * {@link Lua#getTop}, {@link Lua#setTop} are used to manipulate the stack.
+ * The methods {@link #push}, {@link #pop}, {@link #value},
+ * {@link #getTop}, {@link #setTop} are used to manipulate the stack.
  * </p>
  */
 public final class Lua
@@ -80,26 +80,26 @@ public final class Lua
    */
   private Lua main;
 
-  /** VM data stack. */
-  private Object[] stack = new Object[0];
-  /** Accessor only required by {@link UpVal}.  Do not use anywhere
-   * else. */
-  Object[] stack()
-  {
-    return stack;
-  }
+  /** VM data stack.
+   */
+  private Slot[] stack = new Slot[0];
   /**
    * One more than the highest stack slot that has been written to
    * (ever).
-   * Used by {@link Lua#stacksetsize} to determine which stack slots
+   * Used by {@link #stacksetsize} to determine which stack slots
    * need nilling when growing the stack.
    */
   int stackhighwater;   // = 0;
   /**
-   * Number of active elemements in {@link Lua#stack}.  Should always be
+   * Number of active elemements in the VM stack.  Should always be
    * <code><= stack.length</code>.
    */
   private int stackSize;        // = 0;
+  /**
+   * The base stack element for this stack frame.  If in a Lua function
+   * then this is the element indexed by operand field 0; if in a Java
+   * functipn then this is the element indexed by Lua.value(1).
+   */
   private int base;     // = 0;
 
   int nCcalls;  // = 0;
@@ -139,7 +139,7 @@ public final class Lua
   private static final int MAXTAGLOOP = 100;
 
   /**
-   * The current error handler (set by {@link Lua#pcall}).  A Lua
+   * The current error handler (set by {@link #pcall}).  A Lua
    * function to call.
    */
   private Object errfunc;
@@ -164,6 +164,17 @@ public final class Lua
   static final int MAXVARS = 200;
   static final int MAXSTACK = 250;
   static final int MAXUPVALUES = 60;
+
+  /**
+   * Stored in Slot.r to denote a numeric value (which is stored at 
+   * Slot.d).
+   */
+  static final Object NUMBER = new Object();
+
+  /**
+   * Spare Slot used for a temporary.
+   */
+  private static final Slot SPARE_SLOT = new Slot();
 
   /**
    * Registry key for loaded modules.
@@ -234,7 +245,7 @@ public final class Lua
    * last entry in the list of tags.
    */
   private static final int NUM_TAGS     = 9;
-  /** Names for above type tags, starting from {@link Lua#TNIL}.
+  /** Names for above type tags, starting from {@link #TNIL}.
    * Equivalent to luaT_typenames.
    */
   private static final String[] TYPENAME =
@@ -275,29 +286,29 @@ public final class Lua
   public static final int ERRFILE       = 6;
 
   // Enums for gc().
-  /** Action, passed to {@link Lua#gc}, that requests the GC to stop. */
+  /** Action, passed to {@link #gc}, that requests the GC to stop. */
   public static final int GCSTOP        = 0;
-  /** Action, passed to {@link Lua#gc}, that requests the GC to restart. */
+  /** Action, passed to {@link #gc}, that requests the GC to restart. */
   public static final int GCRESTART     = 1;
-  /** Action, passed to {@link Lua#gc}, that requests a full collection. */
+  /** Action, passed to {@link #gc}, that requests a full collection. */
   public static final int GCCOLLECT     = 2;
-  /** Action, passed to {@link Lua#gc}, that returns amount of memory
+  /** Action, passed to {@link #gc}, that returns amount of memory
    * (in Kibibytes) in use (by the entire Java runtime).
    */
   public static final int GCCOUNT       = 3;
-  /** Action, passed to {@link Lua#gc}, that returns the remainder of
+  /** Action, passed to {@link #gc}, that returns the remainder of
    * dividing the amount of memory in use by 1024.
    */
   public static final int GCCOUNTB      = 4;
-  /** Action, passed to {@link Lua#gc}, that requests an incremental
+  /** Action, passed to {@link #gc}, that requests an incremental
    * garbage collection be performed.
    */
   public static final int GCSTEP        = 5;
-  /** Action, passed to {@link Lua#gc}, that sets a new value for the
+  /** Action, passed to {@link #gc}, that sets a new value for the
    * <var>pause</var> of the collector.
    */
   public static final int GCSETPAUSE    = 6;
-  /** Action, passed to {@link Lua#gc}, that sets a new values for the
+  /** Action, passed to {@link #gc}, that sets a new values for the
    * <var>step multiplier</var> of the collector.
    */
   public static final int GCSETSTEPMUL  = 7;
@@ -317,7 +328,7 @@ public final class Lua
   private static final int MASKRET  = 1 << HOOKRET;
   private static final int MASKLINE = 1 << HOOKLINE;
   /**
-   * Bitmask that specifies count hook in call to {@link Lua#setHook}.
+   * Bitmask that specifies count hook in call to {@link #setHook}.
    */
   public static final int MASKCOUNT = 1 << HOOKCOUNT;
 
@@ -329,7 +340,7 @@ public final class Lua
    *
    * In order to call a function, the function must be
    * pushed onto the stack, then its arguments must be
-   * {@link Lua#push pushed} onto the stack; the first argument is pushed
+   * {@link #push pushed} onto the stack; the first argument is pushed
    * directly after the function,
    * then the following arguments are pushed in order (direct
    * order).  The parameter <var>nargs</var> specifies the number of
@@ -385,7 +396,7 @@ public final class Lua
    * @param narr  number of array elements to pre-allocate.
    * @param nrec  number of non-array elements to pre-allocate.
    * @return a fresh table.
-   * @see Lua#newTable
+   * @see #newTable
    */
   public LuaTable createTable(int narr, int nrec)
   {
@@ -418,7 +429,11 @@ public final class Lua
    */
   public boolean equal(Object o1, Object o2)
   {
-    return vmEqual(o1, o2);
+    if (o1 instanceof Double)
+    {
+      return o1.equals(o2);
+    }
+    return vmEqualRef(o1, o2);
   }
 
   /**
@@ -504,7 +519,7 @@ public final class Lua
    */
   public Object getField(Object t, String field)
   {
-    return vmGettable(t, field);
+    return getTable(t, field);
   }
 
   /**
@@ -514,7 +529,7 @@ public final class Lua
    */
   public Object getGlobal(String name)
   {
-    return vmGettable(global, name);
+    return getField(global, name);
   }
 
   /**
@@ -570,7 +585,10 @@ public final class Lua
    */
   public Object getTable(Object t, Object k)
   {
-    return vmGettable(t, k);
+    Slot s = new Slot(k);
+    Slot v = new Slot();
+    vmGettable(t, s, v);
+    return v.asObject();
   }
 
   /**
@@ -655,7 +673,8 @@ public final class Lua
    */
   public static boolean isNumber(Object o)
   {
-    return tonumber(o, NUMOP);
+    SPARE_SLOT.setObject(o);
+    return tonumber(SPARE_SLOT, NUMOP);
   }
 
   /**
@@ -739,7 +758,9 @@ public final class Lua
    */
   public boolean lessThan(Object o1, Object o2)
   {
-    return vmLessthan(o1, o2);
+    Slot a = new Slot(o1);
+    Slot b = new Slot(o2);
+    return vmLessthan(a, b);
   }
 
   /**
@@ -778,7 +799,7 @@ public final class Lua
    * java.io.Reader} parameter,
    * this method is restricted to loading Lua chunks in source form.
    * In every other respect this method is just like {@link
-   * Lua#load(InputStream, String)}.
+   * #load(InputStream, String)}.
    * @param in         The source chunk as a Reader, for example from
    *                   <code>java.io.InputStreamReader(Class.getResourceAsStream())</code>.
    * @param chunkname  The name of the chunk.
@@ -801,7 +822,7 @@ public final class Lua
    * <code>false</code> is returned.
    * @param idx  stack index of table.
    * @return  true if and only if there are more keys in the table.
-   * @deprecated Use {@link Lua#tableKeys} enumeration protocol instead.
+   * @deprecated Use {@link #tableKeys} enumeration protocol instead.
    */
   public boolean next(int idx)
   {
@@ -825,7 +846,7 @@ public final class Lua
     while (e.hasMoreElements())
     {
       Object k = e.nextElement();
-      if (k == key)
+      if (k.equals(key))
       {
         if (e.hasMoreElements())
         {
@@ -844,7 +865,7 @@ public final class Lua
   /**
    * Creates a new empty table and returns it.
    * @return a fresh table.
-   * @see Lua#createTable
+   * @see #createTable
    */
   public LuaTable newTable()
   {
@@ -899,10 +920,10 @@ public final class Lua
 
   /**
    * <p>
-   * Protected {@link Lua#call}.  <var>nargs</var> and
-   * <var>nresults</var> have the same meaning as in {@link Lua#call}.
+   * Protected {@link #call}.  <var>nargs</var> and
+   * <var>nresults</var> have the same meaning as in {@link #call}.
    * If there are no errors during the call, this method behaves as
-   * {@link Lua#call}.  Any errors are caught, the error object (usually
+   * {@link #call}.  Any errors are caught, the error object (usually
    * a message) is pushed onto the stack, and a non-zero error code is
    * returned.
    * </p>
@@ -964,14 +985,15 @@ public final class Lua
 
   /**
    * Pushes a value onto the stack in preparation for calling a
-   * function (or returning from one).  See {@link Lua#call} for
+   * function (or returning from one).  See {@link #call} for
    * the protocol to be used for calling functions.  See {@link
-   * Lua#pushNumber} for pushing numbers, and {@link Lua#pushValue} for
+   * #pushNumber} for pushing numbers, and {@link #pushValue} for
    * pushing a value that is already on the stack.
    * @param o  the Lua value to push.
    */
   public void push(Object o)
   {
+    // see also a private overloaded version of this for Slot.
     stackAdd(o);
   }
 
@@ -1000,11 +1022,12 @@ public final class Lua
   }
 
   /**
-   * Pushes a number onto the stack.  See also {@link Lua#push}.
+   * Pushes a number onto the stack.  See also {@link #push}.
    * @param d  the number to push.
    */
   public void pushNumber(double d)
   {
+    // :todo: optimise to avoid creating Double instance
     push(new Double(d));
   }
 
@@ -1024,6 +1047,7 @@ public final class Lua
    */
   public void pushValue(int idx)
   {
+    // :todo: optimised to avoid creating Double instance
     push(value(idx));
   }
 
@@ -1100,9 +1124,9 @@ public final class Lua
 
   /**
    * Starts and resumes a Lua thread.  Threads can be created using
-   * {@link Lua#newThread}.  Once a thread has begun executing it will
+   * {@link #newThread}.  Once a thread has begun executing it will
    * run until it either completes (with error or normally) or has been
-   * suspended by invoking {@link Lua#yield}.
+   * suspended by invoking {@link #yield}.
    * @param narg  Number of values to pass to thread.
    * @return Lua.YIELD, 0, or an error code.
    */
@@ -1202,7 +1226,8 @@ protect:
    */
   public void setField(Object t, String name, Object v)
   {
-    vmSettable(t, name, v);
+    Slot s = new Slot(name);
+    vmSettable(t, s, v);
   }
 
   /**
@@ -1244,7 +1269,8 @@ protect:
    */
   public void setGlobal(String name, Object value)
   {
-    vmSettable(global, name, value);
+    Slot s = new Slot(name);
+    vmSettable(global, s, value);
   }
 
   /**
@@ -1255,7 +1281,8 @@ protect:
    */
   public void setTable(Object t, Object k, Object v)
   {
-    vmSettable(t, k, v);
+    Slot s = new Slot(k);
+    vmSettable(t, s, v);
   }
 
   /**
@@ -1313,11 +1340,7 @@ protect:
    */
   public int toInteger(Object o)
   {
-    if (tonumber(o, NUMOP))
-    {
-      return (int)NUMOP[0];
-    }
-    return 0;
+    return (int)toNumber(o);
   }
 
   /**
@@ -1328,7 +1351,8 @@ protect:
    */
   public double toNumber(Object o)
   {
-    if (tonumber(o, NUMOP))
+    SPARE_SLOT.setObject(o);
+    if (tonumber(SPARE_SLOT, NUMOP))
     {
       return NUMOP[0];
     }
@@ -1381,7 +1405,7 @@ protect:
   /**
    * Type of the Lua value at the specified stack index.
    * @param idx  stack index to type.
-   * @return  the type, or {@link Lua#TNONE} if there is no value at <var>idx</var>
+   * @return  the type, or {@link #TNONE} if there is no value at <var>idx</var>
    */
   public int type(int idx)
   {
@@ -1390,8 +1414,16 @@ protect:
     {
       return TNONE;
     }
-    Object o = stack[idx];
-    return type(o);
+    return type(stack[idx]);
+  }
+
+  private int type(Slot s)
+  {
+    if (s.r == NUMBER)
+    {
+      return TNUMBER;
+    }
+    return type(s.r);
   }
 
   /**
@@ -1438,7 +1470,7 @@ protect:
 
   /**
    * Name of type.
-   * @param type  a Lua type from, for example, {@link Lua#type}.
+   * @param type  a Lua type from, for example, {@link #type}.
    * @return  the type's name.
    */
   public static String typeName(int type)
@@ -1453,7 +1485,7 @@ protect:
   /**
    * Gets a value from the stack.
    * If <var>idx</var> is positive and exceeds
-   * the size of the stack, {@link Lua#NIL} is returned.
+   * the size of the stack, {@link #NIL} is returned.
    * @param idx  the stack index of the value to retrieve.
    * @return  the Lua value from the stack.
    */
@@ -1464,7 +1496,7 @@ protect:
     {
       return NIL;
     }
-    return stack[idx];
+    return stack[idx].asObject();
   }
 
   /**
@@ -1528,8 +1560,8 @@ protect:
    * RuntimeException} (direct or indirect) then this causes the Lua 
    * thread to be suspended, as if <code>L.yield(0);</code> had been
    * executed, and the exception is re-thrown to the code that invoked
-   * {@link Lua#resume}.
-   * @param nresults  Number of results to return to {@link Lua#resume}.
+   * {@link #resume}.
+   * @param nresults  Number of results to return to {@link #resume}.
    * @return  a secret value.
    */
   public int yield(int nresults)
@@ -1571,8 +1603,8 @@ protect:
   }
 
   /**
-   * As {@link Lua#absIndex} but does not return -1 for out of range
-   * indexes.  Essential for {@link Lua#insert} because an index equal
+   * As {@link #absIndex} but does not return -1 for out of range
+   * indexes.  Essential for {@link #insert} because an index equal
    * to the size of the stack is valid for that call.
    */
   private int absIndexUnclamped(int idx)
@@ -1748,7 +1780,7 @@ protect:
   /**
    * Checks the type of an argument, raises error if not matching.
    * @param narg  argument index.
-   * @param t     typecode (from {@link Lua#type} for example).
+   * @param t     typecode (from {@link #type} for example).
    */
   public void checkType(int narg, int t)
   {
@@ -1761,7 +1793,7 @@ protect:
   /**
    * Loads and runs the given string.
    * @param s  the string to run.
-   * @return  a status code, as per {@link Lua#load}.
+   * @return  a status code, as per {@link #load}.
    */
   public int doString(String s)
   {
@@ -1849,7 +1881,7 @@ protect:
    * <code>Lua.class</code> file.  Pushes compiled chunk, or error
    * message, onto stack.
    * @param filename  location of file.
-   * @return status code, as per {@link Lua#load}.
+   * @return status code, as per {@link #load}.
    */
   public int loadFile(String filename)
   {
@@ -1886,7 +1918,7 @@ protect:
    * message, onto stack.
    * @param s           the string to load.
    * @param chunkname   the name of the chunk.
-   * @return status code, as per {@link Lua#load}.
+   * @return status code, as per {@link #load}.
    */
   public int loadString(String s, String chunkname)
   {
@@ -2038,8 +2070,8 @@ protect:
     if (ar.ici() > 0)   // no tail call?
     {
       callinfo = (CallInfo)civ.elementAt(ar.ici());
-      f = stack[callinfo.function()];
-      // assert isFunction(f);
+      f = stack[callinfo.function()].r;
+      //# assert isFunction(f)
     }
     boolean status = auxgetinfo(what, ar, f, callinfo);
     if (what.indexOf('f') >= 0)
@@ -2144,7 +2176,7 @@ protect:
     }
     else
     {
-      Object faso = stack[ci.function()];
+      Object faso = stack[ci.function()].r;
       LuaFunction f = (LuaFunction)faso;
       return f.proto().getline(pc);
     }
@@ -2185,7 +2217,7 @@ protect:
   /** Equivalent to macro isLua _and_ f_isLua from lstate.h. */
   private boolean isLua(CallInfo callinfo)
   {
-    Object f = stack[callinfo.function()];
+    Object f = stack[callinfo.function()].r;
     return f instanceof LuaFunction;
   }
 
@@ -2230,11 +2262,11 @@ protect:
 
   /** Equivalent to luaD_seterrorobj.  It is valid for oldtop to be
    * equal to the current stack size (<code>stackSize</code>).
-   * {@link Lua#resume} uses this value for oldtop.
+   * {@link #resume} uses this value for oldtop.
    */
   private void dSeterrorobj(int errcode, int oldtop)
   {
-    Object msg = stack[stackSize-1];
+    Object msg = objectAt(stackSize-1);
     if (stackSize == oldtop)
     {
       stacksetsize(oldtop + 1);
@@ -2242,13 +2274,13 @@ protect:
     switch (errcode)
     {
       case ERRERR:
-        stack[oldtop] = "error in error handling";
+        stack[oldtop].r = "error in error handling";
         break;
 
       case ERRFILE:
       case ERRRUN:
       case ERRSYNTAX:
-        stack[oldtop] = msg;
+        setObjectAt(msg, oldtop);
         break;
     }
     stacksetsize(oldtop+1);
@@ -2306,7 +2338,7 @@ protect:
     }
     // i points to be position _after_ which we want to insert a new
     // UpVal (it's -1 when we want to insert at the beginning).
-    UpVal uv = new UpVal(this, idx);
+    UpVal uv = new UpVal(idx, stack[idx]);
     openupval.insertElementAt(uv, i+1);
     return uv;
   }
@@ -2317,29 +2349,28 @@ protect:
 
   // Methods equivalent to the file ldebug.c.  Prefixed with g.
 
-  /** <var>f1</var> and <var>f2</var> are the raw B and C fields from
-   * the instruction.  Corrupts <code>NUMOP[0]</code>.  It receives the
-   * raw B and C
-   * fields so that there is at least the possibility of using them to
+  /** <var>p1</var> and <var>p2</var> are operands to a numeric opcode.
+   * Corrupts <code>NUMOP[0]</code>.
+   * There is the possibility of using <var>p1</var> and <var>p2</var> to
    * identify (for example) for local variable being used in the
    * computation (consider the error message for code like <code>local
    * y='a'; return y+1</code> for example).  Currently the debug info is
    * not used, and this opportunity is wasted (it would require changing
    * or overloading gTypeerror).
    */
-  private void gAritherror(int f1, int f2)
+  private void gAritherror(Slot p1, Slot p2)
   {
-    if (!tonumber(RK(f1), NUMOP))
+    if (!tonumber(p1, NUMOP))
     {
-      f2 = f1;  // first operand is wrong
+      p2 = p1;  // first operand is wrong
     }
-    gTypeerror(RK(f2), "perform arithmetic on");
+    gTypeerror(p2, "perform arithmetic on");
   }
 
   /** <var>p1</var> and <var>p2</var> are absolute stack indexes. */
   private void gConcaterror(int p1, int p2)
   {
-    if (stack[p1] instanceof String)
+    if (stack[p1].r instanceof String)
     {
       p1 = p2;
     }
@@ -2370,7 +2401,7 @@ protect:
     return 0;
   }
 
-  private boolean gOrdererror(Object p1, Object p2)
+  private boolean gOrdererror(Slot p1, Slot p2)
   {
     String t1 = typeName(type(p1));
     String t2 = typeName(type(p2));
@@ -2393,11 +2424,16 @@ protect:
 
   private void gTypeerror(Object o, String op)
   {
-    // :todo: PUC-Rio searches the stack to see if the value (which may
-    // be a reference to stack cell) is a local variable.  Jili can't do
-    // that so easily.  Consider changing interface.
     String t = typeName(type(o));
     gRunerror("attempt to " + op + " a " + t + " value");
+  }
+
+  private void gTypeerror(Slot p, String op)
+  {
+    // :todo: PUC-Rio searches the stack to see if the value (which may
+    // be a reference to stack cell) is a local variable.
+    // For now we cop out and just call gTypeerror(Object, String)
+    gTypeerror(p.asObject(), op);
   }
 
 
@@ -2652,7 +2688,7 @@ protect:
    * Konstant" by the way, it gets value from either the register file
    * (stack) or the constant array (k).
    */
-  private Object RK(Object[] k, int field)
+  private Slot RK(Slot[] k, int field)
   {
     if (ISK(field))
     {
@@ -2666,10 +2702,10 @@ protect:
    * recommend for routine use, but is used by some error handling code
    * to avoid having a constant array passed around too much.
    */
-  private Object RK(int field)
+  private Slot RK(int field)
   {
-    LuaFunction function = (LuaFunction)stack[ci().function()];
-    Object[] k = function.proto().constant();
+    LuaFunction function = (LuaFunction)stack[ci().function()].r;
+    Slot[] k = function.proto().constant();
     return RK(k, field);
   }
 
@@ -2790,17 +2826,17 @@ protect:
       if (!tostring(top-2)|| !tostring(top-1))
       {
         if (!call_binTM(stack[top-2], stack[top-1],
-            top-2, "__concat"))
+            stack[top-2], "__concat"))
         {
           gConcaterror(top-2, top-1);
         }
       }
-      else if (((String)stack[top-1]).length() > 0)
+      else if (((String)stack[top-1].r).length() > 0)
       {
-        int tl = ((String)stack[top-1]).length();
+        int tl = ((String)stack[top-1].r).length();
         for (n = 1; n < total && tostring(top-n-1); ++n)
         {
-          tl += ((String)stack[top-n-1]).length();
+          tl += ((String)stack[top-n-1].r).length();
           if (tl < 0)
           {
             gRunerror("string length overflow");
@@ -2809,9 +2845,9 @@ protect:
         StringBuffer buffer = new StringBuffer(tl);
         for (int i=n; i>0; i--)         // concat all strings
         {
-          buffer.append(stack[top-i]);
+          buffer.append(stack[top-i].r);
         }
-        stack[top-n] = buffer.toString();
+        stack[top-n].r = buffer.toString();
       }
       total -= n-1;     // got n strings to create 1 new
       last -= n-1;
@@ -2820,28 +2856,36 @@ protect:
 
   /**
    * Primitive for testing Lua equality of two values.  Equivalent of
-   * PUC-Rio's <code>equalobj</code> macro.  Note that using null to
-   * model nil complicates this test, maybe we should use a nonce object.
+   * PUC-Rio's <code>equalobj</code> macro.
    * In the loosest sense, this is the equivalent of
    * <code>luaV_equalval</code>.
    */
-  private boolean vmEqual(Object a, Object b)
+  private boolean vmEqual(Slot a, Slot b)
   {
-    // :todo: consider if (a == b) return true;
-    if (NIL == a)
+    // Deal with number case first
+    if (NUMBER == a.r)
     {
-      return NIL == b;
+      if (NUMBER != b.r)
+      {
+        return false;
+      }
+      return a.d == b.d;
     }
-    // Now a is not null, so a.equals() is a valid call.
+    // Now we're only concerned with the .r field.
+    return vmEqualRef(a.r, b.r);
+  }
+
+  /**
+   * Part of {@link #vmEqual}.  Compares the reference part of two
+   * Slot instances.  That is, compares two Lua values, as long as
+   * neither is a number.
+   */
+  private boolean vmEqualRef(Object a, Object b)
+  {
     if (a.equals(b))
     {
       return true;
     }
-    if (NIL == b)
-    {
-      return false;
-    }
-    // Now b is not null, so b.getClass() is a valid call.
     if (a.getClass() != b.getClass())
     {
       return false;
@@ -2856,8 +2900,9 @@ protect:
       {
         return false;
       }
-      Object res = callTMres(tm, a, b);   // call TM
-      return !isFalse(res);
+      Slot s = new Slot();
+      callTMres(s, tm, a, b);   // call TM
+      return !isFalse(s.r);
     }
     return false;
   }
@@ -2878,11 +2923,11 @@ protect:
 reentry:
     while (true)
     {
-      // assert stack[ci.function()] instanceof LuaFunction;
-      LuaFunction function = (LuaFunction)stack[ci().function()];
+      // assert stack[ci.function()].r instanceof LuaFunction;
+      LuaFunction function = (LuaFunction)stack[ci().function()].r;
       Proto proto = function.proto();
       int[] code = proto.code();
-      Object[] k = proto.constant();
+      Slot[] k = proto.constant();
       int pc = savedpc;
 
       while (true)        // main loop of interpreter
@@ -2909,19 +2954,21 @@ reentry:
         }
 
         int a = ARGA(i);          // its A field.
-        Object rb;
-        Object rc;
+        Slot rb;
+        Slot rc;
 
         switch (OPCODE(i))
         {
           case OP_MOVE:
-            stack[base+a] = stack[base+ARGB(i)];
+            stack[base+a].r = stack[base+ARGB(i)].r;
+            stack[base+a].d = stack[base+ARGB(i)].d;
             continue;
           case OP_LOADK:
-            stack[base+a] = k[ARGBx(i)];
+            stack[base+a].r = k[ARGBx(i)].r;
+            stack[base+a].d = k[ARGBx(i)].d;
             continue;
           case OP_LOADBOOL:
-            stack[base+a] = valueOfBoolean(ARGB(i) != 0);
+            stack[base+a].r = valueOfBoolean(ARGB(i) != 0);
             if (ARGC(i) != 0)
             {
               ++pc;
@@ -2932,54 +2979,47 @@ reentry:
             int b = base + ARGB(i);
             do
             {
-              stack[b--] = NIL;
+              stack[b--].r = NIL;
             } while (b >= base + a);
             continue;
           }
           case OP_GETUPVAL:
           {
             int b = ARGB(i);
-            stack[base+a] = function.upVal(b).getValue();
+            // :todo: optimise path
+            setObjectAt(function.upVal(b).getValue(), base+a);
             continue;
           }
           case OP_GETGLOBAL:
             rb = k[ARGBx(i)];
             // assert rb instance of String;
             savedpc = pc; // Protect
-            {
-              // :stack:temp:
-              // Extra local avoids the problem of the member variable
-              // 'stack' changing during the evaluation of vmGettable.
-              // Which would otherwise cause a bug.
-              Object t = vmGettable(function.getEnv(), rb);
-              stack[base+a] = t;
-            }
+            vmGettable(function.getEnv(), rb, stack[base+a]);
             continue;
           case OP_GETTABLE:
           {
             savedpc = pc; // Protect
-            Object t = stack[base+ARGB(i)];
-            // See :stack:temp (in OP_GETGLOBAL) for why extra temp is used.
-            t = vmGettable(t, RK(k, ARGC(i)));
-            stack[base+a] = t;
+            Object h = stack[base+ARGB(i)].asObject();
+            vmGettable(h, RK(k, ARGC(i)), stack[base+a]);
             continue;
           }
           case OP_SETUPVAL:
           {
             UpVal uv = function.upVal(ARGB(i));
-            uv.setValue(stack[base+a]);
+            uv.setValue(objectAt(base+a));
             continue;
           }
           case OP_SETGLOBAL:
             savedpc = pc; // Protect
+            // :todo: consider inlining objectAt
             vmSettable(function.getEnv(), k[ARGBx(i)],
-                stack[base+a]);
+                objectAt(base+a));
             continue;
           case OP_SETTABLE:
           {
             savedpc = pc; // Protect
-            Object t = stack[base+a];
-            vmSettable(t, RK(k, ARGB(i)), RK(k, ARGC(i)));
+            Object t = stack[base+a].asObject();
+            vmSettable(t, RK(k, ARGB(i)), RK(k, ARGC(i)).asObject());
             continue;
           }
           case OP_NEWTABLE:
@@ -2987,175 +3027,182 @@ reentry:
             // :todo: use the b and c hints, currently ignored.
             int b = ARGB(i);
             int c = ARGC(i);
-            stack[base+a] = new LuaTable();
+            stack[base+a].r = new LuaTable();
             continue;
           }
           case OP_SELF:
           {
             int b = ARGB(i);
             rb = stack[base+b];
-            stack[base+a+1] = rb;
+            stack[base+a+1].r = rb.r;
+            stack[base+a+1].d = rb.d;
             savedpc = pc; // Protect
-            // See :stack:temp (in OP_GETGLOBAL) for why extra temp is used.
-            Object t = vmGettable(rb, RK(k, ARGC(i)));
-            stack[base+a] = t;
+            vmGettable(rb.asObject(), RK(k, ARGC(i)), stack[base+a]);
             continue;
           }
           case OP_ADD:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (rb instanceof Double && rc instanceof Double)
+            if (rb.r == NUMBER && rc.r == NUMBER)
             {
-              double sum = ((Double)rb).doubleValue() +
-                  ((Double)rc).doubleValue();
-              stack[base+a] = valueOfNumber(sum);
+              double sum = rb.d + rc.d;
+              stack[base+a].d = sum;
+              stack[base+a].r = NUMBER;
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double sum = NUMOP[0] + NUMOP[1];
-              stack[base+a] = valueOfNumber(sum);
+              stack[base+a].d = sum;
+              stack[base+a].r = NUMBER;
             }
-            else if (!call_binTM(rb, rc, base+a, "__add"))
+            else if (!call_binTM(rb, rc, stack[base+a], "__add"))
             {
-              gAritherror(ARGB(i), ARGC(i));
+              gAritherror(rb, rc);
             }
             continue;
           case OP_SUB:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (rb instanceof Double && rc instanceof Double)
+            if (rb.r == NUMBER && rc.r == NUMBER)
             {
-              double difference = ((Double)rb).doubleValue() -
-                  ((Double)rc).doubleValue();
-              stack[base+a] = valueOfNumber(difference);
+              double difference = rb.d - rc.d;
+              stack[base+a].d = difference;
+              stack[base+a].r = NUMBER;
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double difference = NUMOP[0] - NUMOP[1];
-              stack[base+a] = valueOfNumber(difference);
+              stack[base+a].d = difference;
+              stack[base+a].r = NUMBER;
             }
-            else if (!call_binTM(rb, rc, base+a, "__sub"))
+            else if (!call_binTM(rb, rc, stack[base+a], "__sub"))
             {
-              gAritherror(ARGB(i), ARGC(i));
+              gAritherror(rb, rc);
             }
             continue;
           case OP_MUL:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (rb instanceof Double && rc instanceof Double)
+            if (rb.r == NUMBER && rc.r == NUMBER)
             {
-              double product = ((Double)rb).doubleValue() *
-                ((Double)rc).doubleValue();
-              stack[base+a] = valueOfNumber(product);
+              double product = rb.d * rc.d;
+              stack[base+a].d = product;
+              stack[base+a].r = NUMBER;
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double product = NUMOP[0] * NUMOP[1];
-              stack[base+a] = valueOfNumber(product);
+              stack[base+a].d = product;
+              stack[base+a].r = NUMBER;
             }
-            else if (!call_binTM(rb, rc, base+a, "__mul"))
+            else if (!call_binTM(rb, rc, stack[base+a], "__mul"))
             {
-              gAritherror(ARGB(i), ARGC(i));
+              gAritherror(rb, rc);
             }
             continue;
           case OP_DIV:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (rb instanceof Double && rc instanceof Double)
+            if (rb.r == NUMBER && rc.r == NUMBER)
             {
-              double quotient = ((Double)rb).doubleValue() /
-                ((Double)rc).doubleValue();
-              stack[base+a] = valueOfNumber(quotient);
+              double quotient = rb.d / rc.d;
+              stack[base+a].d = quotient;
+              stack[base+a].r = NUMBER;
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double quotient = NUMOP[0] / NUMOP[1];
-              stack[base+a] = valueOfNumber(quotient);
+              stack[base+a].d = quotient;
+              stack[base+a].r = NUMBER;
             }
-            else if (!call_binTM(rb, rc, base+a, "__div"))
+            else if (!call_binTM(rb, rc, stack[base+a], "__div"))
             {
-              gAritherror(ARGB(i), ARGC(i));
+              gAritherror(rb, rc);
             }
             continue;
           case OP_MOD:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (rb instanceof Double && rc instanceof Double)
+            if (rb.r == NUMBER && rc.r == NUMBER)
             {
-              double db = ((Double)rb).doubleValue();
-              double dc = ((Double)rc).doubleValue();
-              double modulus = modulus(db, dc);
-              stack[base+a] = valueOfNumber(modulus);
+              double modulus = modulus(rb.d, rc.d);
+              stack[base+a].d = modulus;
+              stack[base+a].r = NUMBER;
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double modulus = modulus(NUMOP[0], NUMOP[1]);
-              stack[base+a] = valueOfNumber(modulus);
+              stack[base+a].d = modulus;
+              stack[base+a].r = NUMBER;
             }
-            else if (!call_binTM(rb, rc, base+a, "__mod"))
+            else if (!call_binTM(rb, rc, stack[base+a], "__mod"))
             {
-              gAritherror(ARGB(i), ARGC(i));
+              gAritherror(rb, rc);
             }
             continue;
           case OP_POW:
             rb = RK(k, ARGB(i));
             rc = RK(k, ARGC(i));
-            if (rb instanceof Double && rc instanceof Double)
+            if (rb.r == NUMBER && rc.r == NUMBER)
             {
-              double result = iNumpow(((Double)rb).doubleValue(),
-                                      ((Double)rc).doubleValue());
-              stack[base+a] = valueOfNumber(result);
+              double result = iNumpow(rb.d, rc.d);
+              stack[base+a].d = result;
+              stack[base+a].r = NUMBER;
             }
             else if (toNumberPair(rb, rc, NUMOP))
             {
               double result = iNumpow(NUMOP[0], NUMOP[1]);
-              stack[base+a] = valueOfNumber(result);
+              stack[base+a].d = result;
+              stack[base+a].r = NUMBER;
             }
-            else if (!call_binTM(rb, rc, base+a, "__pow"))
+            else if (!call_binTM(rb, rc, stack[base+a], "__pow"))
             {
-              gAritherror(ARGB(i), ARGC(i));
+              gAritherror(rb, rc);
             }
             continue;
           case OP_UNM:
-          {
             rb = stack[base+ARGB(i)];
-            if (rb instanceof Double)
+            if (rb.r == NUMBER)
             {
-              double db = ((Double)rb).doubleValue();
-              stack[base+a] = valueOfNumber(-db);
+              stack[base+a].d = -rb.d;
+              stack[base+a].r = NUMBER;
             }
             else if (tonumber(rb, NUMOP))
             {
-              stack[base+a] = valueOfNumber(-NUMOP[0]);
+              stack[base+a].d = -NUMOP[0];
+              stack[base+a].r = NUMBER;
             }
-            else if (!call_binTM(rb, rb, base+a, "__unm"))
+            else if (!call_binTM(rb, rb, stack[base+a], "__unm"))
             {
-              gAritherror(ARGB(i), ARGB(i));
+              gAritherror(rb, rb);
             }
             continue;
-          }
           case OP_NOT:
           {
-            Object ra = stack[base+ARGB(i)];
-            stack[base+a] = valueOfBoolean(isFalse(ra));
+            // All numbers are treated as true, so no need to examine
+            // the .d field.
+            Object ra = stack[base+ARGB(i)].r;
+            stack[base+a].r = valueOfBoolean(isFalse(ra));
             continue;
           }
           case OP_LEN:
             rb = stack[base+ARGB(i)];
-            if (rb instanceof LuaTable)
+            if (rb.r instanceof LuaTable)
             {
-              LuaTable t = (LuaTable)rb;
-              stack[base+a] = new Double(t.getn());
+              LuaTable t = (LuaTable)rb.r;
+              stack[base+a].d = t.getn();
+              stack[base+a].r = NUMBER;
               continue;
             }
-            else if (rb instanceof String)
+            else if (rb.r instanceof String)
             {
-              String s = (String)rb;
-              stack[base+a] = new Double(s.length());
+              String s = (String)rb.r;
+              stack[base+a].d = s.length();
+              stack[base+a].r = NUMBER;
               continue;
             }
             savedpc = pc; // Protect
-            if (!call_binTM(rb, rb, base+a, "__len"))
+            if (!call_binTM(rb, rb, stack[base+a], "__len"))
             {
               gTypeerror(rb, "get length of");
             }
@@ -3171,7 +3218,8 @@ reentry:
             // converting each stack slot, but simply using
             // StringBuffer.append on whatever is there).
             vmConcat(c - b + 1, c);
-            stack[base+a] = stack[base+b];
+            stack[base+a].r = stack[base+b].r;
+            stack[base+a].d = stack[base+b].d;
             continue;
           }
           case OP_JMP:
@@ -3189,8 +3237,10 @@ reentry:
             ++pc;
             continue;
           case OP_LT:
+            rb = RK(k, ARGB(i));
+            rc = RK(k, ARGC(i));
             savedpc = pc; // Protect
-            if (vmLessthan(RK(k, ARGB(i)), RK(k, ARGC(i))) == (a != 0))
+            if (vmLessthan(rb, rc) == (a != 0))
             {
               // dojump
               pc += ARGsBx(code[pc]);
@@ -3198,8 +3248,10 @@ reentry:
             ++pc;
             continue;
           case OP_LE:
+            rb = RK(k, ARGB(i));
+            rc = RK(k, ARGC(i));
             savedpc = pc; // Protect
-            if (vmLessequal(RK(k, ARGB(i)), RK(k, ARGC(i))) == (a != 0))
+            if (vmLessequal(rb, rc) == (a != 0))
             {
               // dojump
               pc += ARGsBx(code[pc]);
@@ -3207,7 +3259,7 @@ reentry:
             ++pc;
             continue;
           case OP_TEST:
-            if (isFalse(stack[base+a]) != (ARGC(i) != 0))
+            if (isFalse(stack[base+a].r) != (ARGC(i) != 0))
             {
               // dojump
               pc += ARGsBx(code[pc]);
@@ -3216,9 +3268,10 @@ reentry:
             continue;
           case OP_TESTSET:
             rb = stack[base+ARGB(i)];
-            if (isFalse(rb) != (ARGC(i) != 0))
+            if (isFalse(rb.r) != (ARGC(i) != 0))
             {
-              stack[base+a] = rb;
+              stack[base+a].r = rb.r;
+              stack[base+a].d = rb.d;
               // dojump
               pc += ARGsBx(code[pc]);
             }
@@ -3273,8 +3326,8 @@ reentry:
                 for (aux=0; pfunc+aux < stackSize; ++aux)
                 {
                   // move frame down
-                  // :todo:@@ arraycopy?
-                  stack[func+aux] = stack[pfunc+aux];
+                  stack[func+aux].r = stack[pfunc+aux].r;
+                  stack[func+aux].d = stack[pfunc+aux].d;
                 }
                 stacksetsize(func+aux);        // correct top
                 // assert stackSize == base + ((LuaFunction)stack[func]).proto().maxstacksize();
@@ -3316,20 +3369,18 @@ reentry:
           }
           case OP_FORLOOP:
           {
-            double step =
-                ((Double)stack[base+a+2]).doubleValue();
-            double idx =
-                ((Double)stack[base+a]).doubleValue() + step;
-            double limit =
-                ((Double)stack[base+a+1]).doubleValue();
+            double step = stack[base+a+2].d;
+            double idx = stack[base+a].d + step;
+            double limit = stack[base+a+1].d;
             if ((0 < step && idx <= limit) ||
                 (step <= 0 && limit <= idx))
             {
               // dojump
               pc += ARGsBx(i);
-              Object d = valueOfNumber(idx);
-              stack[base+a] = d;        // internal index
-              stack[base+a+3] = d;      // external index
+              stack[base+a].d = idx;    // internal index
+              stack[base+a].r = NUMBER;
+              stack[base+a+3].d = idx;  // external index
+              stack[base+a+3].r = NUMBER;
             }
             continue;
           }
@@ -3351,11 +3402,10 @@ reentry:
             {
               gRunerror("'for' step must be a number");
             }
-            double step =
-                ((Double)stack[pstep]).doubleValue();
-            double idx =
-                ((Double)stack[init]).doubleValue() - step;
-            stack[init] = new Double(idx);
+            double step = stack[pstep].d;
+            double idx = stack[init].d - step;
+            stack[init].d = idx;
+            stack[init].r = NUMBER;
             // dojump
             pc += ARGsBx(i);
             continue;
@@ -3363,16 +3413,20 @@ reentry:
           case OP_TFORLOOP:
           {
             int cb = base+a+3;  // call base
-            stack[cb+2] = stack[base+a+2];
-            stack[cb+1] = stack[base+a+1];
-            stack[cb] = stack[base+a];
+            stack[cb+2].r = stack[base+a+2].r;
+            stack[cb+2].d = stack[base+a+2].d;
+            stack[cb+1].r = stack[base+a+1].r;
+            stack[cb+1].d = stack[base+a+1].d;
+            stack[cb].r = stack[base+a].r;
+            stack[cb].d = stack[base+a].d;
             stacksetsize(cb+3);
             savedpc = pc; // Protect
             vmCall(cb, ARGC(i));
             stacksetsize(ci().top());
-            if (NIL != stack[cb])     // continue loop
+            if (NIL != stack[cb].r)     // continue loop
             {
-              stack[cb-1] = stack[cb];
+              stack[cb-1].r = stack[cb].r;
+              stack[cb-1].d = stack[cb].d;
               // dojump
               pc += ARGsBx(code[pc]);
             }
@@ -3393,12 +3447,12 @@ reentry:
             {
               c = code[pc++];
             }
-            LuaTable t = (LuaTable)stack[base+a];
+            LuaTable t = (LuaTable)stack[base+a].r;
             int last = ((c-1)*LFIELDS_PER_FLUSH) + n;
             // :todo: consider expanding space in table
             for (; n > 0; n--)
             {
-              Object val = stack[base+a+n];
+              Object val = objectAt(base+a+n);
               t.putnum(last--, val);
             }
             if (setstack)
@@ -3429,7 +3483,7 @@ reentry:
               }
             }
             LuaFunction nf = new LuaFunction(p, up, function.getEnv());
-            stack[base+a] = nf;
+            stack[base+a].r = nf;
             continue;
           }
           case OP_VARARG:
@@ -3448,13 +3502,13 @@ reentry:
             {
               if (j < n)
               {
-                // :todo:@@ arraycopy?
-                Object src = stack[base - n + j];
-                stack[base+a+j] = src;
+                Slot src = stack[base - n + j];
+                stack[base+a+j].r = src.r;
+                stack[base+a+j].d = src.d;
               }
               else
               {
-                stack[base+a+j] = NIL;
+                stack[base+a+j].r = NIL;
               }
             }
             continue;
@@ -3506,7 +3560,7 @@ reentry:
   }
 
   /** Equivalent of luaV_gettable. */
-  private Object vmGettable(Object t, Object key)
+  private void vmGettable(Object t, Slot key, Slot val)
   {
     Object tm;
     for (int loop = 0; loop < MAXTAGLOOP; ++loop)
@@ -3514,13 +3568,21 @@ reentry:
       if (t instanceof LuaTable)        // 't' is a table?
       {
         LuaTable h = (LuaTable)t;
-        Object res = h.getlua(key);
+        Slot s = new Slot();
+        h.getlua(key, s);
 
-        if (!isNil(res))
-          return res;
+        if (s.r != NIL)
+        {
+          val.r = s.r;
+          val.d = s.d;
+          return;
+        }
         tm = tagmethod(h, "__index");
         if (tm == NIL)
-          return res;
+        {
+          val.r = NIL;
+          return;
+        }
         // else will try the tag method
       }
       else
@@ -3530,31 +3592,32 @@ reentry:
           gTypeerror(t, "index");
       }
       if (isFunction(tm))
-        return callTMres(tm, t, key);
+      {
+        SPARE_SLOT.setObject(t);
+        callTMres(val, tm, SPARE_SLOT, key);
+        return;
+      }
       t = tm;     // else repeat with 'tm'
     }
     gRunerror("loop in gettable");
-    // NOTREACHED
-    return null;
   }
 
   /** Equivalent of luaV_lessthan. */
-  private boolean vmLessthan(Object l, Object r)
+  private boolean vmLessthan(Slot l, Slot r)
   {
-    // :todo: currently goes wrong when comparing nil.  Fix it.
-    if (l.getClass() != r.getClass())
+    if (l.r.getClass() != r.r.getClass())
     {
       gOrdererror(l, r);
     }
-    else if (l instanceof Double)
+    else if (l.r == NUMBER)
     {
-      return ((Double)l).doubleValue() < ((Double)r).doubleValue();
+      return l.d < r.d;
     }
-    else if (l instanceof String)
+    else if (l.r instanceof String)
     {
       // :todo: PUC-Rio use strcoll, maybe we should use something
       // equivalent.
-      return ((String)l).compareTo((String)r) < 0;
+      return ((String)l.r).compareTo((String)r.r) < 0;
     }
     int res = call_orderTM(l, r, "__lt");
     if (res >= 0)
@@ -3565,20 +3628,19 @@ reentry:
   }
 
   /** Equivalent of luaV_lessequal. */
-  private boolean vmLessequal(Object l, Object r)
+  private boolean vmLessequal(Slot l, Slot r)
   {
-    // :todo: currently goes wrong when comparing nil.  Fix it.
-    if (l.getClass() != r.getClass())
+    if (l.r.getClass() != r.r.getClass())
     {
       gOrdererror(l, r);
     }
-    else if (l instanceof Double)
+    else if (l.r == NUMBER)
     {
-      return ((Double)l).doubleValue() <= ((Double)r).doubleValue();
+      return l.d <= r.d;
     }
-    else if (l instanceof String)
+    else if (l.r instanceof String)
     {
-      return ((String)l).compareTo((String)r) <= 0;
+      return ((String)l.r).compareTo((String)r.r) <= 0;
     }
     int res = call_orderTM(l, r, "__le");       // first try 'le'
     if (res >= 0)
@@ -3618,8 +3680,10 @@ reentry:
     // result first is always correct.
     while (i != 0 && firstResult < top)
     {
-      // :todo: @@ arraycopy?
-      stack[res++] = stack[firstResult++];
+      stack[res].r = stack[firstResult].r;
+      stack[res].d = stack[firstResult].d;
+      ++res;
+      ++firstResult;
       i--;
     }
     if (i > 0)
@@ -3628,11 +3692,9 @@ reentry:
     }
     // :todo: consider using two stacksetsize calls to nil out
     // remaining required results.
-    // This trick only works if Lua.NIL == null, whereas the current
-    // code works regardless of what Lua.NIL is.
     while (i-- > 0)
     {
-      stack[res++] = NIL;
+      stack[res++].r = NIL;
     }
     stacksetsize(res);
     return wanted != MULTRET;
@@ -3647,7 +3709,7 @@ reentry:
   private int vmPrecall(int func, int r)
   {
     Object faso;        // Function AS Object
-    faso = stack[func];
+    faso = stack[func].r;
     if (!isFunction(faso))
     {
       faso = tryfuncTM(func);
@@ -3719,7 +3781,7 @@ reentry:
   }
 
   /** Equivalent of luaV_settable. */
-  private void vmSettable(Object t, Object key, Object val)
+  private void vmSettable(Object t, Slot key, Object val)
   {
     for (int loop = 0; loop < MAXTAGLOOP; ++loop)
     {
@@ -3727,8 +3789,8 @@ reentry:
       if (t instanceof LuaTable) // 't' is a table
       {
         LuaTable h = (LuaTable)t;
-        Object o = h.getlua(key);
-        if (o != NIL)   // result is not nil?
+        h.getlua(key, SPARE_SLOT);
+        if (SPARE_SLOT.r != NIL)   // result is not nil?
         {
           h.putlua(this, key, val);
           return;
@@ -3759,7 +3821,7 @@ reentry:
 
   /**
    * Printf format item used to convert numbers to strings (in {@link
-   * Lua#vmTostring}).  The initial '%' should be not specified.
+   * #vmTostring}).  The initial '%' should be not specified.
    */
   private static final String NUMBER_FMT = ".14g";
 
@@ -3809,52 +3871,55 @@ reentry:
     for (int i=0; i<nfixargs; ++i)
     {
       // :todo: arraycopy?
-      stackAdd(stack[fixed+i]);
-      stack[fixed+i] = NIL;
+      push(stack[fixed+i]);
+      stack[fixed+i].r = NIL;
     }
     return newbase;
   }
 
   /**
+   * Does not modify contents of p1 or p2.  Modifies contents of res.
    * @param p1  left hand operand.
    * @param p2  right hand operand.
    * @param res absolute stack index of result.
    * @return false if no tagmethod, true otherwise
    */
-  private boolean call_binTM(Object p1, Object p2, int res, String event)
+  private boolean call_binTM(Slot p1, Slot p2, Slot res, String event)
   {
-    Object tm = tagmethod(p1, event);   // try first operand
+    Object tm = tagmethod(p1.asObject(), event);        // try first operand
     if (isNil(tm))
     {
-      tm = tagmethod(p2, event);        // try second operand
+      tm = tagmethod(p2.asObject(), event);     // try second operand
     }
     if (!isFunction(tm))
     {
       return false;
     }
-    stack[res] = callTMres(tm, p1, p2);
+    callTMres(res, tm, p1, p2);
     return true;
   }
 
   /**
    * @return -1 if no tagmethod, 0 false, 1 true
    */
-  private int call_orderTM(Object p1, Object p2, String event)
+  private int call_orderTM(Slot p1, Slot p2, String event)
   {
-    Object tm1 = tagmethod(p1, event);
+    Object tm1 = tagmethod(p1.asObject(), event);
     if (tm1 == NIL)     // not metamethod
     {
       return -1;
     }
-    Object tm2 = tagmethod(p2, event);
+    Object tm2 = tagmethod(p2.asObject(), event);
     if (!oRawequal(tm1, tm2))   // different metamethods?
     {
       return -1;
     }
-    return isFalse(callTMres(tm1, p1, p2)) ? 0 : 1;
+    Slot s = new Slot();
+    callTMres(s, tm1, p1, p2);
+    return isFalse(s.r) ? 0 : 1;
   }
 
-  private void callTM(Object f, Object p1, Object p2, Object p3)
+  private void callTM(Object f, Object p1, Slot p2, Object p3)
   {
     push(f);
     push(p1);
@@ -3863,16 +3928,31 @@ reentry:
     vmCall(stackSize-4, 0);
   }
 
-  private Object callTMres(Object f, Object p1, Object p2)
+  private void callTMres(Slot res, Object f, Slot p1, Slot p2)
   {
     push(f);
     push(p1);
     push(p2);
     vmCall(stackSize-3, 1);
-
-    Object res = stack[stackSize-1];
+    res.r = stack[stackSize-1].r;
+    res.d = stack[stackSize-1].d;
     pop(1);
-    return res;
+  }
+
+  /**
+   * Overloaded version of callTMres used by {@link #vmEqualRef}.
+   * Textuall identical, but a different (overloaded) push method is
+   * invoked.
+   */
+  private void callTMres(Slot res, Object f, Object p1, Object p2)
+  {
+    push(f);
+    push(p1);
+    push(p2);
+    vmCall(stackSize-3, 1);
+    res.r = stack[stackSize-1].r;
+    res.d = stack[stackSize-1].d;
+    pop(1);
   }
 
   private Object get_compTM(LuaTable mt1, LuaTable mt2, String event)
@@ -3915,6 +3995,12 @@ reentry:
     return getMetafield(o, event);
   }
 
+  /** @deprecated DO NOT CALL */
+  private Object tagmethod(Slot o, String event)
+  {
+    throw new IllegalArgumentException("tagmethod called");
+  }
+
   /**
    * Computes the result of Lua's modules operator (%).  Note that this
    * modulus operator does not match Java's %.
@@ -3930,6 +4016,9 @@ reentry:
    */
   private void stacksetsize(int n)
   {
+    // It is absolutely critical that when the stack changes sizes those
+    // elements that are common to both old and new stack are unchanged.
+
     // First implementation of this simply ensures that the stack array
     // has at least the required size number of elements.
     // :todo: consider policies where the stack may also shrink.
@@ -3937,7 +4026,7 @@ reentry:
     if (n > stack.length)
     {
       int newLength = Math.max(n, 2 * stack.length);
-      Object[] newStack = new Object[newLength];
+      Slot[] newStack = new Slot[newLength];
       // Currently the stack only ever grows, so the number of items to
       // copy is the length of the old stack.
       int toCopy = stack.length;
@@ -3963,7 +4052,7 @@ reentry:
       // when shrinking
       for(int i=n; i<old; ++i)
       {
-        stack[i] = NIL;
+        stack[i].r = NIL;
       }
     }
     if (n > stackhighwater)
@@ -3971,7 +4060,8 @@ reentry:
       // when growing above stackhighwater for the first time
       for (int i=stackhighwater; i<n; ++i)
       {
-        stack[i] = NIL;
+        stack[i] = new Slot();
+        stack[i].r = NIL;
       }
       stackhighwater = n;
     }
@@ -3984,15 +4074,33 @@ reentry:
   {
     int i = stackSize;
     stacksetsize(i+1);
-    stack[i] = o;
+    stack[i].setObject(o);
+  }
+
+  /**
+   * Copies a slot into a new space in the stack.
+   */
+  private void push(Slot p)
+  {
+    int i = stackSize;
+    stacksetsize(i+1);
+    stack[i].r = p.r;
+    stack[i].d = p.d;
   }
 
   private void stackInsertAt(Object o, int i)
   {
     int n = stackSize - i;
     stacksetsize(stackSize+1);
-    System.arraycopy(stack, i, stack, i+1, n);
-    stack[i] = o;
+    // Copy each slot N into its neighbour N+1.  Loop proceeds from high
+    // index slots to lower index slots.
+    // A loop from n to 1 copies n slots.
+    for (int j=n; j>=1; --j)
+    {
+      stack[i+j].r = stack[i+j-1].r;
+      stack[i+j].d = stack[i+j-1].d;
+    }
+    stack[i].setObject(o);
   }
 
   /**
@@ -4023,23 +4131,24 @@ reentry:
   }
 
   /**
-   * Convert to number.  Returns true if the argument o was converted to
-   * a number.  Converted number is placed in <var>out[0]</var>.  Returns
+   * Convert to number.  Returns true if the argument <var>o</var> was
+   * converted to a number.  Converted number is placed in <var>out[0]</var>.
+   * Returns
    * false if the argument <var>o</var> could not be converted to a number.
    * Overloaded.
    */
-  private static boolean tonumber(Object o, double[] out)
+  private static boolean tonumber(Slot o, double[] out)
   {
-    if (o instanceof Double)
+    if (o.r == NUMBER)
     {
-      out[0] = ((Double)o).doubleValue();
+      out[0] = o.d;
       return true;
     }
-    if (!(o instanceof String))
+    if (!(o.r instanceof String))
     {
       return false;
     }
-    if (oStr2d((String)o, out))
+    if (oStr2d((String)o.r, out))
     {
       return true;
     }
@@ -4058,7 +4167,8 @@ reentry:
   {
     if (tonumber(stack[idx], NUMOP))
     {
-      stack[idx] = new Double(NUMOP[0]);
+      stack[idx].d = NUMOP[0];
+      stack[idx].r = NUMBER;
       return true;
     }
     return false;
@@ -4069,7 +4179,7 @@ reentry:
    * converted results in <code>out[0]</code> and <code>out[1]</code>.
    * @return true if and only if both values converted to number.
    */
-  private static boolean toNumberPair(Object x, Object y, double[] out)
+  private static boolean toNumberPair(Slot x, Slot y, double[] out)
   {
     if (tonumber(y, out))
     {
@@ -4086,17 +4196,20 @@ reentry:
    * Convert to string.  Returns true if element was number or string
    * (the number will have been converted to a string), false otherwise.
    * Note this actually modifies the element stored at <var>idx</var> in
-   * the stack (in faithful emulation of the PUC-Rio code).
+   * the stack (in faithful emulation of the PUC-Rio code), and when it
+   * returns <code>true</code>, <code>stack[idx].r instanceof String</code>
+   * is true.
    */
   private boolean tostring(int idx)
   {
-    Object o = stack[idx];
+    // :todo: optimise
+    Object o = objectAt(idx);
     String s = vmTostring(o);
     if (s == null)
     {
       return false;
     }
-    stack[idx] = s;
+    stack[idx].r = s;
     return true;
   }
 
@@ -4106,7 +4219,7 @@ reentry:
    */
   private Object tryfuncTM(int func)
   {
-    Object tm = tagmethod(stack[func], "__call");
+    Object tm = tagmethod(stack[func].asObject(), "__call");
     if (!isFunction(tm))
     {
       gTypeerror(stack[func], "call");
@@ -4119,6 +4232,12 @@ reentry:
   private boolean isFalse(Object o)
   {
     return o == NIL || Boolean.FALSE.equals(o);
+  }
+
+  /** @deprecated DO NOT CALL. */
+  private boolean isFalse(Slot o)
+  {
+    throw new IllegalArgumentException("isFalse called");
   }
 
   /** Make new CallInfo record. */
@@ -4142,6 +4261,37 @@ reentry:
     stacksetsize(ci().base());
     stackAdd(msg);
     return ERRRUN;
+  }
+
+  /**
+   * Return the stack element as an Object.  Converts double values into
+   * Double objects.
+   * @param idx  absolute index into stack (0 <= idx < stackSize).
+   */
+  private Object objectAt(int idx)
+  {
+    Object r = stack[idx].r;
+    if (r != NUMBER)
+    {
+      return r;
+    }
+    return new Double(stack[idx].d);
+  }
+
+  /**
+   * Sets the stack element.  Double instances are converted to double.
+   * @param o  Object to store.
+   * @param idx  absolute index into stack (0 <= idx < stackSize).
+   */
+  private void setObjectAt(Object o, int idx)
+  {
+    if (o instanceof Double)
+    {
+      stack[idx].r = NUMBER;
+      stack[idx].d = ((Double)o).doubleValue();
+      return;
+    }
+    stack[idx].r = o;
   }
 
   /**
@@ -4221,11 +4371,11 @@ final class DumpState
   private void DumpConstants(Proto f) throws IOException
   {
     int n = f.sizek;
-    Object [] k = f.k ;
+    Slot[] k = f.k ;
     DumpInt(n) ;
     for (int i = 0 ; i < n ; i++)
     {
-      Object o = k[i] ;
+      Object o = k[i].r;
       if (o == Lua.NIL)
       {
         writer.writeByte(Lua.TNIL) ;
@@ -4235,10 +4385,10 @@ final class DumpState
         writer.writeByte(Lua.TBOOLEAN) ;
         writer.writeBoolean(((Boolean)o).booleanValue()) ;
       }
-      else if (o instanceof Double)
+      else if (o == Lua.NUMBER)
       {
         writer.writeByte(Lua.TNUMBER) ;
-        DumpNumber(((Double)o).doubleValue()) ;
+        DumpNumber(k[i].d);
       }
       else if (o instanceof String)
       {
@@ -4247,7 +4397,7 @@ final class DumpState
       }
       else
       {
-        //lua_assert(false);  /* cannot happen */
+        //# assert false
       }
     }
     n = f.sizep ;
@@ -4311,5 +4461,45 @@ final class DumpState
     DumpInt(n);
     for (int i=0; i<n; i++)
       DumpString(f.upvalues[i]);
+  }
+}
+
+final class Slot
+{
+  Object r;
+  double d;
+
+  Slot()
+  {
+  }
+
+  Slot(Slot s)
+  {
+    this.r = s.r;
+    this.d = s.d;
+  }
+
+  Slot(Object o)
+  {
+    this.setObject(o);
+  }
+
+  Object asObject()
+  {
+    if (r == Lua.NUMBER)
+    {
+      return new Double(d);
+    }
+    return r;
+  }
+
+  void setObject(Object o)
+  {
+    r = o;
+    if (o instanceof Double)
+    {
+      r = Lua.NUMBER;
+      d = ((Double)o).doubleValue();
+    }
   }
 }

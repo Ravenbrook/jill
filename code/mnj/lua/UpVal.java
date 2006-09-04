@@ -15,8 +15,6 @@
 
 package mnj.lua;
 
-import java.util.Vector;
-
 /**
  * Models an upvalue.  This class is internal to Jili and should not be
  * used by clients.
@@ -30,38 +28,42 @@ import java.util.Vector;
  * <code>close</code> method).  Lua functions that reference, via an
  * upvalue, the same instance of the same variable, will share an
  * <code>UpVal</code> (somewhere in their <code>upval</code> array
- * member).
+ * member); hence they share updates to the variable.
  */
 final class UpVal
 {
-  // An open UpVal (referencing the VM stack) has valid L and offset
-  // fields, v is null.
-  // A closed UpVal has a valid v field, L is null.
-  // (L == null) is used to characterise a closed UpVal.
-  private Lua L;
+  /**
+   * The offset field.  Stored here, but not actually used directly by
+   * this class.
+   * Used (by {@Lua}) when searching for {@link UpVal} instances.
+   * An open UpVal has a valid offset field.  Its slot is shared
+   * with a slot of the VM stack.
+   * A closed UpVal has offset == -1.  It's slot will be a fresh copy
+   * and not shared with any other.
+   */
   private int offset;
-  private Object v;
+  /**
+   * The slot object used to store the Lua value.
+   */
+  private Slot s;
 
   /**
-   * A fresh upvalue from a Lua state and an offset.
-   * @param L The Lua thread.
-   * @param offset index into Lua thread's VM stack, must be a valid index.
+   * A fresh upvalue from an offset, and a slot.
+   * Conceptually <var>offset</var> and <var>slot</var> convey the same
+   * information, only one is necessary since the offset implies the
+   * slot and vice-versa.  <var>slot</var> is used to directly reference
+   * the value (this avoids an indirection to the VM stack). <var>offset</var>
+   * is used when searching for UpVals in the openupval list; this
+   * happens when closing UpVals (function return) or creating them
+   * (execution of functon declaration).
+   * @param offset  index into Lua thread's VM stack, must be a valid index.
+   * @param s  Slot corresponding to offset.
    * @throws NullPointerException if L is null.
-   * @throws IllegalArgumentException if offset is negative or too big.
    */
-  UpVal(Lua L, int offset)
+  UpVal(int offset, Slot s)
   {
-    if (null == L)
-    {
-      throw new NullPointerException();
-    }
-    if (offset < 0 || offset >= L.stack().length)
-    {
-      throw new IllegalArgumentException();
-    }
-
-    this.L = L;
     this.offset = offset;
+    this.s = s;
   }
 
   /**
@@ -69,11 +71,7 @@ final class UpVal
    */
   Object getValue()
   {
-    if (L == null)
-    {
-      return v;
-    }
-    return L.stack()[offset];
+    return s.asObject();
   }
 
   /**
@@ -81,16 +79,11 @@ final class UpVal
    */
   void setValue(Object o)
   {
-    if (L == null)
-    {
-      v = o;
-      return;
-    }
-    L.stack()[offset] = o;
+    s.setObject(o);
   }
 
   /**
-   * The stack offset.
+   * The offset.
    */
   int offset()
   {
@@ -107,8 +100,7 @@ final class UpVal
    */
   void close()
   {
-    v = getValue();
-    L = null;
+    s = new Slot(s);
     offset = -1;
   }
 }

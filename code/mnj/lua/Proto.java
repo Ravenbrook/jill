@@ -33,14 +33,14 @@ final class Proto
   /** Interned 0-element array. */
   private static final int[] ZERO_INT_ARRAY = new int[0];
   private static final LocVar[] ZERO_LOCVAR_ARRAY = new LocVar[0];
-  private static final Object[] ZERO_OBJECT_ARRAY = new Object[0];
+  private static final Slot[] ZERO_CONSTANT_ARRAY = new Slot[0];
   private static final Proto[] ZERO_PROTO_ARRAY = new Proto[0];
   private static final String[] ZERO_STRING_ARRAY = new String[0];
 
   // Generally the fields are named following the PUC-Rio implementation
   // and so are unusually terse.
   /** Array of constants. */
-  Object[] k;
+  Slot[] k;
   int sizek;
   /** Array of VM instructions. */
   int[] code;
@@ -96,7 +96,7 @@ final class Proto
    * @throws NullPointerException if any array arguments are null.
    * @throws IllegalArgumentException if nups or numparams is negative.
    */
-  Proto(Object[] constant,
+  Proto(Slot[] constant,
         int[] code,
         Proto[] proto,
         int nups,
@@ -126,10 +126,11 @@ final class Proto
    */
   Proto(String source, int maxstacksize)
   {
-      this.maxstacksize = maxstacksize;
+    this.maxstacksize = maxstacksize;
       //    maxstacksize = 2;   // register 0/1 are always valid.
+    // :todo: Consider removing size* members
     this.source = source;
-    this.k = ZERO_OBJECT_ARRAY;        this.sizek = 0 ;
+    this.k = ZERO_CONSTANT_ARRAY;      this.sizek = 0 ;
     this.code = ZERO_INT_ARRAY;        this.sizecode = 0 ;
     this.p = ZERO_PROTO_ARRAY;         this.sizep = 0;
     this.lineinfo = ZERO_INT_ARRAY;    this.sizelineinfo = 0;
@@ -310,7 +311,7 @@ final class Proto
   }
 
   /** Constant array (do not modify). */
-  Object[] constant()
+  Slot[] constant()
   {
     return k;
   }
@@ -320,11 +321,11 @@ final class Proto
   {
     if (idx >= k.length)
     {
-      Object[] newK = new Object[k.length*2+1];
+      Slot[] newK = new Slot[k.length*2+1];
       System.arraycopy(k, 0, newK, 0, k.length);
       k = newK;
     }
-    k[idx] = o;
+    k[idx] = new Slot(o);
   }
 
   /** Predicate for whether function uses ... in its parameter list. */
@@ -384,7 +385,7 @@ final class Proto
   {
     if (k.length > n)
     {
-      Object [] newArray = new Object[n];
+      Slot[] newArray = new Slot[n];
       System.arraycopy(k, 0, newArray, 0, n);
       k = newArray;
     }
