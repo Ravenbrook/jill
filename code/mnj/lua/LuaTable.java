@@ -27,6 +27,7 @@ public final class LuaTable extends java.util.Hashtable
   private static final int MAXASIZE = 1 << MAXBITS;
 
   private LuaTable metatable;   // = null;
+  private static final Object[] ZERO = new Object[0];
   /**
    * Array used so that tables accessed like arrays are more efficient.
    * All elements stored at an integer index, <var>i</var>, in the
@@ -36,7 +37,7 @@ public final class LuaTable extends java.util.Hashtable
    * largest power of 2 such that at least half the entries are
    * occupied.
    */
-  private Object[] array = new Object[0];
+  private Object[] array = ZERO;
   /**
    * Equal to <code>array.length</code>.
    */
@@ -49,7 +50,7 @@ public final class LuaTable extends java.util.Hashtable
 
   LuaTable()
   {
-    super();
+    super(1);
   }
 
   /**
@@ -59,7 +60,18 @@ public final class LuaTable extends java.util.Hashtable
    */
   LuaTable(int narray, int nhash)
   {
-    super(narray+nhash);
+    // :todo: super(nhash) isn't clearly correct as adding nhash hash
+    // table entries will causes a rehash with the usual implementation
+    // (which rehashes when ratio of entries to capacity exceeds the
+    // load factor of 0.75).  Perhaps ideally we would size the hash
+    // tables such that adding nhash entries will not cause a rehash.
+    super(nhash);
+    array = new Object[narray];
+    for (int i=0; i<narray; ++i)
+    {
+      array[i] = Lua.NIL;
+    }
+    sizeArray = narray;
   }
 
   /**

@@ -2495,6 +2495,20 @@ protect:
     return buf.toString();
   }
 
+  /**
+   * Equivalent to luaO_fb2int.
+   * @see Syntax#oInt2fb
+   */
+  private static int oFb2int(int x)
+  {
+    int e = (x >>> 3) & 31;
+    if (e == 0)
+    {
+      return x;
+    }
+    return ((x&7)+8) << (e-1);
+  }
+
   /** Equivalent to luaO_rawequalObj. */
   private static boolean oRawequal(Object a, Object b)
   {
@@ -3024,10 +3038,9 @@ reentry:
           }
           case OP_NEWTABLE:
           {
-            // :todo: use the b and c hints, currently ignored.
             int b = ARGB(i);
             int c = ARGC(i);
-            stack[base+a].r = new LuaTable();
+            stack[base+a].r = new LuaTable(oFb2int(b), oFb2int(c));
             continue;
           }
           case OP_SELF:
