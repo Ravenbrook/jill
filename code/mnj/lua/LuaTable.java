@@ -281,13 +281,6 @@ public final class LuaTable extends java.util.Hashtable
     return;
   }
 
-  /** Like get for numeric (integer) keys. */
-  Object getnum(int k)
-  {
-    // :todo: optimisation to try array directly.
-    return getlua(new Double(k));
-  }
-
   /**
    * Like put for numeric (integer) keys.
    */
@@ -308,7 +301,7 @@ public final class LuaTable extends java.util.Hashtable
     int i = 0;
     int j = 1;
     // Find 'i' and 'j' such that i is present and j is not.
-    while (this.getlua(new Double(j)) != Lua.NIL)
+    while (this.getnum(j) != Lua.NIL)
     {
       i = j;
       j *= 2;
@@ -316,7 +309,7 @@ public final class LuaTable extends java.util.Hashtable
       {
         // Pathological case.  Linear search.
         i = 1;
-        while (this.getlua(new Double(i)) != Lua.NIL)
+        while (this.getnum(i) != Lua.NIL)
         {
           ++i;
         }
@@ -327,7 +320,7 @@ public final class LuaTable extends java.util.Hashtable
     while (j - i > 1)
     {
       int m = (i+j)/2;
-      if (this.getlua(new Double(m)) == Lua.NIL)
+      if (this.getnum(m) == Lua.NIL)
       {
         j = m;
       }
@@ -386,6 +379,13 @@ public final class LuaTable extends java.util.Hashtable
       r = Lua.NIL;
     }
     value.setObject(r);
+  }
+
+  /** Like get for numeric (integer) keys. */
+  Object getnum(int k)
+  {
+    // :todo: optimise to try array directly.
+    return getlua(new Double(k));
   }
 
   /**
