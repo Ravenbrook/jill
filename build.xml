@@ -442,12 +442,17 @@
         classpath="compiled:test-compiled" />
   </target>
 
-  <!-- Test to measure speed of getn -->
-  <target name="getn-test" depends="compile,compile-test,include-extra">
+  <!-- Test to measure speed of some primitive table operations -->
+  <target name="table-test" depends="compile,compile-test,include-extra">
     <java fork="yes"
         classname="mnj.lua.Luai"
         classpath="compiled:test-compiled:test-compiled-se">
       <arg value="test/mnj/lua/getn.lua" />
+    </java>
+    <java fork="yes"
+        classname="mnj.lua.Luai"
+        classpath="compiled:test-compiled:test-compiled-se">
+      <arg value="test/mnj/lua/putnum.lua" />
     </java>
   </target>
 
