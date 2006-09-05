@@ -332,11 +332,13 @@ public final class LuaTable extends java.util.Hashtable
     if (key instanceof Double)
     {
       double d = ((Double)key).doubleValue();
-      int i = (int)d;
-
-      if (i == d && i >= 1 && i <= sizeArray)
+      if (d <= sizeArray && d >=1)
       {
-        return array[i-1];
+        int i = (int)d;
+        if (i == d)
+        {
+          return array[i-1];
+        }
       }
     }
     Object r = super.get(key);
@@ -355,11 +357,15 @@ public final class LuaTable extends java.util.Hashtable
   {
     if (key.r == Lua.NUMBER)
     {
-      int i = (int)key.d;
-      if (i == key.d && i >= 1 && i <= sizeArray)
+      double d = key.d;
+      if (d <= sizeArray && d >= 1)
       {
-        value.setObject(array[i-1]);
-        return;
+        int i = (int)d;
+        if (i == d)
+        {
+          value.setObject(array[i-1]);
+          return;
+        }
       }
     }
     Object r = super.get(key.asObject());
@@ -373,7 +379,7 @@ public final class LuaTable extends java.util.Hashtable
   /** Like get for numeric (integer) keys. */
   Object getnum(int k)
   {
-    if (k >= 1 && k <= sizeArray)
+    if (k <= sizeArray && k >= 1)
     {
       return array[k-1];
     }
@@ -398,9 +404,8 @@ public final class LuaTable extends java.util.Hashtable
    */
   void putlua(Lua L, Object key, Object value)
   {
-    boolean checkagain = false;
     double d = 0.0;
-    int i = 0;
+    int i = Integer.MAX_VALUE;
 
     if (key == Lua.NIL)
     {
@@ -409,11 +414,12 @@ public final class LuaTable extends java.util.Hashtable
     if (key instanceof Double)
     {
       d = ((Double)key).doubleValue();
-      i = (int)d;
+      int j = (int)d;
 
-      if (i == d && i >= 1)
+      if (j == d && j >= 1)
       {
-        checkagain = true;
+        i = j; // will cause additional check for array part later if
+               // the array part check fails now.
         if (i <= sizeArray)
         {
           array[i-1] = value;
@@ -431,7 +437,7 @@ public final class LuaTable extends java.util.Hashtable
     // This check is necessary because sometimes the call to super.put
     // can rehash and the new (k,v) pair should be in the array part
     // after the rehash, but is still in the hash part.
-    if (checkagain && i <= sizeArray)
+    if (i <= sizeArray)
     {
       remove(key);
       array[i-1] = value;
@@ -475,7 +481,7 @@ public final class LuaTable extends java.util.Hashtable
    */
   void putnum(int k, Object v)
   {
-    if (k >= 1 && k <= sizeArray)
+    if (k <= sizeArray && k >= 1)
     {
       array[k-1] = v;
       return;
