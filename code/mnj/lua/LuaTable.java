@@ -384,8 +384,16 @@ public final class LuaTable extends java.util.Hashtable
   /** Like get for numeric (integer) keys. */
   Object getnum(int k)
   {
-    // :todo: optimise to try array directly.
-    return getlua(new Double(k));
+    if (k >= 1 && k <= sizeArray)
+    {
+      return array[k-1];
+    }
+    Object r = super.get(new Double(k));
+    if (r == null)
+    {
+      return Lua.NIL;
+    }
+    return r;
   }
 
   /**
