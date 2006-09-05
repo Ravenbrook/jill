@@ -3581,13 +3581,12 @@ reentry:
       if (t instanceof LuaTable)        // 't' is a table?
       {
         LuaTable h = (LuaTable)t;
-        Slot s = new Slot();
-        h.getlua(key, s);
+        h.getlua(key, SPARE_SLOT);
 
-        if (s.r != NIL)
+        if (SPARE_SLOT.r != NIL)
         {
-          val.r = s.r;
-          val.d = s.d;
+          val.r = SPARE_SLOT.r;
+          val.d = SPARE_SLOT.d;
           return;
         }
         tm = tagmethod(h, "__index");
