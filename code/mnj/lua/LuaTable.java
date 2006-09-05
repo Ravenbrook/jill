@@ -282,17 +282,6 @@ public final class LuaTable extends java.util.Hashtable
   }
 
   /**
-   * Like put for numeric (integer) keys.
-   */
-  void putnum(int k, Object v)
-  {
-    // :todo: optimisation to try array directly.
-    // The key can never be NIL so putlua will never notice that its L
-    // argument is null.
-    putlua(null, new Double(k), v);
-  }
-
-  /**
    * Supports Lua's length (#) operator.  More or less equivalent to
    * "unbound_search" in ltable.c.
    */
@@ -453,6 +442,22 @@ public final class LuaTable extends java.util.Hashtable
   {
     // :todo: consider optimising.
     putlua(L, key.asObject(), value);
+  }
+
+  /**
+   * Like put for numeric (integer) keys.
+   */
+  void putnum(int k, Object v)
+  {
+    if (k >= 1 && k <= sizeArray)
+    {
+      array[k-1] = v;
+      return;
+    }
+    // The key can never be NIL so putlua will never notice that its L
+    // argument is null.
+    // :todo: optimisation to avoid putlua checking for array part again
+    putlua(null, new Double(k), v);
   }
 
   /**
