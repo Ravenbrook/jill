@@ -440,8 +440,34 @@ public final class LuaTable extends java.util.Hashtable
 
   void putlua(Lua L, Slot key, Object value)
   {
-    // :todo: consider optimising.
-    putlua(L, key.asObject(), value);
+    int i = Integer.MAX_VALUE;
+
+    if (key.r == Lua.NUMBER)
+    {
+      int j = (int)key.d;
+      if (j == key.d && j >= 1)
+      {
+        i = j;
+        if (i <= sizeArray)
+        {
+          array[i-1] = value;
+          return;
+        }
+      }
+    }
+    Object k = key.asObject();
+    // :todo: consider some sort of tail merge with the other putlua
+    if (value == Lua.NIL)
+    {
+      remove(k);
+      return;
+    }
+    super.put(k, value);
+    if (i <= sizeArray)
+    {
+      remove(k);
+      array[i-1] = value;
+    }
   }
 
   /**
