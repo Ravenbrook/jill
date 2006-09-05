@@ -4231,7 +4231,7 @@ reentry:
   /** Lua's is False predicate. */
   private boolean isFalse(Object o)
   {
-    return o == NIL || Boolean.FALSE.equals(o);
+    return o == NIL || o == Boolean.FALSE;
   }
 
   /** @deprecated DO NOT CALL. */
