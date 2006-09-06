@@ -10,12 +10,12 @@ package mnj.lua;
  * </p>
  * <p>
  * A number of instances of the script MultiTask.lua are excuted.  Each
- * script is eexecuted in its own Lua thread (coroutine) that all share
+ * script is executed in its own Lua thread (coroutine) that all share
  * the same main Lua thread.  The environment in which these scripts are
  * executed includes two Lua functions (implemented in Java in this
  * file): mkport and read.  The main Lua state, the threads, the
  * scheduler state, are all created and initialised in {@link
- * MultiTask#init}.
+ * #init}.
  * </p>
  * <p>
  * The Lua function mkport creates an I/O port from a string.
@@ -51,7 +51,9 @@ package mnj.lua;
  * from a Java string and immediately executed, see {@link MultiLib#open},
  * but in reality its loaded form would be stored somewhere convenient
  * and invoked several times, once for each function that needed to
- * become resumable like read.
+ * become resumable like read.  Loading it from a string each time
+ * requires that the Lua code be compiled each time and is extremely
+ * inefficient.
  * </p>
  * <p>
  * The wrapper for our read function (which is actually the function
@@ -61,12 +63,13 @@ package mnj.lua;
  * thread, and the wrapper function.  They way I've arranged things here
  * the magic value is actually an upvalue of the wrapper function and is
  * passed into the "make resumable" function as an argument.  The magic
- * value is stored in the Lua registry.  Note that no Lua code has
+ * value is stored in the Lua registry.  Note that no Lua code, apart
+ * from the "make resumable" function, has
  * direct access to the magic value.
  * </p>
  * <p>
  * The primitive read function, {@link MultiLib#read}, knows nothing about
- * the scheduler directly, or about being resumed.  All it does is invoke
+ * the scheduler directly, nor about being resumed.  All it does is invoke
  * <code>return L.yield(0)</code> when it wishes to block.
  * In reality the read
  * code would be waiting for some sort of event and would arrange that
@@ -80,13 +83,8 @@ package mnj.lua;
  * An exception to be thrown could be passed in this way, for example.
  * </p>
  * <p>
- * Jili doesn't yet support having the VM be suspended by throwing an
- * Exception (eg TaskManagerException).  But it will.  In the meantime,
- * this could be achieved by having {@link MultiLib#luaFunction} catch that
- * Exception and pass it back to the invoker of <code>Lua.resume</code>
- * by pushing it onto the stack and invoking <code>return
- * L.yield(1);</code>.  The called of <code>Lua.resume</code> could
- * retrieve the exception from the Lua stack and rethrow it.
+ * Jili also supports having the VM be suspended by throwing an
+ * Exception (eg TaskManagerException), see {@link Lua#yield}.
  * </p>
  * <p>
  * This example can be run in JSE by invoking this class:
@@ -286,7 +284,7 @@ final class MultiLib extends LuaJavaCallback
     L.setGlobal("mkport", new MultiLib(MKPORT));
 
     // Slightly magic "make resumable" function.
-    // Receives a function, f,  as an argument and returns a function,
+    // Receives a function, f, as an argument and returns a function,
     // Rf,  that is a resumable version of f.  Calling the Rf
     // function has the same effect as calling f.
     // If f returns a magic value (specified as the
@@ -295,10 +293,15 @@ final class MultiLib extends LuaJavaCallback
     int status = L.loadString(
       "local f, magic = ...\n" +
       "return function(...)\n" +
+      "  local function capture(...)\n" +
+      "      local n = select('#', ...)\n" +
+      "      local t = {...}\n" +
+      "      return function() return unpack(t, 1, n) end\n" +
+      "    end\n" +
       "  while true do\n" +
-      "    local t = {f(...)}\n" +
-      "    if t[1] ~= magic then\n" +
-      "      return unpack(t)\n" +
+      "    local result = capture(f(...))\n" +
+      "    if result() ~= magic then\n" +
+      "      return result()\n" +
       "    end\n" +
       "  end\n" +
       "end\n" +
