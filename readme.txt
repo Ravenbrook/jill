@@ -107,6 +107,15 @@ to adapt the build procedure.
 4. RELEASE NOTES
 
 
+RELEASE 0.16.0
+
+This release is intended to improve the speed of execution of Lua
+scripts.
+
+The internal implementation of the VM has been changed to reduce
+allocation of transient garbage, particular of Double instances.
+
+
 RELEASE 0.15.0
 
 This release is intended to improve the speed of execution of Lua
