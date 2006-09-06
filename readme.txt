@@ -121,7 +121,7 @@ RELEASE 0.15.0
 This release is intended to improve the speed of execution of Lua
 scripts.
 
-The implementation of tables has been revisied to improve the case when
+The implementation of tables has been revised to improve the case when
 a Lua table is used like an array (many integer keys contiguous with 1).
 
 Some scripts run in 23% of the time they took in release 0.14.0.
@@ -168,7 +168,7 @@ wrong results.  This is now fixed.  This bug was present ever since
 table.concat was provided in release 0.8.0 but no test invoked this
 case.
 
-Ravenbrook job001514.  It is not clear Intuwave use Jili as an m-Network
+Ravenbrook job001514.  It is not clear how Intuwave use Jili as an m-Network
 task.  This is hopefully clarified somewhat by the
 test/mnj/lua/MultiTask.java example, but the job is left open, as I
 expect more work / support.
