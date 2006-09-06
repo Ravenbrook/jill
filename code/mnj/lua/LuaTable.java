@@ -19,7 +19,10 @@ import java.util.Enumeration;
 
 /**
  * Class that models Lua's tables.  Each Lua table is an instance of
- * this class.
+ * this class.  Whilst you can clearly see that this class extends
+ * {@link java.util.Hashtable} you should in no way rely upon that.
+ * Calling any methods that are not defined in this class (but are
+ * defined in a super class) is extremely deprecated.
  */
 public final class LuaTable extends java.util.Hashtable
 {
@@ -35,13 +38,15 @@ public final class LuaTable extends java.util.Hashtable
    * This speed and space usage for array-like access.
    * When the table is rehashed the array's size is chosen to be the
    * largest power of 2 such that at least half the entries are
-   * occupied.
+   * occupied.  Default access granted for {@link Enum} class, do not
+   * abuse.
    */
-  private Object[] array = ZERO;
+  Object[] array = ZERO;
   /**
-   * Equal to <code>array.length</code>.
+   * Equal to <code>array.length</code>.  Default access granted for
+   * {@link Enum} class, do not abuse.
    */
-  private int sizeArray;        // = 0;
+  int sizeArray;        // = 0;
   /**
    * <code>true</code> whenever we are in the {@link LuaTable#rehash}
    * method.  Avoids infinite rehash loops.
@@ -514,6 +519,11 @@ public final class LuaTable extends java.util.Hashtable
     throw new IllegalArgumentException();
   }
 
+  public Enumeration keys()
+  {
+    return new Enum(this, super.keys());
+  }
+
   /**
    * Do not use, implementation exists only to generate deprecated
    * warning.
@@ -557,5 +567,56 @@ public final class LuaTable extends java.util.Hashtable
   private static int ceillog2(int x)
   {
     return oLog2(x-1)+1;
+  }
+}
+
+final class Enum implements Enumeration
+{
+  private LuaTable t;
+  private int i;        // = 0
+  private Enumeration e;
+
+  Enum(LuaTable t, Enumeration e)
+  {
+    this.t = t;
+    this.e = e;
+    inci();
+  }
+
+  /**
+   * Increments {@link #i} until it either exceeds
+   * <code>t.sizeArray</code> or indexes a non-nil element.
+   */
+  void inci()
+  {
+    while (i < t.sizeArray && t.array[i] == Lua.NIL)
+    {
+      ++i;
+    }
+  }
+
+  public boolean hasMoreElements()
+  {
+    if (i < t.sizeArray)
+    {
+      return true;
+    }
+    return e.hasMoreElements();
+  }
+
+  public Object nextElement()
+  {
+    Object r;
+    if (i < t.sizeArray)
+    {
+      ++i;      // array index i corresponds to key i+1
+      r = new Double(i);
+      inci();
+    }
+    else
+    {
+      r = e.nextElement();
+    }
+    return r;
   }
 }
