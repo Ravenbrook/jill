@@ -35,7 +35,7 @@ final class UpVal
   /**
    * The offset field.  Stored here, but not actually used directly by
    * this class.
-   * Used (by {@Lua}) when searching for {@link UpVal} instances.
+   * Used (by {@link Lua}) when searching for {@link UpVal} instances.
    * An open UpVal has a valid offset field.  Its slot is shared
    * with a slot of the VM stack.
    * A closed UpVal has offset == -1.  It's slot will be a fresh copy
