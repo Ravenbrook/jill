@@ -419,11 +419,9 @@ final class FuncState
     return addk(s.intern());
   }
 
-  private static final Object fake_nil = new Object() ;
-
   private int addk(Object o)
   {
-    Object hash = o == null ? fake_nil : o ;
+    Object hash = o;
     Object v = h.get(hash);
     if (v != null)
     {
