@@ -237,7 +237,7 @@ final class Syntax
   private void inclinenumber() throws IOException
   {
     int old = current;
-    // assert currIsNewline();
+    //# assert currIsNewline()
     next();     // skip '\n' or '\r'
     if (currIsNewline() && current != old)
     {
@@ -249,20 +249,11 @@ final class Syntax
     }
   }
 
-  // :todo: consider removing or macroising.
-  private static void lua_assert(boolean b, String routine)
-  {
-    if (!b)
-    {
-      throw new RuntimeException("lua_assert failure in "+routine) ;
-    }
-  }
-
   private int skip_sep() throws IOException
   {
     int count = 0;
     int s = current;
-    lua_assert(s == '[' || s == ']', "skip_sep()");
+    //# assert s == '[' || s == ']'
     save_and_next();
     while (current == '=')
     {
@@ -707,7 +698,8 @@ loop:
     removevars(0);
     fs.kRet(0, 0);  // final return;
     fs.close();
-    lua_assert(fs != fs.prev, "close_func()") ; // :todo: check this is a valid assertion to make
+    // :todo: check this is a valid assertion to make
+    //# assert fs != fs.prev
     fs = fs.prev;
   }
 
@@ -796,9 +788,9 @@ loop:
     ls.chunk();
     ls.check(TK_EOS);
     ls.close_func();
-    ls.lua_assert(fs.prev == null,"parser() 2") ;
-    ls.lua_assert(fs.f.nups == 0, "parser() 3") ;
-    ls.lua_assert(ls.fs == null,  "parser() 4") ;
+    //# assert fs.prev == null
+    //# assert fs.f.nups == 0
+    //# assert ls.fs == null
     return fs.f;
   }
 
@@ -884,9 +876,7 @@ loop:
     {
       islast = statement();
       testnext(';');
-      lua_assert(fs.f.maxstacksize >= fs.freereg &&
-                  fs.freereg >= fs.nactvar,
-                  "chunk()");
+      //# assert fs.f.maxstacksize >= fs.freereg && fs.freereg >= fs.nactvar
       fs.freereg = fs.nactvar;
     }
     leavelevel();
@@ -904,7 +894,7 @@ loop:
     checknext('{');
     do
     {
-      lua_assert(cc.v.k == Expdesc.VVOID || cc.tostore > 0, "constructor()");
+      //# assert cc.v.k == Expdesc.VVOID || cc.tostore > 0
       if (token == '}')
         break;
       closelistfield(cc);
@@ -1252,7 +1242,7 @@ loop:
         if (e.k == Expdesc.VCALL && nret == 1)    /* tail call? */
         {
           fs.setcode(e, Lua.SET_OPCODE(fs.getcode(e), Lua.OP_TAILCALL));
-          lua_assert(Lua.ARGA(fs.getcode(e)) == fs.nactvar, "retstat()");
+          //# assert Lua.ARGA(fs.getcode(e)) == fs.nactvar
         }
         first = fs.nactvar;
         nret = Lua.MULTRET;  /* return all values */
@@ -1267,7 +1257,7 @@ loop:
         {
           fs.kExp2nextreg(e);  /* values must go to the `stack' */
           first = fs.nactvar;  /* return all `active' values */
-          lua_assert(nret == fs.freereg - first, "retstat() 2");
+          //# assert nret == fs.freereg - first
         }
       }
     }
@@ -1499,7 +1489,7 @@ loop:
     bl.upval = false ;
     bl.previous = f.bl;
     f.bl = bl;
-    lua_assert(f.freereg == f.nactvar, "enterblock()");
+    //# assert f.freereg == f.nactvar
   }
 
   private void leaveblock(FuncState f)
@@ -1509,8 +1499,9 @@ loop:
     removevars(bl.nactvar);
     if (bl.upval)
       f.kCodeABC(Lua.OP_CLOSE, bl.nactvar, 0, 0);
-    lua_assert((!bl.isbreakable) || (!bl.upval), "leaveblock()");  /* loops have no body */
-    lua_assert(bl.nactvar == f.nactvar, "leaveblock() 2");
+    /* loops have no body */
+    //# assert (!bl.isbreakable) || (!bl.upval)
+    //# assert bl.nactvar == f.nactvar
     f.freereg = f.nactvar;  /* free registers */
     f.kPatchtohere(bl.breaklist);
   }
@@ -1529,7 +1520,7 @@ loop:
     BlockCnt bl = new BlockCnt() ;
     enterblock(fs, bl, false);
     chunk();
-    lua_assert(bl.breaklist == FuncState.NO_JUMP, "block()");
+    //# assert bl.breaklist == FuncState.NO_JUMP
     leaveblock(fs);
   }
 
@@ -1680,7 +1671,7 @@ loop:
   }
   private int UPVAL_ENCODE(int k, int info)
   {
-    lua_assert((k & 0xFF) == k && (info & 0xFF) == info, "UPVAL_ENCODE()") ;
+    //# assert (k & 0xFF) == k && (info & 0xFF) == info
     return ((k & 0xFF) << 8) | (info & 0xFF) ;
   }
 
@@ -2000,7 +1991,7 @@ loop:
 
   void xLookahead() throws IOException
   {
-    lua_assert(lookahead == TK_EOS, "xLookahead()");
+    //# assert lookahead == TK_EOS
     lookahead = llex();
     lookaheadR = semR ;
     lookaheadS = semS ;
@@ -2023,7 +2014,7 @@ loop:
       int entry = funcstate.upvalues[i] ;
       if (UPVAL_K(entry) == v.k && UPVAL_INFO(entry) == v.info)
       {
-        lua_assert(name.equals(f.upvalues[i]), "indexupvalue()");
+        //# assert name.equals(f.upvalues[i])
         return i;
       }
     }
@@ -2031,7 +2022,7 @@ loop:
     yChecklimit(f.nups + 1, Lua.MAXUPVALUES, "upvalues");
     f.ensureUpvals(L, f.nups) ;
     f.upvalues[f.nups] = name;
-    lua_assert(v.k == Expdesc.VLOCAL || v.k == Expdesc.VUPVAL, "indexupvalue() 2");
+    //# assert v.k == Expdesc.VLOCAL || v.k == Expdesc.VUPVAL
     funcstate.upvalues[f.nups] = UPVAL_ENCODE(v.k, v.info) ;
     return f.nups++;
   }

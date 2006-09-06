@@ -101,8 +101,8 @@ final class FuncState
     f.closeLocvars(nlocvars);
     f.closeUpvalues();
     boolean checks = L.gCheckcode(f);
-    lua_assert(checks, "close()") ;
-    lua_assert(bl == null, "close() 2") ;
+    //# assert checks
+    //# assert bl == null
   }
 
   /** Equivalent to getlocvar from lparser.c.
@@ -291,14 +291,16 @@ final class FuncState
     switch (op)
     {
       case Syntax.OPR_AND:
-        lua_assert(e1.t == NO_JUMP, "kPosfix() and");  /* list must be closed */
+        /* list must be closed */
+        //# assert e1.t == NO_JUMP
         kDischargevars(e2);
         e2.f = kConcat(e2.f, e1.f);
         e1.init(e2);
         break;
 
       case Syntax.OPR_OR:
-        lua_assert(e1.f == NO_JUMP, "kPosfix() or");  /* list must be closed */
+        /* list must be closed */
+        //# assert e1.f == NO_JUMP
         kDischargevars(e2);
         e2.t = kConcat(e2.t, e1.t);
         e1.init(e2);
@@ -308,7 +310,7 @@ final class FuncState
         kExp2val(e2);
         if (e2.k == Expdesc.VRELOCABLE && Lua.OPCODE(getcode(e2)) == Lua.OP_CONCAT)
         {
-          lua_assert(e1.info == Lua.ARGB(getcode(e2))-1, "kPosfix() concat");
+          //# assert e1.info == Lua.ARGB(getcode(e2))-1
           freeexp(e1);
           setcode(e2, Lua.SETARG_B(getcode(e2), e1.info));
           e1.k = e2.k;
@@ -334,7 +336,7 @@ final class FuncState
       case Syntax.OPR_GT: codecomp(Lua.OP_LT, false, e1, e2); break;
       case Syntax.OPR_GE: codecomp(Lua.OP_LE, false, e1, e2); break;
       default:
-        lua_assert(false, "kPosfix() def");
+        //# assert false
     }
   }
 
@@ -475,7 +477,7 @@ final class FuncState
       case Lua.OP_UNM: r = -v1; break;
       case Lua.OP_LEN: return false;  /* no constant folding for 'len' */
       default:
-          lua_assert(false, "constfolding");
+          //# assert false
           r = 0.0; break;
     }
     if (Double.isNaN(r))
@@ -513,7 +515,7 @@ final class FuncState
         break;
 
       default:
-        lua_assert(false, "codenot()");  /* cannot happen */
+        //# assert false
         break;
     }
     /* interchange true and false lists */
@@ -573,7 +575,7 @@ final class FuncState
         return ;
 
       default:
-        lua_assert(false, "discharge2reg()") ;
+        //# assert false
     }
     e.nonreloc(reg);
   }
@@ -721,7 +723,7 @@ final class FuncState
       kPatchtohere(list);
     else
     {
-      lua_assert(target < pc, "kPatchlist()");
+      //# assert target < pc
       patchlistaux(list, target, Lua.NO_REG, target);
     }
   }
@@ -856,7 +858,7 @@ final class FuncState
   {
     int jmp = f.code[at];
     int offset = dest-(at+1);
-    lua_assert(dest != NO_JUMP, "fixjump()");
+    //# assert dest != NO_JUMP
     if (Math.abs(offset) > Lua.MAXARG_sBx)
       ls.xSyntaxerror("control structure too long");
     f.code[at] = Lua.SETARG_sBx(jmp, offset);
@@ -912,7 +914,8 @@ final class FuncState
       }
       default:
       {
-        lua_assert(false, "kStorevar()");  /* invalid var kind to store */
+        /* invalid var kind to store */
+        //# assert false
         break;
       }
     }
@@ -1041,10 +1044,7 @@ final class FuncState
     int at = getjumpcontrol(e.info);
     int [] code = f.code ;
     int instr = code[at] ;
-    lua_assert(testTMode(Lua.OPCODE(instr)) &&
-               Lua.OPCODE(instr) != Lua.OP_TESTSET &&
-               Lua.OPCODE(instr) != Lua.OP_TEST,
-               "invertjump()");
+    //# assert testTMode(Lua.OPCODE(instr)) && Lua.OPCODE(instr) != Lua.OP_TESTSET && Lua.OPCODE(instr) != Lua.OP_TEST
     code[at] = Lua.SETARG_A(instr, (Lua.ARGA(instr) == 0 ? 1 : 0));
   }
 
@@ -1098,7 +1098,7 @@ final class FuncState
   {
     int c =  (nelems - 1) / Lua.LFIELDS_PER_FLUSH + 1;
     int b = (tostore == Lua.MULTRET) ? 0 : tostore;
-    lua_assert(tostore != 0, "kSetlist()");
+    //# assert tostore != 0
     if (c <= Lua.MAXARG_C)
       kCodeABC(Lua.OP_SETLIST, base, b, c);
     else
@@ -1134,13 +1134,4 @@ final class FuncState
     if (b != null)
       b.upval = true;
   }
-
-  private void lua_assert(boolean b, String routine)
-  {
-    if (!b)
-    {
-      ls.xSyntaxerror("lua_assert failure in "+routine) ;
-    }
-  }
-
 }
