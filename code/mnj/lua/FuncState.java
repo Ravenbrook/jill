@@ -414,7 +414,7 @@ final class FuncState
   /** Equivalent to luaK_stringK. */
   int kStringK(String s)
   {
-    return addk(s);
+    return addk(s.intern());
   }
 
   private static final Object fake_nil = new Object() ;
