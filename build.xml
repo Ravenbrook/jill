@@ -411,6 +411,11 @@
     <java fork="yes"
         classname="j2meunit.textui.TestRunner"
         classpath="compiled:test-compiled:${j2meunit}">
+      <!--
+        big.lua requires this much memory because it creates a string of
+        size 32MiB and then tries to concatenate it.
+        -->
+      <jvmarg value="-Xmx256M" />
       <arg value="mnj.lua.AdvancedTest" />
     </java>
   </target>
