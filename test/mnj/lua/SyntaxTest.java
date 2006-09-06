@@ -251,13 +251,14 @@ public class SyntaxTest extends JiliTestCase
         ));
     Object res = L.value(1) ;
     assertTrue("table 1 result is LuaTable", res instanceof LuaTable);
-    assertTrue("table 1 result has size 3", ((Hashtable)res).size() == 3);
     assertTrue("table 1, t.foo == 45",
         double_equal (L.getTable(res, "foo"), 45));
     assertTrue("table 1, t[3] == 1",
         double_equal (L.getTable(res, L.valueOfNumber(3.0)), 1.0));
     assertTrue("table 1, t[1] == 'laa'",
         "laa".equals (L.getTable(res, L.valueOfNumber(1.0))));
+    assertTrue("table 1, t.laa == nil",
+         L.isNil(L.getTable(res, "laa")));
     
     L.setTop(0) ;
     assertTrue("table 2 okay", 0 == dostring(L,
@@ -265,8 +266,6 @@ public class SyntaxTest extends JiliTestCase
         ));
     res = L.value(1) ;
     assertTrue("table 2 result is LuaTable", res instanceof LuaTable);
-    assertTrue("table 2 result has size 4", ((Hashtable)res).size() == 4);
-    assertTrue("table 2, t.foo == t", L.getTable(res, "foo") == res);
     assertTrue("table 2, t[3] == 4",
         double_equal (L.getTable(res, L.valueOfNumber(3.0)), 4.0));
     assertTrue("table 2, t[1] == 'laa'",
@@ -323,8 +322,6 @@ public class SyntaxTest extends JiliTestCase
     L.call(0, 1);
     Object res = L.value(1) ;
     assertTrue("closures 1 result test", res instanceof LuaTable) ;
-    int size = ((LuaTable) res).size () ;
-    assertTrue("closures 1 result test#2", size == 3) ;
     
     L.setTop(0) ;
   }
