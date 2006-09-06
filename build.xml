@@ -452,6 +452,11 @@
     <java fork="yes"
         classname="mnj.lua.Luai"
         classpath="compiled:test-compiled:test-compiled-se">
+      <arg value="test/mnj/lua/getnmore.lua" />
+    </java>
+    <java fork="yes"
+        classname="mnj.lua.Luai"
+        classpath="compiled:test-compiled:test-compiled-se">
       <arg value="test/mnj/lua/putnum.lua" />
     </java>
   </target>
