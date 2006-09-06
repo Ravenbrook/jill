@@ -496,8 +496,7 @@ final class Loader
     if (in.read() == -1)
       throw new EOFException() ;
 
-    // :todo: consider interning string.
-    return new String(buf, "UTF-8");
+    return (new String(buf, "UTF-8")).intern();
   }
 
   /**
