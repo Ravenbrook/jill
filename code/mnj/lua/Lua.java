@@ -966,6 +966,18 @@ public final class Lua
       allowhook = old_allowhook;
       errorStatus = e.errorStatus;
     }
+    catch (OutOfMemoryError e)
+    {
+      fClose(restoreStack);     // close eventual pending closures
+      dSeterrorobj(ERRMEM, restoreStack);
+      nCcalls = oldnCcalls;
+      civ.setSize(restoreCi);
+      CallInfo ci = ci();
+      base = ci.base();
+      savedpc = ci.savedpc();
+      allowhook = old_allowhook;
+      errorStatus = ERRMEM;
+    }
     errfunc = old_errfunc;
     return errorStatus;
   }
@@ -2260,6 +2272,8 @@ protect:
     }
   }
 
+  private static final String MEMERRMSG = "not enough memory";
+
   /** Equivalent to luaD_seterrorobj.  It is valid for oldtop to be
    * equal to the current stack size (<code>stackSize</code>).
    * {@link #resume} uses this value for oldtop.
@@ -2273,6 +2287,10 @@ protect:
     }
     switch (errcode)
     {
+      case ERRMEM:
+        stack[oldtop].r = MEMERRMSG;
+        break;
+
       case ERRERR:
         stack[oldtop].r = "error in error handling";
         break;
