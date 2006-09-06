@@ -152,7 +152,7 @@ final class Syntax
   // Implementations of functions from <ctype.h> are only correct copies
   // to the extent that Lua requires them.
   // Generally they have default access so that StringLib can see them.
-  // Unlike C's these version are not locale dependent (in they use the
+  // Unlike C's these version are not locale dependent, they use the
   // ISO-Latin-1 definitions from CLDC 1.1 Character class.
 
   static boolean isalnum(int c)
@@ -712,7 +712,7 @@ loop:
   }
 
 
-    String opcode_name(int op)
+    static String opcode_name(int op)
     {
       switch (op)
       {
@@ -934,7 +934,7 @@ loop:
     code[pc] = Lua.SETARG_C(code[pc], oInt2fb(cc.nh)); /* set initial table size */
   }
 
-  private int oInt2fb(int x)
+  private static int oInt2fb(int x)
   {
     int e = 0;  /* exponent */
     while (x < 0 || x >= 16)
@@ -1946,7 +1946,7 @@ loop:
     fs.kPatchtohere(condexit);  /* false conditions finish the loop */
   }
 
-  private boolean hasmultret(int k)
+  private static boolean hasmultret(int k)
   {
     return k == Expdesc.VCALL || k == Expdesc.VVARARG ;
   }
