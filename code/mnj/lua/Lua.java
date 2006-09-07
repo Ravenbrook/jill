@@ -2568,6 +2568,10 @@ protect:
         {
           s = "-" + s.substring(3);
         }
+        else
+        {
+          return false;
+        }
         out[0] = Integer.parseInt(s, 16);
         return true;
       }
