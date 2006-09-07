@@ -30,7 +30,7 @@ public class AdvancedTest extends JiliTestCase
     OSLib.open(L);
     StringLib.open(L);
     TableLib.open(L);
-    loadFile(L, "accept-advanced/" + getName());
+    loadFile(L, getName());
     int status = L.pcall(0, 0, new AddWhere());
     if (status != 0)
     {
@@ -61,11 +61,8 @@ public class AdvancedTest extends JiliTestCase
         "vararg",
       };
 
-    // In order to test the compiler separately from the interpreter
-    // all the tests are executed in both lua source and compiled form.
     for (int i=0; i<script.length; ++i)
     {
-      suite.addTest(new AdvancedTest(script[i] + ".luc"));
       suite.addTest(new AdvancedTest(script[i] + ".lua"));
     }
 

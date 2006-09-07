@@ -406,8 +406,12 @@
     </java>
   </target>
 
-  <target name="advanced-test" depends="compile,compile-test,include-extra"
-      description="Runs the advanced acceptance tests" >
+  <!--
+    Runs some of the advanced acceptance tests file by file so that
+    errors in one file do not preclude execution of the next.
+    -->
+  <target name="old-advanced-test" depends="compile,compile-test,include-extra"
+      >
     <java fork="yes"
         classname="j2meunit.textui.TestRunner"
         classpath="compiled:test-compiled:${j2meunit}">
@@ -417,6 +421,17 @@
         -->
       <jvmarg value="-Xmx256M" />
       <arg value="mnj.lua.AdvancedTest" />
+    </java>
+  </target>
+
+  <target name="advanced-test"
+      depends="compile,compile-test,include-extra"
+      description="Runs the advanced acceptance tests" >
+    <java fork="yes"
+        classname="mnj.lua.Luai"
+        classpath="compiled:test-compiled:test-compiled-se" >
+      <jvmarg value="-Xmx256M" />
+      <arg value="test/mnj/lua/all.lua" />
     </java>
   </target>
 
