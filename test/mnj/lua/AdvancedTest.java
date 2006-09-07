@@ -61,8 +61,8 @@ public class AdvancedTest extends JiliTestCase
         "vararg",
       };
 
-    // In order to the compiler separately from the interpreter all the
-    // tests are executed in both lua source and compiled form.
+    // In order to test the compiler separately from the interpreter
+    // all the tests are executed in both lua source and compiled form.
     for (int i=0; i<script.length; ++i)
     {
       suite.addTest(new AdvancedTest(script[i] + ".luc"));
