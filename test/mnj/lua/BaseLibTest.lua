@@ -213,3 +213,8 @@ function testnanindex()
   assert(pcall(function()t[nan]=''end) == false)
   return true
 end
+-- Test that 'a99' + '11' is an error.
+function testhexerror()
+  assert(pcall(function()return'a99'+'11'end) == false)
+  return true
+end
