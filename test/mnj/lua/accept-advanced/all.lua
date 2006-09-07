@@ -1,4 +1,4 @@
-#!../lua
+-- #!../lua
 
 math.randomseed(0)
 
@@ -24,10 +24,11 @@ end
 
 local c = os.clock()
 
-assert(os.setlocale"C")
+--assert(os.setlocale"C")
 
+local collectgarbage = collectgarbage
 local T,print,gcinfo,format,write,assert,type =
-      T,print,gcinfo,string.format,print,assert,type
+      T,print,function()return collectgarbage'count'end,string.format,print,assert,type
 
 local function formatmem (m)
   if m < 1024 then return m
@@ -68,6 +69,7 @@ end
 
 --dofile('main.lua')
 
+--[[
 do
   local u = newproxy(true)
   local newproxy, stderr = newproxy, print
@@ -76,10 +78,11 @@ do
     newproxy(o)
   end
 end
+--]]
 
 local f = assert(loadfile('gc.lua'))
 f()
-dofile('db.lua')
+--dofile('db.lua')
 assert(dofile('calls.lua') == deep and deep)
 dofile('strings.lua')
 dofile('literals.lua')
@@ -115,7 +118,7 @@ end
 print("final OK !!!")
 print('cleaning all!!!!')
 
-debug.sethook(function (a) assert(type(a) == 'string') end, "cr")
+-- debug.sethook(function (a) assert(type(a) == 'string') end, "cr")
 
 local _G, collectgarbage, showmem, print, format, clock =
       _G, collectgarbage, showmem, print, format, os.clock

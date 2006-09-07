@@ -12,7 +12,7 @@ assert(not a and string.find(b, "overflow"))
 print('+')
 
 
-require "checktable"
+-- require "checktable"
 
 --[[ lots of empty lines (to force SETLINEW)
 
@@ -264,7 +264,7 @@ end
 assert(b.x == 23)
 print('+')
 
-stat(b)
+-- stat(b)
 
 repeat
 a = {
@@ -334,7 +334,7 @@ assert(a.n299 == 299.5)
 xxx = 1
 assert(xxx == 1)
 
-stat(a)
+-- stat(a)
 
 function a:findfield (f)
   local i,v = next(self, nil)
@@ -367,13 +367,13 @@ a1 = nil
 print("tables with table indices:")
 i = 1; a={}
 while i <= 1023 do a[{}] = i; i=i+1 end
-stat(a)
+-- stat(a)
 a = nil
 
 print("tables with function indices:")
 a={}
 for i=1,511 do local x; a[function () return x end] = i end
-stat(a)
+-- stat(a)
 a = nil
 
 print'OK'
