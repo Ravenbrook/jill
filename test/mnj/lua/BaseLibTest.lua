@@ -205,3 +205,11 @@ function testloaderr()
   assert(type(b) == 'string')
   return true
 end
+-- Test using NaN as a table index.  It's here for entirely bogus
+-- reasons of convenience.
+function testnanindex()
+  local t = {}
+  local nan = 0/0
+  assert(pcall(function()t[nan]=''end) == false)
+  return true
+end
