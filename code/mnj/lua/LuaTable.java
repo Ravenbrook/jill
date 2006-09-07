@@ -465,6 +465,10 @@ public final class LuaTable extends java.util.Hashtable
           return;
         }
       }
+      if (Double.isNaN(d))
+      {
+        L.gRunerror("table index is NaN");
+      }
     }
     // :todo: Consider checking key for NaN (PUC-Rio does)
     if (value == Lua.NIL)
@@ -498,6 +502,10 @@ public final class LuaTable extends java.util.Hashtable
           array[i-1] = value;
           return;
         }
+      }
+      if (Double.isNaN(key.d))
+      {
+        L.gRunerror("table index is NaN");
       }
     }
     Object k = key.asObject();
