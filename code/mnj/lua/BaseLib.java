@@ -268,7 +268,7 @@ public final class BaseLib extends LuaJavaCallback
   private static final String[] CGOPTS = new String[]
   {
     "stop", "restart", "collect",
-    "count", "step", "setpause", "setsetpmul"};
+    "count", "step", "setpause", "setstepmul"};
   private static final int[] CGOPTSNUM = new int[]
   {
     Lua.GCSTOP, Lua.GCRESTART, Lua.GCCOLLECT,
