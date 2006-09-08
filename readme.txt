@@ -107,6 +107,44 @@ to adapt the build procedure.
 4. RELEASE NOTES
 
 
+RELEASE 0.18.0
+
+This release is a maintenance release.  Some bugs are fixed, and the
+speed should be improved too.
+
+
+The following bugs have been fixed:
+
+string.format has been modified so that it should be in line with the
+output produced by the C versoin of Lua (PUC-Rio) running on Symbian
+platforms.  Ravenbrook job job001466.
+
+When assigning to tables a Nan value for the index now raises an error.
+So Jili now follows PUC-Rio in this regard.  Ravenbrook job001470.
+
+Hex string arithmetic bug is fixed.  So that things like 'a99'+'11' now
+raise an error.  Ravenbrook job001498.
+
+Some speed improvements have been made.  Specifically compiler and
+loader generated strings are now interned.  This greatly speeds up table
+lookups using constant string keys, which includes the important cases
+of global variables (used heavily by fib.lua for example) and
+structure-like field access of tables (used heavily by nbody.lua).
+Ravenbrook job001515
+
+Java out of memory errors are now caught and translated into a Lua
+error.  Ravenbrook job001518.
+
+'setstepmul' should be a valid argument to collectgarbage but it caused
+an error.  Now that's fixed.  It still doesn't do anything useful though.
+Ravenbrook job001519
+
+
+The following bugs are yet to be fixed:
+
+load does not accept the output of string.dump.  Ravenbrook job001505.
+
+
 RELEASE 0.17.0
 
 This release is intended to improve the speed of execution of Lua
