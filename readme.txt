@@ -107,6 +107,15 @@ to adapt the build procedure.
 4. RELEASE NOTES
 
 
+RELEASE 0.17.0
+
+This release is intended to improve the speed of execution of Lua
+scripts.
+
+Various optimisations have been made, particular to the speed of table
+indexing operations.
+
+
 RELEASE 0.16.0
 
 This release is intended to improve the speed of execution of Lua
