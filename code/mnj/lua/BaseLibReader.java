@@ -15,6 +15,8 @@
 
 package mnj.lua;
 
+import java.io.IOException;
+
 /**
  * Extends {@link java.io.Reader} to create a Reader from a Lua
  * function.  So that the <code>load</code> function from Lua's base
@@ -24,6 +26,7 @@ final class BaseLibReader extends java.io.Reader
 {
   private String s = "";
   private int i;        // = 0;
+  private int mark = -1;
   private Lua L;
   private Object f;
 
@@ -36,6 +39,15 @@ final class BaseLibReader extends java.io.Reader
   public void close()
   {
     f = null;
+  }
+
+  public void mark(int l) throws IOException
+  {
+    if (l > 1)
+    {
+      throw new IOException("Readahead must be <= 1");
+    }
+    mark = i;
   }
 
   public int read()
@@ -54,6 +66,14 @@ final class BaseLibReader extends java.io.Reader
         if (s.length() == 0)
         {
           return -1;
+        }
+        if (mark == i)
+        {
+          mark = 0;
+        }
+        else
+        {
+          mark = -1;
         }
         i = 0;
       }
@@ -85,5 +105,14 @@ final class BaseLibReader extends java.io.Reader
       cbuf[off+j] = (char)c;
     }
     return j;
+  }
+
+  public void reset() throws IOException
+  {
+    if (mark < 0)
+    {
+      throw new IOException("reset() not supported now");
+    }
+    i = mark;
   }
 }

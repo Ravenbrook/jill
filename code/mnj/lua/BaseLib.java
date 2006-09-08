@@ -15,6 +15,8 @@
 
 package mnj.lua;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Enumeration;
 
 /**
@@ -395,7 +397,23 @@ public final class BaseLib extends LuaJavaCallback
   {
     String cname = L.optString(2, "=(load)");
     L.checkType(1, Lua.TFUNCTION);
-    int status = L.load(new BaseLibReader(L, L.value(1)), cname);
+    Reader r = new BaseLibReader(L, L.value(1));
+    int status;
+    try
+    {
+      r.mark(1);
+      int first = r.read();
+      if (first == '\033')
+      {
+        L.error("load not supported for binary chunks");
+      }
+      r.reset();
+      status = L.load(r, cname);
+    }
+    catch (IOException e_)
+    {
+      status = Lua.ERRFILE;
+    }
     return load_aux(L, status);
   }
 
