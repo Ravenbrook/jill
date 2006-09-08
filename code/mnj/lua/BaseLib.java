@@ -16,6 +16,7 @@
 package mnj.lua;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.util.Enumeration;
 
@@ -403,12 +404,16 @@ public final class BaseLib extends LuaJavaCallback
     {
       r.mark(1);
       int first = r.read();
+      r.reset();
       if (first == '\033')
       {
-        L.error("load not supported for binary chunks");
+        InputStream i = new FromReader(r);
+        status = L.load(i, cname);
       }
-      r.reset();
-      status = L.load(r, cname);
+      else
+      {
+        status = L.load(r, cname);
+      }
     }
     catch (IOException e_)
     {

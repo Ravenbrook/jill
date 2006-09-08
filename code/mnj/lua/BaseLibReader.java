@@ -50,6 +50,11 @@ final class BaseLibReader extends java.io.Reader
     mark = i;
   }
 
+  public boolean markSupported()
+  {
+    return true;
+  }
+
   public int read()
   {
     if (i >= s.length())
