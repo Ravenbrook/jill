@@ -62,6 +62,16 @@ public final class StringLib extends LuaJavaCallback
   }
 
   /**
+   * Adjusts the output of string.format so that %e and %g use 'e'
+   * instead of 'E' to indicate the exponent.  In other words so that
+   * string.format follows the ISO C (ISO 9899) standard for printf.
+   */
+  public void formatISO()
+  {
+    FormatItem.E_LOWER = 'e';
+  }
+
+  /**
    * Implements all of the functions in the Lua string library.  Do not
    * call directly.
    * @param L  the Lua state in which to execute.
@@ -1132,6 +1142,15 @@ final class FormatItem
   private int length;   // length of the format item in the format string.
 
   /**
+   * Character used in formatted output when %e or %g format is used.
+   */
+  static char E_LOWER = 'E';
+  /**
+   * Character used in formatted output when %E or %G format is used.
+   */
+  static char E_UPPER = 'E';
+
+  /**
    * Parse a format item (starting from after the <code>L_ESC</code>).
    * If you promise that there won't be any format errors, then
    * <var>L</var> can be <code>null</code>.
@@ -1413,11 +1432,11 @@ flag:
     e -= offset;
     if (Character.isLowerCase(type))
     {
-      t.append('e');
+      t.append(E_LOWER);
     }
     else
     {
-      t.append('E');
+      t.append(E_UPPER);
     }
     if (e >= 0)
     {
@@ -1528,7 +1547,7 @@ flag:
     {
       // %f style
       // For %g precision specifies the number of significant digits,
-      // for %f precision specified the number of fractional digits.
+      // for %f precision specifies the number of fractional digits.
       // There is a problem because it's not obvious how many fractional
       // digits to format, it could be more than precision
       // (when .0001 <= m < 1) or it could be less than precision
