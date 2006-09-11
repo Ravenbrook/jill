@@ -107,6 +107,25 @@ to adapt the build procedure.
 4. RELEASE NOTES
 
 
+RELEASE 0.19.0
+
+This release is a maintenance release.
+
+The followings bugs have been fixed:
+
+load (in the base library) now accepts the output of string.dump.
+As a result, so does Lua.load(java.io.Reader, String) in the API.
+Ravenbrook job001505.
+
+load (in the base library) now handles an error in its reader function
+correctly.
+Ravenbrook job001480.
+
+
+There are now no more known bugs that are intended to be fixed.
+
+
+
 RELEASE 0.18.0
 
 This release is a maintenance release.  Some bugs are fixed, and the
