@@ -38,7 +38,7 @@ final class StringReader extends java.io.Reader
     current = -1;
   }
 
-  public void mark()
+  public void mark(int limit)
   {
     mark = current;
   }
