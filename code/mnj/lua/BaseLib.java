@@ -400,25 +400,8 @@ public final class BaseLib extends LuaJavaCallback
     L.checkType(1, Lua.TFUNCTION);
     Reader r = new BaseLibReader(L, L.value(1));
     int status;
-    try
-    {
-      r.mark(1);
-      int first = r.read();
-      r.reset();
-      if (first == '\033')
-      {
-        InputStream i = new FromReader(r);
-        status = L.load(i, cname);
-      }
-      else
-      {
-        status = L.load(r, cname);
-      }
-    }
-    catch (IOException e_)
-    {
-      status = Lua.ERRFILE;
-    }
+
+    status = L.load(r, cname);
     return load_aux(L, status);
   }
 

@@ -795,9 +795,12 @@ public final class Lua
 
   /**
    * Loads a Lua chunk in source form.
-   * Comparable to C's lua_load.  Since this takes a {@link
+   * Comparable to C's lua_load.  This method takes a {@link
    * java.io.Reader} parameter,
-   * this method is restricted to loading Lua chunks in source form.
+   * and is normally used to load Lua chunks in source form.
+   * However, it if the input looks like it is the output from Lua's
+   * <code>string.dump</code> function then it will be processed as a
+   * binary chunk.
    * In every other respect this method is just like {@link
    * #load(InputStream, String)}.
    * @param in         The source chunk as a Reader, for example from

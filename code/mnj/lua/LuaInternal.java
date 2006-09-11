@@ -48,37 +48,55 @@ final class LuaInternal extends LuaJavaCallback
     try
     {
       Proto p = null;
-      int c = -1;
 
-      // The following logic is a bit tricky.  If there is a reader
-      // defined, then use that for compilation from source, otherwise
-      // (there must be a stream defined) try loading as binary, then
-      // compiling from source.
-
+      // In either the stream or the reader case there is a way of
+      // converting the input to the other type.
       if (stream != null)
       {
-        // :todo: consider using markSupported
         stream.mark(1);
-        c = stream.read();
+        int c = stream.read();
         stream.reset();
-      }
-
-      if (c == Loader.HEADER[0])
-      {
-        // assert stream != null
-        Loader l = new Loader(stream, chunkname);
-        p = l.undump();
+        
+        // Convert to Reader if looks like source code instead of
+        // binary.
+        if (c == Loader.HEADER[0])
+        {
+          Loader l = new Loader(stream, chunkname);
+          p = l.undump();
+        }
+        else
+        {
+          reader = new InputStreamReader(stream, "UTF-8");
+          p = Syntax.parser(L, reader, chunkname);
+        }
       }
       else
       {
-        if (reader == null)
+        // Convert to Stream if looks like binary (dumped via
+        // string.dump) instead of source code.
+        if (reader.markSupported())
         {
-          // Possible UnsupportedEncodingException caught as IOException
-          // in this method's top-level try/catch.
-          reader = new InputStreamReader(stream, "UTF-8");
+          reader.mark(1);
+          int c = reader.read();
+          reader.reset();
+
+          if (c == Loader.HEADER[0])
+          {
+            stream = new FromReader(reader);
+            Loader l = new Loader(stream, chunkname);
+            p = l.undump();
+          }
+          else
+          {
+            p = Syntax.parser(L, reader, chunkname);
+          }
         }
-        p = Syntax.parser(L, reader, chunkname);
+        else
+        {
+          p = Syntax.parser(L, reader, chunkname);
+        }
       }
+
       L.push(new LuaFunction(p,
           new UpVal[0],
           L.getGlobals()));
