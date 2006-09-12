@@ -181,6 +181,31 @@ public class CoroTest extends JiliTestCase
           L.valueOfBoolean(true).equals(L.value(-1)));
   }
 
+  /**
+   * Thread that raises error.
+   */
+  public void test11()
+  {
+    System.out.println("test11");
+    Lua main = new Lua();
+    Lua co = main.newThread();
+    BaseLib.open(co);
+    co.loadString("error('test11 error ' .. ...)", "@test11");
+    co.pushString("foo");
+    int status = co.resume(1);
+    System.out.println("status = " + status);
+    assertTrue("status is ERRRUN", status == Lua.ERRRUN);
+    if (status != 0 && status != Lua.YIELD)
+    {
+      Object o = co.value(-1);
+      assertTrue(o instanceof String);
+      String s = (String)o;
+      assertTrue("Result contains 'test11 error'",
+          s.indexOf("test11 error") >= 0);
+      System.out.println("Expected error: " + co.value(-1));
+    }
+  }
+
   public Test suite()
   {
     TestSuite suite = new TestSuite();
@@ -209,6 +234,10 @@ public class CoroTest extends JiliTestCase
     suite.addTest(new CoroTest("test10")
       {
         public void runTest() { test10(); }
+      });
+    suite.addTest(new CoroTest("test11")
+      {
+        public void runTest() { test11(); }
       });
 
     return suite;
