@@ -15,8 +15,7 @@
 
 package mnj.lua;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.util.Enumeration;
 
@@ -535,6 +534,13 @@ public final class BaseLib extends LuaJavaCallback
     return L.getTop();
   }
 
+  /**
+   * The {@link PrintStream} used by print.  Makes it more convenient if
+   * redirection is desired.  For example, client code could implement
+   * their own instance which sent output to the screen of a JME device.
+   */
+  static final PrintStream OUT = System.out;
+
   /** Implements print. */
   private static int print(Lua L)
   {
@@ -552,12 +558,12 @@ public final class BaseLib extends LuaJavaCallback
       }
       if (i>1)
       {
-        System.out.print('\t');
+        OUT.print('\t');
       }
-      System.out.print(s);
+      OUT.print(s);
       L.pop(1);
     }
-    System.out.println();
+    OUT.println();
     return 0;
   }
 
