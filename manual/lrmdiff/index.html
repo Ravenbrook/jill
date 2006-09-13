@@ -35,12 +35,14 @@
 
 <p>
 This document describes the differences between PUC-Rio's implementation
-of Lua and Jili.  It is structured to follow PUC-Rio's LRM.
+of Lua and Jili.  It is structured to follow PUC-Rio's Lua Reference
+Manual, [<a href="#ref-lrm">LRM</a>].
 </p>
 
 <p>
-This document is a work in progress.  As of 2006-05-22 the LRM is
-covered up to (but not including) section 3.8.
+In general if a feature or facility isn't mentioned below then it
+is provided or an
+obvious equivalent is provided.
 </p>
 
 <h2>LRM Section 2 - The Language</h2>
@@ -49,6 +51,14 @@ covered up to (but not including) section 3.8.
 Essentially identical except that in Jili source chunks are sequences of
 Unicode characters.  Similarly, in Jili strings are sequences of Unicode
 characters.  Binary chunks are sequences of bytes.
+</p>
+
+<p>
+In the current version of Jili only Lua 5.1 features are supported.
+Deprecated features from Lua 5.0 (which are not documented in the Lua
+5.1 Reference Manual) are not supported, and generally do not work.  The
+most common cases of this are attempts to use <code>table.getn</code>,
+<code>table.foreach</code>, and <code>math.mod</code>.
 </p>
 
 <p>
@@ -61,7 +71,12 @@ ASCII would map them to.
 <dl>
   <dt>LRM 2.2</dt> <dd>Jili only has one sort of userdata (implemented
   by the <code>LuaUserdata</code> class).  Therefore all facilities
-  concerned with light userdata are removed.</dd>
+  concerned with light userdata are removed.  An alternative to using
+  light userdata is to simply use any old Java reference.  For example,
+  <em>any</em> Object can be stored in a Lua global variable, it doesn't
+  have to be a Lua value (though certain Lua operations may abort if
+  applied to such an Object).  See the implementation of
+  <code>pairs</code> in the base library for an example of this.</dd>
   <dt>LRM 2.2.1</dt> <dd>The conversion of strings to numbers and
   numbers to strings in Jili may be slightly different from the
   corresponding conversions in PUC-Rio Lua.  For example, the value
@@ -95,6 +110,10 @@ capitalisation modified to meet prevalent Java standards.
   <dd>The stack is retained but only for passing arguments
   to functions and receiving their return values.  Methods in Jili's API
   generally receive and return Lua objects directly as Java objects.
+  This is a big change to the style of the API compared to PUC-Rio.
+  Java code can manipulate and store Lua values directly (in local
+  variables or member instances for example) and does not need to ensure
+  that Lua values are referenced by the stack or the registry.
   </dd>
 
   <dt>LRM 3.4</dt>
@@ -104,16 +123,16 @@ capitalisation modified to meet prevalent Java standards.
   </dd>
 
   <dt>LRM 3.5</dt>
-  <dd>(The Registry) Court still in session.</dd>
+  <dd>The registry is provided via <code>Lua.getRegistry</code>.</dd>
 
-  <dt>(Error Handling) LRM 3.6</dt>
+  <dt>LRM 3.6 (Error Handling)</dt>
   <dd>As in PUC-Rio Lua errors should be handled using
   <code>pcall</code>.  Internally errors are generated using Java
   exceptions, so Lua errors that occur outside of the environment
   created by <code>pcall</code> will manifest as Java exceptions.  Most
   of Java's internal exceptions are not caught so will be passed through
-  transparently.  In particular running out of memory in Lua will appear
-  as the usual Java exception.
+  transparently.  A Java <code>java.lang.OutOfMemory</code> Exception is
+  caught and converted to a Lua error.
   </dd>
 
   <dt>lua_Alloc</dt>
@@ -122,13 +141,13 @@ capitalisation modified to meet prevalent Java standards.
   <dt>lua_atpanic</dt>
   <dd>No equivalent in Jili.  A Lua error raised outside the environment
   created by <code>pcall</code> will manifest as a Java exception being
-  thrown.</dd>
+  thrown.  Client code, in Javaj, can catch this.</dd>
 
   <dt>lua_CFunction</dt>
   <dd>Replace by <code>LuaJavaCallback</code>.</dd>
 
   <dt>lua_checkstack</dt>
-  <dd>Same.  Or maybe unnecesssary.</dd>
+  <dd>Not provided.</dd>
 
   <dt>lua_close</dt>
   <dd>Provided, but does nothing (would call GC metamethods if they were
@@ -165,7 +184,7 @@ capitalisation modified to meet prevalent Java standards.
   <dd>Use constructor of <code>Lua</code>.</dd>
 
   <dt>lua_next</dt>
-  <dd>Same, but not efficient.</dd>
+  <dd>Same, but not efficient.  Should not be used in Jili.</dd>
 
   <dt>lua_Number</dt>
   <dd>Modelled by <code>java.lang.Double</code>.</dd>
@@ -197,9 +216,6 @@ capitalisation modified to meet prevalent Java standards.
 
   <dt>lua_Reader</dt>
   <dd>Generally replaced with <code>java.io.InputStream</code>.</dd>
-
-  <dt>lua_register</dt>
-  <dd>To be decided.</dd>
 
   <dt>lua_remove</dt>
   <dd>No equivalent.</dd>
@@ -234,9 +250,24 @@ capitalisation modified to meet prevalent Java standards.
   <dt>lua_Writer</dt>
   <dd>Generally replaced with <code>java.io.OutputStream</code>.</dd>
 
+  <dt>LRM 3.8 The Debug Interface</dt>
+  <dd>Most of the debug interface is not provided.  Some of it is
+  implemented and is available internally.</dd>
+
 </dl>
 
-<h2 id="section-5">5. Standard Libraries</h2>
+<h2 id="section-4">LRM Section 4 - Auxiliary Library</h2>
+
+<p>
+Many of the Auxiliary Library facilities are provided (as methods on
+<code>Lua</code>).  Many of them are not necessary, for example, lots of
+string manipulation functions provided by PUC-Rio can be replaced with
+<code>StringBuffer</code> in Java.
+</p>
+
+<h2 id="section-5">LRM Section 5 - Standard Libraries</h2>
+
+<h3 id="section-5-1">LRM Section 5.1 - Basic Functions</h3>
 
 <dl>
 
@@ -246,6 +277,22 @@ capitalisation modified to meet prevalent Java standards.
 <dt>_VERSION</dt>
 <dd>Exists and is a string, as in PUC-Rio, but its contents will be
 different.</dd>
+
+</dl>
+
+<h3 id="section-5-2">LRM Section 5.2 - Coroutine Manipulation.</h3>
+
+<p>Provided.</p>
+
+<h3 id="section-5-3">LRM Section 5.3 - Modules.</h3>
+
+<p>Mostly the same. <code>package.loadlib</code> and
+<code>package.cpath</code> are not provided as they make no sense in
+JME.</p>
+
+<h3 id="section-5-4">LRM Section 5.4 - String Manipulation.</h3>
+
+<dl>
 
 <dt>string.byte</dt>
 <dd>Internal numerical codes are Unicode code positions -
@@ -269,9 +316,30 @@ dependent, and in fact derive from
 <dd>Not all formats may print exactly the same as a stock PUC-Rio
 Lua.</dd>
 
+</dl>
+
+<h3 id="section-5-5">LRM Section 5.5 - Table Manipulation.</h3>
+
+<p>Provided.</p>
+
+<h3 id="section-5-6">LRM Section 5.6 - Mathematical Functions.</h3>
+
+<p>Provided to the extent that JME provided equivalent functions.</p>
+
+<h3 id="section-5-7">LRM Section 5.7 - Input and Output Facilities.</h3>
+
+<p>Not provided.</p>
+
+<h3 id="section-5-8">LRM Section 5.8 - Operating System Facilities.</h3>
+
+<p>Many functions in the OS library are not provided as their is no
+equivalent in JME.</p>
+
+<dl>
+
 <dt>os.clock</dt>
 <dd>Returns wall clock time since the class that implements the function
-was loaded.</dd>
+was loaded (as opposed to CPU time which isn't available in JME).</dd>
 
 <dt>os.date</dt>
 <dd>Not all the conversion specifications of C's strftime are supported.
@@ -284,9 +352,11 @@ Some that are supported will give different output.
 so on.
 </dd>
 
-
 </dl>
 
+<h3 id="section-5-9">LRM Section 5.9 - The Debug Library.</h3>
+
+<p>Not provided.</p>
 
 <h2 id="section-A">A. References</h2>
 
