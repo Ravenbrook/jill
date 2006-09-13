@@ -107,6 +107,22 @@ to adapt the build procedure.
 4. RELEASE NOTES
 
 
+RELEASE 1.0
+
+All docummentation is now up to date.
+
+A new test that checks whether Lua.resume catches errors correctly has
+been added: CoroTest.test11.
+
+A bug in print was identified and fixed.  print calls tostring and
+expects tostring to return a string; it should raise an error if
+tostring does not return a string.  Previously no error was raised, but
+now an error is raised.  Ravenbrook job001521.
+
+
+There are no known bugs that are intended to be fixed.
+
+
 RELEASE 0.19.0
 
 This release is a maintenance release.
