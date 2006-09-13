@@ -24,7 +24,7 @@ final class StringReader extends java.io.Reader
   /** Index of the current read position.  -1 if closed. */
   private int current;  // = 0
   /**
-   * Index of the current mark (set with {@link StringReader#mark}).
+   * Index of the current mark (set with {@link #mark}).
    */
   private int mark;     // = 0;
 

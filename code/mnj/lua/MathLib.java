@@ -19,7 +19,7 @@ import java.util.Random;
 
 /**
  * Contains Lua's math library.
- * The library can be opened using the {@link MathLib#open} method.
+ * The library can be opened using the {@link #open} method.
  * Because this library is implemented on top of CLDC 1.1 it is not as
  * complete as the PUC-Rio math library.  Trigononmetric inverses
  * (EG <code>acos</code>) and hyperbolic trigonometric functions (EG

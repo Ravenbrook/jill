@@ -21,7 +21,7 @@ import java.io.IOException;
 /**
  * Contains Lua's package library.
  * The library
- * can be opened using the {@link PackageLib#open} method.
+ * can be opened using the {@link #open} method.
  */
 public final class PackageLib extends LuaJavaCallback
 {
@@ -398,7 +398,7 @@ public final class PackageLib extends LuaJavaCallback
   {
     // :todo: consider implementing a user-specified path via
     // javax.microedition.midlet.MIDlet.getAppProperty or similar.
-    // Currently we just the default path defined by Jili.
+    // Currently we just use a default path defined by Jili.
     L.setField(t, fieldname, def);
   }
 }

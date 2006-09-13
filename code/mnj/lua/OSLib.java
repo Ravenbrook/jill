@@ -24,7 +24,7 @@ import java.util.TimeZone;
 
 /**
  * The OS Library.  Can be opened into a {@link Lua} state by invoking
- * the {@link OSLib#open} method.
+ * the {@link #open} method.
  */
 public final class OSLib extends LuaJavaCallback
 {
@@ -385,7 +385,7 @@ public final class OSLib extends LuaJavaCallback
   }
 
   /**
-   * (almost) inverts the conversion provided by {@link OSLib#MONTH}.  Converts
+   * (almost) inverts the conversion provided by {@link #MONTH}.  Converts
    * from a {@link Calendar} value to a month in the range 1-12.
    * @param m  a value from the enum Calendar.JANUARY, Calendar.FEBRUARY, etc
    * @return a month in the range 1-12, or the original value.

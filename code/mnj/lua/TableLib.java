@@ -19,7 +19,7 @@ import java.util.Enumeration;
 
 /**
  * Contains Lua's table library.
- * The library can be opened using the {@link TableLib#open} method.
+ * The library can be opened using the {@link #open} method.
  */
 public final class TableLib extends LuaJavaCallback
 {

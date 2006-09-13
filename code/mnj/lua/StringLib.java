@@ -21,7 +21,7 @@ import java.util.Vector;
 
 /**
  * Contains Lua's string library.
- * The library can be opened using the {@link StringLib#open} method.
+ * The library can be opened using the {@link #open} method.
  */
 public final class StringLib extends LuaJavaCallback
 {
@@ -298,7 +298,7 @@ public final class StringLib extends LuaJavaCallback
 
   /**
    * Expects the iteration state, an Object[3] (see {@link
-   * StringLib#gmatch}), to be first on the stack.
+   * #gmatch}), to be first on the stack.
    */
   private static int gmatchaux(Lua L)
   {
@@ -503,7 +503,7 @@ public final class StringLib extends LuaJavaCallback
     return 1;
   }
 
-  /** Helper for {@link StringLib#sub} and friends. */
+  /** Helper for {@link #sub} and friends. */
   private static int posrelat(int pos, String s)
   {
     if (pos >= 0)

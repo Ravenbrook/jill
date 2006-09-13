@@ -112,9 +112,9 @@ final class Syntax
   /** Semantic info for lookahead; a string. */
   String lookaheadS;
 
-  /** Semantic info for return value from {@link Syntax#llex}; a number. */
+  /** Semantic info for return value from {@link #llex}; a number. */
   double semR;
-  /** As <code>semR</code>, for string. */
+  /** As {@link #semR}, for string. */
   String semS;
 
   /** FuncState for current (innermost) function being parsed. */

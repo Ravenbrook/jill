@@ -23,7 +23,7 @@ import java.util.Enumeration;
 /**
  * Contains Lua's base library.  The base library is generally
  * considered essential for running any Lua program.  The base library
- * can be opened using the {@link BaseLib#open} method.
+ * can be opened using the {@link #open} method.
  */
 public final class BaseLib extends LuaJavaCallback
 {
@@ -255,8 +255,8 @@ public final class BaseLib extends LuaJavaCallback
     L.setField(L.getGlobal("coroutine"), name, f);
   }
 
-  /** Implements assert.  assert is a keyword in some versions of Java,
-   * so this function has a mangled name.
+  /** Implements assert.  <code>assert</code> is a keyword in some
+   * versions of Java, so this function has a mangled name.
    */
   private static int assertFunction(Lua L)
   {
@@ -268,10 +268,12 @@ public final class BaseLib extends LuaJavaCallback
     return L.getTop();
   }
 
+  /** Used by {@link #collectgarbage}. */
   private static final String[] CGOPTS = new String[]
   {
     "stop", "restart", "collect",
     "count", "step", "setpause", "setstepmul"};
+  /** Used by {@link #collectgarbage}. */
   private static final int[] CGOPTSNUM = new int[]
   {
     Lua.GCSTOP, Lua.GCRESTART, Lua.GCCOLLECT,
@@ -327,7 +329,7 @@ public final class BaseLib extends LuaJavaCallback
     return 0;
   }
 
-  /** helper for getfenv and setfenv. */
+  /** Helper for getfenv and setfenv. */
   private static Object getfunc(Lua L)
   {
     Object o = L.value(1);
@@ -482,7 +484,9 @@ public final class BaseLib extends LuaJavaCallback
 
   /** Implements pairs.  PUC-Rio uses "next" as the generator for pairs.
    * Jili doesn't do that because it would be way too slow.  We use the
-   * java.util.Enumeration returned from java.util.Table.elements.
+   * {@link java.util.Enumeration} returned from
+   * {@link java.util.Hashtable#keys}.  The {@link #pairsaux} method
+   * implements the step-by-step iteration.
    */
   private static int pairs(Lua L)
   {
@@ -496,11 +500,15 @@ public final class BaseLib extends LuaJavaCallback
 
   /** Generator for pairs.  This expects a <var>state</var> and
    * <var>var</var> as (Lua) arguments.
-   * The state is setup by {@link BaseLib#pairs} and is a
+   * The state is setup by {@link #pairs} and is a
    * pair of {LuaTable, Enumeration} stored in a 2-element array.  The
    * <var>var</var> is not used.  This is in contrast to the PUC-Rio
    * implementation, where the state is the table, and the var is used
-   * to generated the next key in sequence.
+   * to generated the next key in sequence.  The implementation, of
+   * pairs and pairsaux, has no control over <var>var</var>,  Lua's
+   * semantics of <code>for</code> force it to be the previous result
+   * returned by this function.  In Jili this value is not suitable to
+   * use for enumeration, which is why it isn't used.
    */
   private static int pairsaux(Lua L)
   {

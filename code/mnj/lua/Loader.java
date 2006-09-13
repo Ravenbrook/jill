@@ -321,7 +321,7 @@ final class Loader
    * index 6, which is always overwritten with the one from the file,
    * before comparison.  We cope with either endianness.
    * Default access so that {@link Lua#load} can read the first entry.
-   * On no account should anyone except {@link Loader#header} modify
+   * On no account should anyone except {@link #header} modify
    * this array.
    */
   static final byte[] HEADER = new byte[]

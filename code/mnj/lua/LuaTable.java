@@ -48,7 +48,7 @@ public final class LuaTable extends java.util.Hashtable
    */
   int sizeArray;        // = 0;
   /**
-   * <code>true</code> whenever we are in the {@link LuaTable#rehash}
+   * <code>true</code> whenever we are in the {@link #rehash}
    * method.  Avoids infinite rehash loops.
    */
   private boolean inrehash;     // = false;
@@ -95,7 +95,7 @@ public final class LuaTable extends java.util.Hashtable
    * Provided to avoid Checkstyle warning.  This method is not necessary
    * for correctness (in neither JME nor JSE), it's only provided to
    * remove a Checkstyle warning.
-   * Since {@link LuaTable#equals} implements the most discriminating
+   * Since {@link #equals} implements the most discriminating
    * equality possible, this method can have any implementation.
    * @return an int.
    */
@@ -389,7 +389,7 @@ public final class LuaTable extends java.util.Hashtable
   }
 
   /**
-   * Like {@link LuaTable#getlua(Object)} but the result is written into
+   * Like {@link #getlua(Object)} but the result is written into
    * the <var>value</var> {@link Slot}.
    */
   void getlua(Slot key, Slot value)
