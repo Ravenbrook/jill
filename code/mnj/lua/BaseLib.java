@@ -548,8 +548,7 @@ public final class BaseLib extends LuaJavaCallback
       String s = L.toString(L.value(-1));
       if (s == null)
       {
-        // :todo: error
-        throw new NullPointerException();
+        return L.error("'tostring' must return a string to 'print'");
       }
       if (i>1)
       {
