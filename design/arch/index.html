@@ -114,11 +114,13 @@ responsible for these activities.  Generally the results of compilation
 per script) which generally will reference many constants, strings,
 numbers, and other functions.  All of these objects are created using
 the lower level Representation cluster.  The Syntax and Code modules
-create code from Lua source, the Undump module creates code from a
-compiled binary representation.  The compiled binary representation will
-be the same as the PUC-Rio implementation; this has the benefit that
+(the Java classes Syntax and FuncState mostly)
+create code from Lua source, the Undump module (the Java class Loader)
+creates code from a
+compiled binary representation.  The compiled binary representation is
+the same as the PUC-Rio implementation; this has the benefit that
 binaries can be compiled offline (not on the target) and loaded on the
-target, meaning that the compiler (Syntax and Code) need not be working
+target, meaning that the compiler need not be working
 in order to test the remaining parts of the system.
 </p>
 
@@ -126,7 +128,7 @@ in order to test the remaining parts of the system.
 The Execution cluster is responsible for executing Lua code.  All Lua
 code that is to be executed is in an internal binary form (clusters of
 LuaFunction objects).  All execution begins by some Java code calling
-the call method or the resume method (for coroutine resumption) of a Lua
+the <code>call</code> method or the <code>resume</code> method (for coroutine resumption) of a Lua
 state object.
 Execution proceeds by the VM interpreting the VM
 instructions of the function.  When control transfers to another Lua
@@ -136,10 +138,12 @@ Note that the VM, under most circumstances, will not invoke itself to
 execution a called Lua function, thus the Lua stack will not be modelled
 by the Java stack; this is essential in order to implement coroutines.
 Execution of VM instructions is suspended when Lua calls a function
-implemented in Java; when that function returns to the VM then the VM
+implemented in Java (such functions are modelled as instances of the
+<code>LuaJavaCallback</code> class);
+when that function returns to the VM then the VM
 will resume execution of VM instructions.  If the called Java function
-requests a yield, which it will do with code similar to "return
-L.yield(n)", then the VM will remain suspended and return to its caller
+requests a yield, which it will do with code similar to <code>return
+L.yield(n)</code>, then the VM will remain suspended and return to its caller
 (the Java code that originally invoked <code>Lua.call</code>).
 </p>
 
@@ -170,8 +174,10 @@ An encapsulated Lua execution environment is represented by the class
 In order to minimise superfluous classes this class is likely to
 implement a large number of methods.  This class will be the analogue of
 PUC-Rio's <code>lua_State</code> object.  Like PUC-Rio's implementation
-it will be possible to have completely independent Lua execution
-environments by creating multiple instances of <code>Lua</code>.
+it is possible to have completely independent Lua execution
+environments by creating multiple instances of <code>Lua</code>.  Also
+like PUC-Rio's implementation Lua threads (aka coroutines) are
+created from a main Lua instance and are Lua instances themselves.
 </p>
 
 <p>
@@ -191,8 +197,8 @@ the implementation of equivalent facilities in the JVM.
 </p>
 
 <p>
-A Lua value supports many generic operations.  These will be represented
-in Jili by methods (on the Lua state object).
+A Lua value supports many generic operations.  These are represented
+in Jili by methods on the Lua state object.
 The following monadic operations are identified (whose
 names are all taken from the equivalent functions from PUC-Rio's C API,
 eg lua_call, lua_getfield, etc): call, getfenv, getfield, 
@@ -215,21 +221,27 @@ concat, equal, lessthan, rawequal.
 <h3>Representing Lua's nil, boolean, number, and string types</h3>
 
 <p>
-Lua's <code>nil</code> is represented by Java's <code>null</code> (but
-see below for discusion).  
+Lua's <code>nil</code> is represented by a single unique object,
+<code>Lua.NIL</code> (this is created at class load time).
 </p>
 
 <p>
 Lua's <code>boolean</code> is represented by Java's
-<code>java.lang.Boolean</code>.
+<code>java.lang.Boolean</code>.  In particular each of <code>true</code>
+and <code>false</code> is represented by the static object in Java,
+<code>java.lang.Boolean.TRUE</code> and
+<code>java.lang.Boolean.FALSE</code>.
 </p>
 
 <p>
-Lua numbers shall be represented by Java's <code>java.lang.Double</code> class.
+Lua numbers are represented by Java's <code>java.lang.Double</code> class.
+Generally there is no attempt to intern these; the number 1.0 may
+be represented by several different instances of
+<code>java.lang.Double</code>.
 </p>
 
 <p>
-Lua strings shall be represented by Java's <code>java.lang.String</code> class.
+Lua strings are represented by Java's <code>java.lang.String</code> class.
 </p>
 
 <p>
@@ -256,16 +268,15 @@ doubles to Lua numbers and so forth.
 </p>
 
 <p>
-Representing <code>nil</code> by <code>null</code> has two problems.
-The first problem is that it may be confusing to
-Java programmers; <code>null</code> can creep into places accidentally
-and therefore may get passed into Lua unintentionally.
-The second
-problem is that in Lua 5.1 <code>nil</code> is a valid table index (for
-lookups) and <code>java.util.Hashtable</code> raises a
-<code>NullPointerException</code> for <code>null</code> keys.
-Because of this we may move to a non-<code>null</code> representation
-for <code>nil</code>.
+The VM Stack (see below) has a different representation for some Lua
+values.  The stack is a <code>Slot[]</code>, an array of Slot objects.
+Each element of the array refers to a Slot object.  Once a Slot object
+has been assigned an element in the array the array element always
+references that Slot object.  No Slot object is referenced by more than
+one array element.  A Slot object is a pair and can contain either a
+<code>double</code> value or a reference.  The slot objects are mutable.
+When a VM instruction creates a new number value it writes it into the
+double member of the target Slot object, thus no allocation need occur.
 </p>
 
 
@@ -278,7 +289,9 @@ A function implemented in Lua is represented by the class
 A function implemented in Java is represented by (an instance of a
 subclass of) the class <code>LuaJavaCallback</code>.  The embedder of
 Lua will create Lua Java functions by subclassing
-<code>LuaJavaCallback</code> and instantiating it.
+<code>LuaJavaCallback</code> and instantiating it.  The libraries that
+are provided are all sublasses of <code>LuaJavaCallback</code>; the base
+library is implemented in the <code>BaseLib</code> class, and so on.
 </p>
 
 <h4>
@@ -382,31 +395,19 @@ instruction requires the same access)</dd>
 </dl>
 
 <p>
-The optimised approach to upvalues, used by the PUC-Rio implementation,
-is not directly possible in Java
-since we cannot reference the interior of an array directly.  Jili's
-<code>UpVal</code> will reference a value via an array and an offset.
-An open upvalue will reference the VM stack array and use the
-appropriate offset; a closed upvalue will reference a freshly allocated
-1-element array and use an offset of 0.  Thus accessing an upvalue (from
-an inner function) will cost an extra array access (and two member
-accesses).
+We take a similar approach to the PUC-Rio implementation.  An open
+upvalue references the same Slot object that is referenced by the element
+of the array used by the stack.  When the upvalue is closed a fresh Slot
+object is created from the contents of the old one; this new Slot object
+is then referenced by the UpVal and so is no longer shared with the
+stack.
 </p>
 
 <div align="center">
 <img src="upval.png" border="1">
 <p>Illustration of <code>UpVal</code> representation when open and
-closed.</p>
+closed (slightly wrong now).</p>
 </div>
-
-<p>
-An alternative to this approach is to have the VM stack not reference
-values directly, but indirectly via a binding cell (which could be a
-1-element array for example).  Upvalues could reference the same binding
-cell.  No housekeeping is necessary.  The extra indirection (via the
-binding cell) for <strong>all</strong> stack access is judged to be too
-slow.  So we reject this approach.
-</p>
 
 <p>
 The set of open upvalues is accesssed in a near stack-like manner.
@@ -423,7 +424,9 @@ function can be created in any order.  All the upvalues for a function
 (or block) are removed (by <code>OP_RET</code> or <code>OP_CLOSE</code>)
 when the function returns.  Thus the access is near stack-like, new
 upvalues are created within a set of upvalues confined to the current
-function, and all the upvalues of a function are removed together.
+function, and all the upvalues of a function are removed together (this
+isn't quite true for upvalues inside loops and other <code>do ...
+end</code> blocks, but it nearly is).
 </p>
 
 <p>
@@ -489,22 +492,47 @@ member is called "which".
 <h3>Representing Tables</h3>
 
 <p>
-Lua Tables will be represented by the class <code>LuaTable</code>,
-which will largely
-rely on the services of <code>java.util.Hashtable</code> (which thankfully
+Lua Tables are represented by the class <code>LuaTable</code>,
+which uses
+the services of <code>java.util.Hashtable</code> (which thankfully
 exists in
-CLDC 1.0) to do the heavy lifting.  It's likely that we can implement
-<code>LuaTable</code> as a subclass of <code>java.util.Hashtable</code>
+CLDC 1.0) to do some of the work.  
+<code>LuaTable</code> is a subclass of <code>java.util.Hashtable</code>
 (smaller and faster than alternatives).
 The services beyond those provided
 by <code>java.util.Hashtable are</code>: metatable, non-raw access (ie a getfield
-which goes via the metatable if there is one), length (non-obvious
+which goes via the metatable if there is one), length (with non-obvious
 semantics, see <a href="#ref-lrm">LRM</a>: <a
 href="http://www.lua.org/manual/5.1/manual.html#len-op">The Length
 Operator</a>), callable (metatable), concatable (metatable), comparable
 (metatable).  All of these operations will be invoked by the Java
-programming using methods from the <code>LuaValue</code> class; recall
+programmer using static method from the <code>Lua</code> class; recall
 that this is necessary because in Lua all values support most operations.</p>
+
+<p>
+Because Intuwave have identified the array use of a table as important,
+where the table is indexed mostly with keys that are integers from 1 to
+N, the LuaTable class efficiently supports this case.  Like the PUC-Rio
+implementation a table is split into two parts, an array part, and a
+hash part.  In LuaTable the array part implements the table mapping for
+all integer keys from 1 to <code>sizeArray</code> (an instance member)
+inclusive.  The hash part is implemented by the superclass,
+<code>java.util.Hashtable</code>.</p>
+
+<p>The size of the array part can be
+chosen when LuaTable is instantiated, using the <code>LuaTable(int,
+int)</code> constructor, and is also determined automatically by the
+implementation when a rehash occurs.  The VM instruction
+<code>OP_NEWTABLE</code> will set the initial size of the array and hash
+parts according to the hints specified by the compiler; this optimises
+the case where a table is created in Lua using an initialiser: <code>t =
+{1, 2, 3, 'a', 'b', 'c'}</code>.  When a rehash occurs
+(<code>LuaTable.rehash</code> is invoked) a survey of suitable keys in
+the table is taken and <code>sizeArray</code> is chosen to be the
+largest power of 2 such that at least half the keys from 1 to
+<code>sizeArray</code> are used.  This is basically a clone of the
+PUC-Rio approach.
+</p>
 
 <p>Note that we are relying on the underlying table support providing by
 <code>java.util.Hashtable</code>.  This may have different performance
@@ -558,10 +586,20 @@ simple class with a metatable member and an <code>Object</code> member.
 <h3>Representing Coroutines</h3>
 
 <p>
-As in PUC-Rio Lua, Jili will represent a coroutine (or thread) by a Lua
+As in PUC-Rio Lua, Jili represents a thread (or coroutine) by a Lua
 state object that shares a global environment with its parent coroutine.
 Note that whilst coroutines share global environments they do not share
 VM execution states so they represent independent threads of execution.
+</p>
+
+<p>
+There is some state that is shared between threads that would ordinarily
+best be implemented by each thread referencing a common object (or
+objects), but in order to speed up access to the shared state from each
+thread it is copied into each thread.  This is implemented in the
+private constructor <code>Lua(Lua)</code> where the references to the
+global table, the registry, and the one-off metatables are copied into
+the new thread.
 </p>
 
 <h2 id="section-4">4. Execution</h2>
@@ -598,6 +636,32 @@ stored in the <code>Proto</code> object for that function).
 </p>
 
 <p>
+In order to optimise the operation of the numerical instructions (like
+<code>OP_ADD</code>), which on the whole receive nnumbers as operands and
+produce numbers as results, the stack is organised so that the VM can
+execute such instructions without allocation.  The stack is a
+<code>Slot[]</code>, each element of the array points to a unique
+<code>Slot</code> instance.  The VM when it needs to write to a stack
+slot mutates the <code>Slot</code> instance referred to by the array
+element.  Each <code>Slot</code> instance can represent a double or a
+Java reference.  Thus a new number, the result of <code>x + y</code> for
+example, can be written into the target stack location without a new
+object being allocated.
+</p>
+
+<p>
+An upshot of the stack being a <code>Slot[]</code> is that numbers may
+need converting from <code>double</code> to <code>Double</code> and back
+again when crossing the API and also when being manipulated in tables.
+A typical example is the <code>LuaTable.getlua(Slot, Slot)</code> method
+which receives the key as a <code>Slot</code> and receives a
+<code>Slot</code> to which the result is written.  The
+<code>Slot.setObject</code> method is used to store the result; this
+method is responsible for handling <code>Double</code> as a special
+case.
+</p>
+
+<p>
 The stack slots available to a function activation are fixed in number,
 determined when the function is compiled.  The stack slots are arranged
 in a stack: when a (Lua) function is called the actual arguments are
@@ -610,7 +674,9 @@ to work with.  The range of stack slots available to an activation is
 typically denoted by (base, top), where <var>base</var> is the smallest
 index available to the function, and <var>top</var> is one more than the
 greatest index available to the function (this follows the analogous
-pointer convention used in the PUC-Rio implementation).
+pointer convention used in the PUC-Rio implementation).  In the source
+code the instance member <code>stackSize</code> denotes the position of
+<var>top</var>.
 </p>
 
 <p>
@@ -697,11 +763,14 @@ The transfer of control is done using an <code>Exception</code> in Java.
 A subclass of <code>Exception</code>, <code>LuaError</code>, is created
 to store the extra Lua <code>errorStatus</code> values which needs to
 get passed from the point where the error is generated to the catching
-code (<code>pcall</code>).
+code (<code>pcall</code>).  In order to avoid littering the code with
+<code>throws</code> declarations <code>LuaError</code> is a subclass of
+<code>java.lang.RuntimeException</code>.
 </p>
 
 <p>
-When an error is caught, the following VM state is restored:
+When an error is caught, the following VM state is restored by
+<code>pcall</code>:
 </p>
 <ul>
 <li>top-of-stack</li>
@@ -710,16 +779,21 @@ When an error is caught, the following VM state is restored:
 <li>pc</li>
 </ul>
 
+<p>
+Errors are also caught when a thread is executed using
+<code>Lua.resume</code>.  In this case the VM stack is not unwound.
+</p>
+
 <h2>6. Compilation</h2>
 
 <p>
-The Jili compiler will closely follow the PUC-Rio compiler.  This is
+The Jili compiler closely follows the PUC-Rio compiler.  This is
 organised as a hand-coded lexer (not table-driven), and a hand-coded
 recursive descent parser with table-driven operator-precedence parsing
 for binary and unary expressions.  Code generation happens as the
 program is parsed, thus there are very few explicit structures to
-represent the syntax or the parse (the representation of the parse is
-implicit in the call-stack).  For example, as an expression is
+represent the syntax or the parse.  The representation of the parse is
+implicit in the call-stack.  For example, as an expression is
 parsed, code to evaluate that expression is generated (and emitted into
 the code stream) and the compilation result is a register
 (that is, the index of a VM runtime
@@ -759,10 +833,25 @@ code that is in the PUC-Rio files "llex.c" and "lparser.c".
 
 <p>
 <code>expdesc</code> becomes the <code>Expdesc</code> class and is used
-in quite an unconventional way (for a Java class).  Its use follows the
+in quite an unconventional way for a Java class.  Its use follows the
 way the <code>expdesc</code> struct is used.  A blank instance is
 created at the beginning of an expression parse, and filled in as the
 parse goes along (and sometimes modifed as well).
+</p>
+
+<p>
+The low-level production of tokens differs slightly from the way PUC-Rio
+does it.  <code>llex</code> (in both PUC-Rio and Jili) is responsible.
+In the PUC-Rio implementation <code>llex</code> uses a pointer to return
+the semantic information.  In Java it's not possible to use a pointer
+directly, and the alternative of creating a class to hold the semantic
+information wastes too much jar file size.  So in Jili <code>llex</code>
+"returns" the semantic information by placing it in the instance
+variables <var>semR</var> and <var>semS</var>.  The callers of
+<code>llex</code>, <code>xLookahead</code> and <code>xNext</code>, then
+copy the semantic information into <code>token*</code> or
+<code>lookaheader*</code> as appropriate.  As there are only 2 different
+callers, this approach seems fine.
 </p>
 
 
@@ -806,6 +895,12 @@ parse goes along (and sometimes modifed as well).
     <td>2006-08-02</td>
     <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
     <td>Tidied up and brought more up to date.</td>
+</tr>
+
+<tr valign="top">
+    <td>2006-09-13</td>
+    <td><a href="mailto:drj@ravenbrook.com">DRJ</a></td>
+    <td>Brought up to date.</td>
 </tr>
 
 </table>
