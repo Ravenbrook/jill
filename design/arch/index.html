@@ -6,7 +6,7 @@
 
 <head>
 
-<title>Jili Architecture</title>
+<title>Jill Architecture</title>
 
 </head>
 
@@ -15,15 +15,13 @@
 <div align="center">
 
 <p>
-<a href="/">Ravenbrook</a> /
-<a href="/project/">projects</a> /
-<a href="/project/jili/">Java Implementation of Lua for Intuwave</a>
+Java Implementation of Lua Language</a>
 </p>
 
 <hr />
 
 
-<h1>Jili Architecture</h1>
+<h1>Jill Architecture</h1>
 
 <address>
 <a href="mailto:drj@ravenbrook.com">David Jones</a>,
@@ -37,7 +35,7 @@
 <h2 id="section-1">1. Introduction</h2>
 
 <p>
-This documents describe the design of Jili at a high level.
+This documents describe the design of Jill at a high level.
 </p>
 
 <p>
@@ -45,7 +43,7 @@ This is a draft docoument.
 </p>
 
 <p>
-The readership of this document is anyone interested in the Jili
+The readership of this document is anyone interested in the Jill
 project.
 </p>
 
@@ -58,9 +56,9 @@ to work well for implementing Lua.
 </p>
 
 <p>
-Because Jili must operate in constrained devices, designs that minimise
+Because Jill must operate in constrained devices, designs that minimise
 superfluous classes have been preferred.  This is in order to reduce the
-size of any <code>.jar</code> file incorporating Jili.
+size of any <code>.jar</code> file incorporating Jill.
 </p>
 
 
@@ -106,7 +104,7 @@ Inspection (the oddball. debug module)
 </ul>
 
 <p>
-Executable code is injected into the Jili system from two sources:
+Executable code is injected into the Jill system from two sources:
 compilation from lua source and loading precompiled binaries.  Both of
 these occur in the <code>Lua.load</code> method.  The Generation cluster is
 responsible for these activities.  Generally the results of compilation
@@ -157,7 +155,7 @@ href="#object-model">Object Model</a>, below.
 </p>
 
 <p>
-The Debug cluster (module really) provides two services in Jili: the
+The Debug cluster (module really) provides two services in Jill: the
 interface to Lua's debug hooks (which is in reality likely to be a
 method on the Lua state object); and, mapping of the compiled form of
 Lua functions to source code (file, line number, variable name).
@@ -183,7 +181,7 @@ created from a main Lua instance and are Lua instances themselves.
 <p>
 Generally a value in Lua will be represented by an object (which
 possibly references further internal implementation objects) in Java.
-Java programmers using Jili will be able to store Lua values wherever
+Java programmers using Jill will be able to store Lua values wherever
 they like, they will not be restricted to storing them only within other
 Lua objects (such as tables).  The JVM's GC will be used to implicitly
 collect Lua objects.  This means that provision of weakness (the
@@ -198,7 +196,7 @@ the implementation of equivalent facilities in the JVM.
 
 <p>
 A Lua value supports many generic operations.  These are represented
-in Jili by methods on the Lua state object.
+in Jill by methods on the Lua state object.
 The following monadic operations are identified (whose
 names are all taken from the equivalent functions from PUC-Rio's C API,
 eg lua_call, lua_getfield, etc): call, getfenv, getfield, 
@@ -249,7 +247,7 @@ The upshot of representing nil, boolean, strings, and numbers by their
 "obvious" counterparts in Java is that we do not need to implement a new
 class for each type.  This saves space in the <code>.jar</code> file, is
 likely to be faster (less boxing and unboxing to perform), and is more
-natural for Java programmers writing Jili extensions.  A
+natural for Java programmers writing Jill extensions.  A
 consequence is that the basic operations on Lua types (see above) cannot
 be represented by instance methods since Java provides no way for us to
 add an instance method to someone else's class, such as
@@ -353,7 +351,7 @@ closure defined in this function needed it, or may need creating.  The
 
 <p>
 Keeping the same approach imposes the following design requirements on
-Jili's upvalue mechanism:
+Jill's upvalue mechanism:
 </p>
 
 <dl>
@@ -432,7 +430,7 @@ end</code> blocks, but it nearly is).
 <p>
 PUC-Rio uses a linked list to manage the set of open upvalues.  The list
 is kept in order of stack slot position (top-most stack slot comes
-earliest in the list).  In Jili
+earliest in the list).  In Jill
 <code>java.util.Stack</code> could be a reasonable
 choice. Examining the <code>Stack</code> class however,
 we won't be using <code>pop</code>, as a single
@@ -448,7 +446,7 @@ because it performs poorly for the <em>Close</em> requirement (it
 would be O(n) time in the number of stack slots being destroyed as
 opposed to the PUC-Rio implementation which is O(n) time in the number
 of upvalues that require closing), and although it performs well for the
-other requirements Jili will emphasise <em>Close</em> because PUC-Rio
+other requirements Jill will emphasise <em>Close</em> because PUC-Rio
 does.
 </p>
 
@@ -485,7 +483,7 @@ correct method.  Of these three the former (a discriminating instance
 member) is preferred.  For JME environments the latter approach of
 having a separate class for each instance (each Lua Java Function) is
 not recommended as it will lead to <code>.jar</code> bloat.  The
-libraries provided with Jili use the former approach; the instance
+libraries provided with Jill use the former approach; the instance
 member is called "which".
 </p>
 
@@ -542,7 +540,7 @@ using the <code>java.util.Enumeration</code> returned from the
 <code>Hashtable</code>'s <code>keys</code> method, so this will be
 reasonably efficient.  The <code>next</code> function, also in the base
 library but less commonly used, is not supported efficiently by
-<code>java.util.Hashtable</code> so its implementation in Jili will be
+<code>java.util.Hashtable</code> so its implementation in Jill will be
 less efficient.
 </p>
 
@@ -568,7 +566,7 @@ equality.  Two <code>Hashtable</code>s are equal if the mappings they
 implement are equal.  In JME (CLDC) <code>java.util.Hashtable</code>
 does not implement <code>equals</code>, so inherits the most
 discriminating <code>equals</code> method from <code>Object</code>.  The
-upshot is that Jili's <code>LuaTable</code> class must implement
+upshot is that Jill's <code>LuaTable</code> class must implement
 <code>equals</code> in JSE if it is to get the correct Lua table
 semantics, but need not do this in JME.
 </p>
@@ -578,7 +576,7 @@ semantics, but need not do this in JME.
 <p>
 In PUC-Rio Lua a userdata exists to create Lua values that reference
 C types, either directly or via an additional pointer.  The
-corresponding facility in Jili allows Lua values that reference
+corresponding facility in Jill allows Lua values that reference
 arbitrary Java objects and includes a per-object metatable.  It is a
 simple class with a metatable member and an <code>Object</code> member.
 </p>
@@ -586,7 +584,7 @@ simple class with a metatable member and an <code>Object</code> member.
 <h3>Representing Coroutines</h3>
 
 <p>
-As in PUC-Rio Lua, Jili represents a thread (or coroutine) by a Lua
+As in PUC-Rio Lua, Jill represents a thread (or coroutine) by a Lua
 state object that shares a global environment with its parent coroutine.
 Note that whilst coroutines share global environments they do not share
 VM execution states so they represent independent threads of execution.
@@ -741,9 +739,9 @@ separate execution environments and do not interfere with each other.
 
 <p>
 Intuwave have an additional yielding requirement related to their
-co-operative task implementation.  The requirement on Jili is that a Lua
+co-operative task implementation.  The requirement on Jill is that a Lua
 Java function can yield the coroutine that called it by throwing an
-<code>Exception</code>.  In such a circumstance Jili will catch the
+<code>Exception</code>.  In such a circumstance Jill will catch the
 exception, arrange the Lua state so that the coroutine is effectively
 yielded (as if the Lua Java Function did a <code>return
 L.yield(0)</code>), and then rethrow the exception (or behaviour
@@ -787,7 +785,7 @@ Errors are also caught when a thread is executed using
 <h2>6. Compilation</h2>
 
 <p>
-The Jili compiler closely follows the PUC-Rio compiler.  This is
+The Jill compiler closely follows the PUC-Rio compiler.  This is
 organised as a hand-coded lexer (not table-driven), and a hand-coded
 recursive descent parser with table-driven operator-precedence parsing
 for binary and unary expressions.  Code generation happens as the
@@ -806,13 +804,13 @@ of binary and unary operators.  They are used for two purposes.  The
 first is that they are used to communicate between the parser and the
 code generator, as to which code needs to be generated.  The second is
 that they are used in the operator precedence parser to index into a
-table of precedence values.  In Jili these two enum types become
+table of precedence values.  In Jill these two enum types become
 <code>int</code>.</p>
 
 <p>
 The operator priority table (for operator precedence
 parsing) uses an anonymous two-element struct in PUC-Rio (for left- and
-right- priority).  In Jili this is replaced with a 2-element array,
+right- priority).  In Jill this is replaced with a 2-element array,
 where <code>[0]</code> is the left-priority and <code>[1]</code> is the
 right-priority.  Thus the table of priorities is an <code>int[][]</code>
 (if Java were able to express such a thing it would be
@@ -841,11 +839,11 @@ parse goes along (and sometimes modifed as well).
 
 <p>
 The low-level production of tokens differs slightly from the way PUC-Rio
-does it.  <code>llex</code> (in both PUC-Rio and Jili) is responsible.
+does it.  <code>llex</code> (in both PUC-Rio and Jill) is responsible.
 In the PUC-Rio implementation <code>llex</code> uses a pointer to return
 the semantic information.  In Java it's not possible to use a pointer
 directly, and the alternative of creating a class to hold the semantic
-information wastes too much jar file size.  So in Jili <code>llex</code>
+information wastes too much jar file size.  So in Jill <code>llex</code>
 "returns" the semantic information by placing it in the instance
 variables <var>semR</var> and <var>semS</var>.  The callers of
 <code>llex</code>, <code>xLookahead</code> and <code>xNext</code>, then
@@ -908,8 +906,27 @@ callers, this approach seems fine.
 <h2 id="section-C">C. Copyright and Licence</h2>
 
 <p>
-Copyright &copy; 2006 Ravenbrook Limited.  Intuwave Client
-Confidential.
+Copyright &copy; 2006 Nokia Corporation and/or its subsidiary(-ies).
+All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject
+to the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 </p>
 
 <hr />
@@ -918,9 +935,7 @@ Confidential.
 <p><code>$Id$</code></p>
 
 <p>
-<a href="/">Ravenbrook</a> /
-<a href="/project/">projects</a> /
-<a href="/project/jili/">Java Implementation of Lua for Intuwave</a>
+Java Implementation of Lua Language
 </p>
 
 </div>

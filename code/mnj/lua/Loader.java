@@ -1,16 +1,25 @@
 /*  $Header$
- *  (c) Copyright 2006, Intuwave Ltd. All Rights Reserved.
- *
- *  Although Intuwave has tested this program and reviewed the documentation,
- *  Intuwave makes no warranty or representation, either expressed or implied,
- *  with respect to this software, its quality, performance, merchantability,
- *  or fitness for a particular purpose. As a result, this software is licensed
- *  "AS-IS", and you are assuming the entire risk as to its quality and
- *  performance.
- *
- *  You are granted license to use this code as a basis for your own
- *  application(s) under the terms of the separate license between you and
- *  Intuwave.
+ * Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject
+ * to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package mnj.lua;
@@ -286,7 +295,7 @@ final class Loader
     // compatibility mode and is declared to have ... in its parameter
     // list and does _not_ use the 5.1 style of vararg access (using ...
     // as an expression).  It is assumed to use 5.0 style vararg access
-    // (the local 'arg' variable).  This is not supported in Jili.
+    // (the local 'arg' variable).  This is not supported in Jill.
     // ISVARARG indicates that a function has ... in its parameter list
     // (whether compiled in 5.0 compatibility mode or not).
     //

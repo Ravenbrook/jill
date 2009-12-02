@@ -15,9 +15,7 @@
 <div align="center">
 
 <p>
-<a href="/">Ravenbrook</a> /
-<a href="/project/">projects</a> /
-<a href="/project/jili/">Java Implementation of Lua for Intuwave</a>
+Java Implementation of Lua Language
 </p>
 
 <hr />
@@ -35,7 +33,7 @@
 
 <p>
 This document describes the differences between PUC-Rio's implementation
-of Lua and Jili.  It is structured to follow PUC-Rio's Lua Reference
+of Lua and Jill.  It is structured to follow PUC-Rio's Lua Reference
 Manual, [<a href="#ref-lrm">LRM</a>].
 </p>
 
@@ -48,13 +46,13 @@ obvious equivalent is provided.
 <h2>LRM Section 2 - The Language</h2>
 
 <p>
-Essentially identical except that in Jili source chunks are sequences of
-Unicode characters.  Similarly, in Jili strings are sequences of Unicode
+Essentially identical except that in Jill source chunks are sequences of
+Unicode characters.  Similarly, in Jill strings are sequences of Unicode
 characters.  Binary chunks are sequences of bytes.
 </p>
 
 <p>
-In the current version of Jili only Lua 5.1 features are supported.
+In the current version of Jill only Lua 5.1 features are supported.
 Deprecated features from Lua 5.0 (which are not documented in the Lua
 5.1 Reference Manual) are not supported, and generally do not work.  The
 most common cases of this are attempts to use <code>table.getn</code>,
@@ -69,7 +67,7 @@ ASCII would map them to.
 </p>
 
 <dl>
-  <dt>LRM 2.2</dt> <dd>Jili only has one sort of userdata (implemented
+  <dt>LRM 2.2</dt> <dd>Jill only has one sort of userdata (implemented
   by the <code>LuaUserdata</code> class).  Therefore all facilities
   concerned with light userdata are removed.  An alternative to using
   light userdata is to simply use any old Java reference.  For example,
@@ -78,14 +76,14 @@ ASCII would map them to.
   applied to such an Object).  See the implementation of
   <code>pairs</code> in the base library for an example of this.</dd>
   <dt>LRM 2.2.1</dt> <dd>The conversion of strings to numbers and
-  numbers to strings in Jili may be slightly different from the
+  numbers to strings in Jill may be slightly different from the
   corresponding conversions in PUC-Rio Lua.  For example, the value
   <code>(1 - 1e-16)</code> is converted to "1" in a stock version of
   PUC-Rio Lua 5.1 running on a reasonable quality C implementation.  In
-  Jili the same value is converted to "0.9999999999999999".  Also the
-  number <code>-0</code> is converted to "-0" in Jili, and "0" in
+  Jill the same value is converted to "0.9999999999999999".  Also the
+  number <code>-0</code> is converted to "-0" in Jill, and "0" in
   PUC-Rio.
-  Jili uses Java's underlying conversion mechanisms which are more
+  Jill uses Java's underlying conversion mechanisms which are more
   precisely specified than C.</dd>
   <dt>LRM 2.10</dt> <dd>GC provided by JVM</dd>
   <dt>LRM 2.10.1</td> <dd><code>__gc</code> metamethod not
@@ -97,7 +95,7 @@ ASCII would map them to.
 <h2>LRM Section 3 - The Application Program Interface</h2>
 
 <p>
-Obviously different as the PUC-Rio API is in C and Jili's API is in
+Obviously different as the PUC-Rio API is in C and Jill's API is in
 Java.  Equivalent facilities are provided.  In the list below, only
 those API facilities that are significantly different from PUC-Rio are
 mentioned.  Generally the C API function <code>lua_XXX</code> becomes a
@@ -108,7 +106,7 @@ capitalisation modified to meet prevalent Java standards.
 <dl>
   <dt>LRM 3.1</dt>
   <dd>The stack is retained but only for passing arguments
-  to functions and receiving their return values.  Methods in Jili's API
+  to functions and receiving their return values.  Methods in Jill's API
   generally receive and return Lua objects directly as Java objects.
   This is a big change to the style of the API compared to PUC-Rio.
   Java code can manipulate and store Lua values directly (in local
@@ -119,7 +117,7 @@ capitalisation modified to meet prevalent Java standards.
   <dt>LRM 3.4</dt>
   <dd>C closures are replaced with instances of
   <code>LuaJavaCallback</code> which is subclassed and instantiated by
-  clients of Jili's API.
+  clients of Jill's API.
   </dd>
 
   <dt>LRM 3.5</dt>
@@ -136,12 +134,12 @@ capitalisation modified to meet prevalent Java standards.
   </dd>
 
   <dt>lua_Alloc</dt>
-  <dd>No equivalent in Jili.</dd>
+  <dd>No equivalent in Jill.</dd>
 
   <dt>lua_atpanic</dt>
-  <dd>No equivalent in Jili.  A Lua error raised outside the environment
+  <dd>No equivalent in Jill.  A Lua error raised outside the environment
   created by <code>pcall</code> will manifest as a Java exception being
-  thrown.  Client code, in Javaj, can catch this.</dd>
+  thrown.  Client code, in Java, can catch this.</dd>
 
   <dt>lua_CFunction</dt>
   <dd>Replace by <code>LuaJavaCallback</code>.</dd>
@@ -175,7 +173,7 @@ capitalisation modified to meet prevalent Java standards.
   <dd>Use <code>isJavaFunction</code>.</dd>
 
   <dt>lua_islightuserdata</dt>
-  <dd>No equivalent as Jili does not have light userdata.</dd>
+  <dd>No equivalent as Jill does not have light userdata.</dd>
 
   <dt>lua_load</dt>
   <dd>Similar, see <code>Lua.load</code>.</dd>
@@ -184,7 +182,7 @@ capitalisation modified to meet prevalent Java standards.
   <dd>Use constructor of <code>Lua</code>.</dd>
 
   <dt>lua_next</dt>
-  <dd>Same, but not efficient.  Should not be used in Jili.</dd>
+  <dd>Same, but not efficient.  Should not be used in Jill.</dd>
 
   <dt>lua_Number</dt>
   <dd>Modelled by <code>java.lang.Double</code>.</dd>
@@ -206,7 +204,7 @@ capitalisation modified to meet prevalent Java standards.
   <dd>Use <code>Lua.pushNumber</code>.</dd>
 
   <dt>lua_pushlightuserdata</dt>
-  <dd>No equivalent as Jili does not have light userdata.</dd>
+  <dd>No equivalent as Jill does not have light userdata.</dd>
 
   <dt>lua_pushlstring</dt>
   <dd>Use <code>Lua.pushString</code>.</dd>
@@ -230,7 +228,7 @@ capitalisation modified to meet prevalent Java standards.
   <dd>Same. See <code>lua_getfield</code>.</dd>
 
   <dt>lua_State</dt>
-  <dd>The Jili equivalent is the <code>Lua</code> class.</dd>
+  <dd>The Jill equivalent is the <code>Lua</code> class.</dd>
 
   <dt>lua_tocfunction</dt>
   <dd>No equivalent (cast to <code>LuaJavaCallback</code>).</dd>
@@ -272,7 +270,7 @@ string manipulation functions provided by PUC-Rio can be replaced with
 <dl>
 
 <dt>rawset</dt>
-<dd>In Jili this does not return a value.</dd>
+<dd>In Jill this does not return a value.</dd>
 
 <dt>_VERSION</dt>
 <dd>Exists and is a string, as in PUC-Rio, but its contents will be
@@ -405,8 +403,27 @@ so on.
 <h2 id="section-C">C. Copyright and Licence</h2>
 
 <p>
-Copyright &copy; 2006 Ravenbrook Limited.  Intuwave Client
-Confidential.
+Copyright &copy; 2006 Nokia Corporation and/or its subsidiary(-ies).
+All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject
+to the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 </p>
 
 <hr />
@@ -415,9 +432,7 @@ Confidential.
 <p><code>$Id$</code></p>
 
 <p>
-<a href="/">Ravenbrook</a> /
-<a href="/project/">projects</a> /
-<a href="/project/jili/">Java Implementation of Lua for Intuwave</a>
+Java Implementation of Lua Language
 </p>
 
 </div>

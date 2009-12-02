@@ -1,16 +1,25 @@
 /*  $Header$
- *  (c) Copyright 2006, Intuwave Ltd. All Rights Reserved.
- *
- *  Although Intuwave has tested this program and reviewed the documentation,
- *  Intuwave makes no warranty or representation, either expressed or implied,
- *  with respect to this software, its quality, performance, merchantability,
- *  or fitness for a particular purpose. As a result, this software is licensed
- *  "AS-IS", and you are assuming the entire risk as to its quality and
- *  performance.
- *
- *  You are granted license to use this code as a basis for your own
- *  application(s) under the terms of the separate license between you and
- *  Intuwave.
+ * Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject
+ * to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 package mnj.lua;
@@ -26,7 +35,7 @@ import java.util.Vector;
 
 /**
  * <p>
- * Encapsulates a Lua execution environment.  A lot of Jili's public API
+ * Encapsulates a Lua execution environment.  A lot of Jill's public API
  * manifests as public methods in this class.  A key part of the API is
  * the ability to call Lua functions from Java (ultimately, all Lua code
  * is executed in this manner).
@@ -48,7 +57,7 @@ import java.util.Vector;
  * </p>
  *
  * <p>
- * Note that in Jili the stack is used only for passing arguments and
+ * Note that in Jill the stack is used only for passing arguments and
  * returning results, unlike PUC-Rio.
  * </p>
  *
@@ -66,7 +75,7 @@ import java.util.Vector;
 public final class Lua
 {
   /** Version string. */
-  public static final String VERSION = "Lua 5.1 (Jili 0.X.Y)";
+  public static final String VERSION = "Lua 5.1 (Jill 0.X.Y)";
 
   /** Table of globals (global variables).  This actually shared across
    * all threads (with the same main thread), but kept in each Lua
@@ -447,7 +456,7 @@ public final class Lua
   }
 
   /**
-   * Control garbage collector.  Note that in Jili most of the options
+   * Control garbage collector.  Note that in Jill most of the options
    * to this function make no sense and they will not do anything.
    * @param what  specifies what GC action to take.
    * @param data  data that may be used by the action.
@@ -721,7 +730,7 @@ public final class Lua
   /**
    * <p>
    * Tests that an object is a Lua value.  Returns <code>true</code> for
-   * an argument that is a Jili representation of a Lua value,
+   * an argument that is a Jill representation of a Lua value,
    * <code>false</code> for Java references that are not Lua values.
    * For example <code>isValue(new LuaTable())</code> is
    * <code>true</code>, but <code>isValue(new Object[] { })</code> is
@@ -731,7 +740,7 @@ public final class Lua
    * <p>
    * PUC-Rio Lua provides no
    * counterpart for this method because in their implementation it is
-   * impossible to get non Lua values on the stack, whereas in Jili it
+   * impossible to get non Lua values on the stack, whereas in Jill it
    * is common to mix Lua values with ordinary, non Lua, Java objects.
    * </p>
    * @param o  the Object to test.
@@ -1525,7 +1534,7 @@ protect:
      // <code>java.lang.Boolean.valueOf(boolean);</code> then I probably
      // wouldn't have written this.  This does have a small advantage:
      // code that uses this method does not need to assume that Lua booleans in
-     // Jili are represented using Java.lang.Boolean.
+     // Jill are represented using Java.lang.Boolean.
     if (b)
     {
       return Boolean.TRUE;
@@ -2610,7 +2619,7 @@ protect:
   // A sBx  (8 bits, 18 bits signed - excess K)
   // Some instructions do not use all the fields (EG OP_UNM only uses A
   // and B).
-  // When packed into a word (an int in Jili) the following layouts are
+  // When packed into a word (an int in Jill) the following layouts are
   // used:
   //  31 (MSB)    23 22          14 13         6 5      0 (LSB)
   // +--------------+--------------+------------+--------+

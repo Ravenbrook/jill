@@ -6,7 +6,7 @@
   This build.xml file is documented in manual/build/ .
 -->
 
-<project name="Jili" default="compile" basedir=".">
+<project name="Jill" default="compile" basedir=".">
 
   <!--
     The buildprop.local is intended to be written by users
@@ -230,7 +230,7 @@
     <!--
       Gather files for JiliShell, copying just what we need and no more.
       So that its file size can be used as a measure of how big a jar
-      with Jili in is.
+      with Jill in is.
     -->
     <copy todir="prejar/jilishell" >
       <fileset dir="preverified" />

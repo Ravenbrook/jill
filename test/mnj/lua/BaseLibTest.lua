@@ -1,5 +1,40 @@
 -- $Header$
+-- Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies).
+-- All rights reserved.
+-- 
+-- Permission is hereby granted, free of charge, to any person obtaining
+-- a copy of this software and associated documentation files (the
+-- "Software"), to deal in the Software without restriction, including
+-- without limitation the rights to use, copy, modify, merge, publish,
+-- distribute, sublicense, and/or sell copies of the Software, and to
+-- permit persons to whom the Software is furnished to do so, subject
+-- to the following conditions:
+-- 
+-- The above copyright notice and this permission notice shall be
+-- included in all copies or substantial portions of the Software.
+-- 
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+-- EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+-- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+-- IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+-- ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+-- CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+-- WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+-- DO NOT INSERT ANYTHING ABOVE THIS LINE.  Because...
+-- the function testerrormore relies on knowing its own line numbers.
+-- (secret: you can insert stuff above the line, as long as you fix the
+-- line number in this test function)
+function testerrormore()
+  local function f(x)
+    if x ~= nil then
+      error('spong', 1) -- this line number should appear in the output
+    end
+  end
+  local a,b = pcall(function()f(6)end)
+  print(b)
+  return a==false, b=='BaseLibTest.lua:31: spong'
+end
 function testprint()
   print()
   print(7, 'foo', {}, nil, function()end, true, false, -0.0)
@@ -157,18 +192,6 @@ function testxpcall()
   local c,d = xpcall(anerror, seven)
   local e,f = xpcall(seven, anerror)
   return a == false, c == false, d == 7, e == true, f == 7
-end
--- Do not move or rewrite testerrormore without changing the line
--- number on which it depends.
-function testerrormore()
-  local function f(x)
-    if x ~= nil then
-      error('spong', 1)
-    end
-  end
-  local a,b = pcall(function()f(6)end)
-  print(b)
-  return a==false, b=='BaseLibTest.lua:166: spong'
 end
 function testpcall2()
   local a,b,c,d = pcall(pcall, function()return 1+{}end)
